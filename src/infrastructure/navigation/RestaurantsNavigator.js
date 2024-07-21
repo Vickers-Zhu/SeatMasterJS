@@ -5,23 +5,23 @@ import {
   TransitionPresets,
 } from '@react-navigation/stack';
 
+import { RestaurantsScreen } from '../../features/restaurants/screens/RestaurantsScreen';
+
 const RestaurantStack = createStackNavigator();
 
 export const RestaurantsNavigator = () => {
   return (
-    <Text>Restaurants Navigator</Text>
-    // <RestaurantStack.Navigator
-    //   headerMode="none"
-    //   screenOptions={{ ...TransitionPresets.ModalPresentationIOS }}
-    // >
-    //   <RestaurantStack.Screen
-    //     name="Restaurants"
-    //     component={RestaurantsScreen}
-    //   />
-    //   <RestaurantStack.Screen
-    //     name="RestaurantDetail"
-    //     component={RestaurantDetailScreen}
-    //   />
-    // </RestaurantStack.Navigator>
+    // <Text>Restaurants Navigator</Text>
+    <RestaurantStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        ...TransitionPresets.ModalPresentationIOS,
+      }}
+    >
+      <RestaurantStack.Screen
+        name="RestaurantsScreen"
+        component={RestaurantsScreen}
+      />
+    </RestaurantStack.Navigator>
   );
 };
