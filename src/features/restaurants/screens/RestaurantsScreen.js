@@ -74,8 +74,9 @@ export const RestaurantsScreen = ({ navigation }) => {
           renderItem={({ item }) => {
             return (
               <TouchableOpacity
-                onPress={() =>{}
-                }
+                onPress={() =>
+                navigation.navigate('RestaurantDetailScreen', { restaurant: item })
+              }
               >
                 <Spacer position="bottom" size="large">
                   <FadeInView>
