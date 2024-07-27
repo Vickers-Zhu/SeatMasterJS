@@ -9,6 +9,7 @@ import RestaurantMenu from '../components/RestaurantMenu';
 import Reviews from '../components/Reviews';
 import Others from '../components/Others';
 import TabBar from '../components/RestaurantTabBar';
+import SwitchContainer from '../../../components/Switch/Switch';
 
 const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};
@@ -35,11 +36,14 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
 
   const [heights, setHeights] = useState({
     restaurantInfoCard: 0,
+    switch: 0,
     content: {}
   });
 
+  const [isReservation, setIsReservation] = useState(false);
+
   const scrollToTab = (tabKey, newIndex) => {
-    let yPosition = heights.restaurantInfoCard;
+    let yPosition = heights.restaurantInfoCard + heights.switch;
     for (let i = 0; i < routes.length; i++) {
       if (routes[i].key === tabKey) break;
       yPosition += heights.content[routes[i].key] || 0;
@@ -50,7 +54,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
 
   const handleScroll = event => {
     const scrollYValue = event.nativeEvent.contentOffset.y;
-    let accumulatedHeight = heights.restaurantInfoCard;
+    let accumulatedHeight = heights.restaurantInfoCard + heights.switch;
     for (let i = 0; i < routes.length; i++) {
       if (scrollYValue < accumulatedHeight + (heights.content[routes[i].key] || 0) / 2) {
         setIndex(i);
@@ -70,7 +74,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
             { listener: handleScroll, useNativeDriver: false }
           )}
-          stickyHeaderIndices={[1]} // Sticky indices for TabBar
+          stickyHeaderIndices={isReservation ? [] : [2]}
         >
           <Spacing
             onLayout={(event) =>
@@ -79,23 +83,32 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
           >
             <RestaurantInfoCard restaurant={restaurant} elevation={0} />
           </Spacing>
-          <View>
-            <TabView
-              navigationState={{ index, routes }}
-              renderScene={SceneMap(renderSceneMap)}
-              renderTabBar={(props) => (
-                <TabBar
-                  {...props}
-                  routes={routes}
-                  scrollToTab={scrollToTab}
-                  setIndex={setIndex}
-                />
-              )}
-              onIndexChange={setIndex}
-              initialLayout={{ width: layout.width }}
-            />
+          <View
+            onLayout={(event) =>
+              setHeights({ ...heights, switch: event.nativeEvent.layout.height })
+            }
+          >
+            <SwitchContainer isReservation={isReservation} setIsReservation={setIsReservation} />
           </View>
-          {routes.map(route => (
+          <View>
+            {!isReservation && (
+              <TabView
+                navigationState={{ index, routes }}
+                renderScene={SceneMap(renderSceneMap)}
+                renderTabBar={(props) => (
+                  <TabBar
+                    {...props}
+                    routes={routes}
+                    scrollToTab={scrollToTab}
+                    setIndex={setIndex}
+                  />
+                )}
+                onIndexChange={setIndex}
+                initialLayout={{ width: layout.width }}
+              />
+            )}
+          </View>
+          {!isReservation && routes.map(route => (
             <View
               key={route.key}
               onLayout={(event) =>
