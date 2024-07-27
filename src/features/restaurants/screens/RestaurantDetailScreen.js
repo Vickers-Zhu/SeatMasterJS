@@ -1,28 +1,17 @@
 import React, { useState, useRef } from "react";
-import { Animated, Dimensions, View, Text } from 'react-native';
-import { List, Divider } from 'react-native-paper';
+import { Animated, Dimensions, View } from 'react-native';
 import styled from 'styled-components/native';
-import { TabView, TabBar, SceneMap } from 'react-native-tab-view';
+import { TabView, SceneMap } from 'react-native-tab-view';
 
 import { SafeArea } from '../../../components/SafeArea/SafeArea';
 import { RestaurantInfoCard } from '../components/RestaurantInfoCard';
 import RestaurantMenu from '../components/RestaurantMenu';
 import Reviews from '../components/Reviews';
 import Others from '../components/Others';
+import TabBar from '../components/RestaurantTabBar';
 
 const Spacing = styled.View`
-  padding-vertical: 10px;
-`;
-
-const CustomTabBar = styled(TabBar).attrs((props) => ({
-  indicatorStyle: {
-    backgroundColor: props.theme.colors.text.primary,
-  },
-  labelStyle: {
-    color: props.theme.colors.text.primary,
-  },
-}))`
-  background-color: ${(props) => props.theme.colors.bg.primary};
+  padding-bottom: ${(props) => props.theme.space[2]};
 `;
 
 const renderSceneMap = {
@@ -71,17 +60,6 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  const renderTabBar = props => (
-    <CustomTabBar
-      {...props}
-      onTabPress={({ route, preventDefault }) => {
-        preventDefault();
-        const tabIndex = routes.findIndex(r => r.key === route.key);
-        scrollToTab(route.key, tabIndex);
-      }}
-    />
-  );
-
   return (
     <SafeArea>
       <View style={{ flex: 1 }}>
@@ -99,13 +77,20 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               setHeights({ ...heights, restaurantInfoCard: event.nativeEvent.layout.height })
             }
           >
-            <RestaurantInfoCard restaurant={restaurant} />
+            <RestaurantInfoCard restaurant={restaurant} elevation={0} />
           </Spacing>
           <View>
             <TabView
               navigationState={{ index, routes }}
               renderScene={SceneMap(renderSceneMap)}
-              renderTabBar={renderTabBar}
+              renderTabBar={(props) => (
+                <TabBar
+                  {...props}
+                  routes={routes}
+                  scrollToTab={scrollToTab}
+                  setIndex={setIndex}
+                />
+              )}
               onIndexChange={setIndex}
               initialLayout={{ width: layout.width }}
             />

@@ -21,7 +21,7 @@ import {
 } from './RestaurantInfoCard.styles';
 
 
-export const RestaurantInfoCard = ({ restaurant = {} }) => {
+export const RestaurantInfoCard = ({ restaurant = {}, elevation = 5 }) => {
   const {
     name = 'Sick Eats',
     icon = 'https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png',
@@ -36,7 +36,7 @@ export const RestaurantInfoCard = ({ restaurant = {} }) => {
   } = restaurant;
   const ratingArray = Array.from(new Array(Math.floor(rating)));
   return (
-    <RestaurantCard elevation={5}>
+    <RestaurantCard elevation={elevation}>
       <View>
         <Favourite restaurant={restaurant} />
         <RestaurantCardCover key={name} source={{ uri: photos[0] }} />
