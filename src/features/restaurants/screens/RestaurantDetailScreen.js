@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Animated, Dimensions, View } from 'react-native';
+import React, { useState, useRef, useEffect } from "react";
+import { Animated, Dimensions, View, Text } from 'react-native';
 import styled from 'styled-components/native';
 import { TabView, SceneMap } from 'react-native-tab-view';
 
@@ -41,6 +41,26 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
   });
 
   const [isReservation, setIsReservation] = useState(false);
+  const [showContent, setShowContent] = useState(true);
+  const [opacity] = useState(new Animated.Value(1));
+
+  const animateAndSwitch = (newIsReservation) => {
+    Animated.timing(opacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsReservation(newIsReservation);
+      setTimeout(() => {
+        setShowContent(!newIsReservation);
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      }, 200); // Ensure the transition happens after the fade-out animation
+    });
+  };
 
   const scrollToTab = (tabKey, newIndex) => {
     let yPosition = heights.restaurantInfoCard + heights.switch;
@@ -88,10 +108,13 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               setHeights({ ...heights, switch: event.nativeEvent.layout.height })
             }
           >
-            <SwitchContainer isReservation={isReservation} setIsReservation={setIsReservation} />
+            <SwitchContainer 
+              isReservation={isReservation} 
+              setIsReservation={(newValue) => animateAndSwitch(newValue)} 
+            />
           </View>
-          <View>
-            {!isReservation && (
+          {showContent && (
+            <Animated.View style={{ opacity }}>
               <TabView
                 navigationState={{ index, routes }}
                 renderScene={SceneMap(renderSceneMap)}
@@ -106,24 +129,32 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
                 onIndexChange={setIndex}
                 initialLayout={{ width: layout.width }}
               />
-            )}
-          </View>
-          {!isReservation && routes.map(route => (
-            <View
-              key={route.key}
-              onLayout={(event) =>
-                setHeights({
-                  ...heights,
-                  content: {
-                    ...heights.content,
-                    [route.key]: event.nativeEvent.layout.height,
-                  },
-                })
-              }
-            >
-              {React.createElement(renderSceneMap[route.key])}
-            </View>
+            </Animated.View>
+          )}
+          {showContent && routes.map(route => (
+            <Animated.View key={route.key} style={{ opacity }}>
+              <View
+                onLayout={(event) =>
+                  setHeights({
+                    ...heights,
+                    content: {
+                      ...heights.content,
+                      [route.key]: event.nativeEvent.layout.height,
+                    },
+                  })
+                }
+              >
+                {React.createElement(renderSceneMap[route.key])}
+              </View>
+            </Animated.View>
           ))}
+          {!showContent && isReservation && (
+            <Animated.View style={{ opacity }}>
+              <View style={{ padding: 20 }}>
+                <Text>Reservation content goes here</Text>
+              </View>
+            </Animated.View>
+          )}
         </Animated.ScrollView>
       </View>
     </SafeArea>

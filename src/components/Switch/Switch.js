@@ -41,12 +41,12 @@ const Label = styled(Text)`
 `;
 
 const SwitchContainer = ({ isReservation, setIsReservation }) => {
-  const capsulePosition = useRef(new Animated.Value(isReservation ? 95 : 0)).current;
+  const capsulePosition = useRef(new Animated.Value(isReservation ? 96 : 0)).current;
 
   useEffect(() => {
     Animated.timing(capsulePosition, {
-      toValue: isReservation ? 95 : 0,
-      duration: 300,
+      toValue: isReservation ? 96 : 0,
+      duration: 200,
       useNativeDriver: false,
     }).start();
   }, [isReservation]);
