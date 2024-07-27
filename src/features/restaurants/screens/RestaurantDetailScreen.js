@@ -10,6 +10,8 @@ import Reviews from '../components/Reviews';
 import Others from '../components/Others';
 import TabBar from '../components/RestaurantTabBar';
 import SwitchContainer from '../../../components/Switch/Switch';
+import ReservationLayout from '../components/ReservationLayout';
+import Basic3DShape from '../components/Test_3D';
 
 const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};
@@ -41,7 +43,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
   });
 
   const [isReservation, setIsReservation] = useState(false);
-  const [showContent, setShowContent] = useState(true);
+  const [isShowReservationContent, setIsShowReservationContent] = useState(true);
   const [opacity] = useState(new Animated.Value(1));
 
   const animateAndSwitch = (newIsReservation) => {
@@ -52,7 +54,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     }).start(() => {
       setIsReservation(newIsReservation);
       setTimeout(() => {
-        setShowContent(!newIsReservation);
+        setIsShowReservationContent(newIsReservation);
         Animated.timing(opacity, {
           toValue: 1,
           duration: 200,
@@ -113,7 +115,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               setIsReservation={(newValue) => animateAndSwitch(newValue)} 
             />
           </View>
-          {showContent && (
+          {!isShowReservationContent && !isReservation && (
             <Animated.View style={{ opacity }}>
               <TabView
                 navigationState={{ index, routes }}
@@ -131,7 +133,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               />
             </Animated.View>
           )}
-          {showContent && routes.map(route => (
+          {!isShowReservationContent && !isReservation && routes.map(route => (
             <Animated.View key={route.key} style={{ opacity }}>
               <View
                 onLayout={(event) =>
@@ -148,11 +150,11 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               </View>
             </Animated.View>
           ))}
-          {!showContent && isReservation && (
+          {isShowReservationContent && isReservation && (
             <Animated.View style={{ opacity }}>
-              <View style={{ padding: 20 }}>
-                <Text>Reservation content goes here</Text>
-              </View>
+              <Basic3DShape />
+              <Text>ReservationLayout</Text>
+              <ReservationLayout />
             </Animated.View>
           )}
         </Animated.ScrollView>
