@@ -3,6 +3,9 @@
     "name": "seat-master-js",
     "slug": "seat-master-js",
     "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",

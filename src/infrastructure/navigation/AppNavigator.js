@@ -33,6 +33,6 @@ export const AppNavigator = () => (
       options={{ headerShown: false }}
     />
     <Tab.Screen name="Checkout" component={CheckoutNavigator} />
-    <Tab.Screen name="Settings" component={CheckoutNavigator} />
+    <Tab.Screen name="Settings" component={SettingsNavigator} />
   </Tab.Navigator>
 );

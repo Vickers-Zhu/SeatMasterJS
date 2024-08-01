@@ -43,7 +43,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
   });
 
   const [isReservation, setIsReservation] = useState(false);
-  const [isShowReservationContent, setIsShowReservationContent] = useState(true);
+  const [isShowReservationContent, setIsShowReservationContent] = useState(false);
   const [opacity] = useState(new Animated.Value(1));
 
   const animateAndSwitch = (newIsReservation) => {
@@ -151,13 +151,16 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
             </Animated.View>
           ))}
           {isShowReservationContent && isReservation && (
-            <Animated.View style={{ opacity }}>
-              <Basic3DShape />
+            <Animated.View style={{ opacity, flex: 1}}>
               <Text>ReservationLayout</Text>
-              <ReservationLayout />
+              <Basic3DShape />
             </Animated.View>
           )}
         </Animated.ScrollView>
+          <Animated.View style={{ opacity, flex: 1}}>
+              <Text>ReservationLayout</Text>
+              <Basic3DShape />
+          </Animated.View>
       </View>
     </SafeArea>
   );
