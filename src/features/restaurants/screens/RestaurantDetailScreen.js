@@ -10,8 +10,6 @@ import Reviews from '../components/Reviews';
 import Others from '../components/Others';
 import TabBar from '../components/RestaurantTabBar';
 import SwitchContainer from '../../../components/Switch/Switch';
-import ReservationLayout from '../components/ReservationLayout';
-import Basic3DShape from '../components/Test_3D';
 
 const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};
@@ -153,14 +151,9 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
           {isShowReservationContent && isReservation && (
             <Animated.View style={{ opacity, flex: 1}}>
               <Text>ReservationLayout</Text>
-              <Basic3DShape />
             </Animated.View>
           )}
         </Animated.ScrollView>
-          <Animated.View style={{ opacity, flex: 1}}>
-              <Text>ReservationLayout</Text>
-              <Basic3DShape />
-          </Animated.View>
       </View>
     </SafeArea>
   );
