@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Animated, Dimensions, View, Text } from 'react-native';
-import styled from 'styled-components/native';
-import { TabView, SceneMap } from 'react-native-tab-view';
+import { Animated, Dimensions, View, Text } from "react-native";
+import styled from "styled-components/native";
+import { TabView, SceneMap } from "react-native-tab-view";
 
-import { SafeArea } from '../../../components/SafeArea/SafeArea';
-import { RestaurantInfoCard } from '../components/RestaurantInfoCard';
-import RestaurantMenu from '../components/RestaurantMenu';
-import Reviews from '../components/Reviews';
-import Others from '../components/Others';
-import TabBar from '../components/RestaurantTabBar';
-import SwitchContainer from '../../../components/Switch/Switch';
+import { SafeArea } from "../../../components/SafeArea/SafeArea";
+import { RestaurantInfoCard } from "../components/RestaurantInfoCard";
+import RestaurantMenu from "../components/RestaurantMenu";
+import Reviews from "../components/Reviews";
+import Others from "../components/Others";
+import TabBar from "../components/RestaurantTabBar";
+import SwitchContainer from "../../../components/Switch/Switch";
+import WebApp from "../../../components/WebApp/WebApp";
 
 const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};
@@ -23,12 +24,12 @@ const renderSceneMap = {
 
 export const RestaurantDetailScreen = ({ route, navigation }) => {
   const { restaurant } = route.params;
-  const layout = useRef(Dimensions.get('window')).current;
+  const layout = useRef(Dimensions.get("window")).current;
   const [index, setIndex] = useState(0);
   const [routes] = useState([
-    { key: 'menu', title: 'Menu' },
-    { key: 'reviews', title: 'Reviews' },
-    { key: 'others', title: 'Others' },
+    { key: "menu", title: "Menu" },
+    { key: "reviews", title: "Reviews" },
+    { key: "others", title: "Others" },
   ]);
 
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -37,11 +38,12 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
   const [heights, setHeights] = useState({
     restaurantInfoCard: 0,
     switch: 0,
-    content: {}
+    content: {},
   });
 
   const [isReservation, setIsReservation] = useState(false);
-  const [isShowReservationContent, setIsShowReservationContent] = useState(false);
+  const [isShowReservationContent, setIsShowReservationContent] =
+    useState(false);
   const [opacity] = useState(new Animated.Value(1));
 
   const animateAndSwitch = (newIsReservation) => {
@@ -72,11 +74,14 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     setIndex(newIndex);
   };
 
-  const handleScroll = event => {
+  const handleScroll = (event) => {
     const scrollYValue = event.nativeEvent.contentOffset.y;
     let accumulatedHeight = heights.restaurantInfoCard + heights.switch;
     for (let i = 0; i < routes.length; i++) {
-      if (scrollYValue < accumulatedHeight + (heights.content[routes[i].key] || 0) / 2) {
+      if (
+        scrollYValue <
+        accumulatedHeight + (heights.content[routes[i].key] || 0) / 2
+      ) {
         setIndex(i);
         break;
       }
@@ -98,19 +103,25 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
         >
           <Spacing
             onLayout={(event) =>
-              setHeights({ ...heights, restaurantInfoCard: event.nativeEvent.layout.height })
+              setHeights({
+                ...heights,
+                restaurantInfoCard: event.nativeEvent.layout.height,
+              })
             }
           >
             <RestaurantInfoCard restaurant={restaurant} elevation={0} />
           </Spacing>
           <View
             onLayout={(event) =>
-              setHeights({ ...heights, switch: event.nativeEvent.layout.height })
+              setHeights({
+                ...heights,
+                switch: event.nativeEvent.layout.height,
+              })
             }
           >
-            <SwitchContainer 
-              isReservation={isReservation} 
-              setIsReservation={(newValue) => animateAndSwitch(newValue)} 
+            <SwitchContainer
+              isReservation={isReservation}
+              setIsReservation={(newValue) => animateAndSwitch(newValue)}
             />
           </View>
           {!isShowReservationContent && !isReservation && (
@@ -131,27 +142,34 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               />
             </Animated.View>
           )}
-          {!isShowReservationContent && !isReservation && routes.map(route => (
-            <Animated.View key={route.key} style={{ opacity }}>
-              <View
-                onLayout={(event) =>
-                  setHeights({
-                    ...heights,
-                    content: {
-                      ...heights.content,
-                      [route.key]: event.nativeEvent.layout.height,
-                    },
-                  })
-                }
-              >
-                {React.createElement(renderSceneMap[route.key])}
-              </View>
-            </Animated.View>
-          ))}
+          {!isShowReservationContent &&
+            !isReservation &&
+            routes.map((route) => (
+              <Animated.View key={route.key} style={{ opacity }}>
+                <View
+                  onLayout={(event) =>
+                    setHeights({
+                      ...heights,
+                      content: {
+                        ...heights.content,
+                        [route.key]: event.nativeEvent.layout.height,
+                      },
+                    })
+                  }
+                >
+                  {React.createElement(renderSceneMap[route.key])}
+                </View>
+              </Animated.View>
+            ))}
           {isShowReservationContent && isReservation && (
-            <Animated.View style={{ opacity, flex: 1}}>
-              <Text>ReservationLayout</Text>
-            </Animated.View>
+            // <Animated.View style={{ opacity, flex: 1 }}>
+            //   <Text>Reservation</Text>
+            //   <WebApp />
+            // </Animated.View>
+            <View style={{ flex: 1 }}>
+              <Text>Reservation</Text>
+              {/* <WebApp /> */}
+            </View>
           )}
         </Animated.ScrollView>
       </View>
