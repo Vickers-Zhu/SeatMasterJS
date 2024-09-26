@@ -11,6 +11,7 @@ import Others from "../components/Others";
 import TabBar from "../components/RestaurantTabBar";
 import SwitchContainer from "../../../components/Switch/Switch";
 import WebApp from "../../../components/WebApp/WebApp";
+import ErrorBoundary from "../../../components/ErrorBoundary/ErrorBoundary";
 
 const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};
@@ -162,14 +163,16 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               </Animated.View>
             ))}
           {isShowReservationContent && isReservation && (
-            // <Animated.View style={{ opacity, flex: 1 }}>
-            //   <Text>Reservation</Text>
-            //   <WebApp />
-            // </Animated.View>
-            <View style={{ flex: 1 }}>
+            <Animated.View style={{ opacity, flex: 1 }}>
               <Text>Reservation</Text>
-              {/* <WebApp /> */}
-            </View>
+              <ErrorBoundary>
+                <WebApp />
+              </ErrorBoundary>
+            </Animated.View>
+            // <View style={{ flex: 1 }}>
+            //   <Text>Reservation</Text>
+            //   {/* <WebApp /> */}
+            // </View>
           )}
         </Animated.ScrollView>
       </View>
