@@ -1,89 +1,91 @@
-// components/WebApp/WebApp.js
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { View, StyleSheet } from "react-native";
-import { WebView } from "react-native-webview"; // Ensure correct import
-import StaticServer from "react-native-static-server";
-import RNFS from "react-native-fs";
+// src/components/WebApp/WebApp.js
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { View } from "react-native";
 import styled from "styled-components/native";
+import RNFS from "react-native-fs";
+import { WebView } from "react-native-webview";
+import useStaticServer from "./useStaticServer";
 
-const Container = styled.View`
-  width: 100%;
-  height: ${({ height }) => height}px;
-  background-color: ${({ theme }) => theme.colors.bg.primary};
-`;
-
-const StyledWebView = styled(WebView)`
-  flex: 1;
-  width: 100%;
-`;
-
-const useStaticServer = () => {
-  const [url, setUrl] = useState("");
-
-  useEffect(() => {
-    let server = null;
-
-    const startServer = async () => {
-      const path = `${RNFS.MainBundlePath}/build`; // Ensure this path exists and contains your web app
-      server = new StaticServer(9001, path, { localOnly: true });
-      try {
-        const serverUrl = await server.start();
-        setUrl(serverUrl);
-        console.log(`Server hosting at: ${serverUrl}`);
-      } catch (error) {
-        console.error("Failed to start server:", error);
-      }
-    };
-
-    startServer();
-
-    // Cleanup: stop the server when the component unmounts
-    return () => {
-      if (server) {
-        server.stop();
-      }
-    };
-  }, []);
-
-  return url;
-};
+import {
+  Container,
+  StyledWebView,
+  Footer,
+  SelectedText,
+  CancelButton,
+  CancelButtonText,
+} from "./styles";
 
 const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
   const serverUrl = useStaticServer();
   const webViewRef = useRef(null);
   const [webViewHeight, setWebViewHeight] = useState(200); // Increased initial height for better visibility
+  const [selectedChairs, setSelectedChairs] = useState([]); // State to track selected chairs
 
+  // Reload WebView when server URL changes
   useEffect(() => {
     if (webViewRef.current && serverUrl) {
       webViewRef.current.reload();
     }
-  }, [serverUrl]); // Reload WebView when server URL changes
+  }, [serverUrl]);
+
+  // Function to send selected chairs to WebView
+  const sendSelectedChairsToWebView = useCallback(() => {
+    if (webViewRef.current) {
+      const script = `
+        (function() {
+          if (window.updateSelectedChairs) {
+            window.updateSelectedChairs(${JSON.stringify(selectedChairs)});
+          }
+        })();
+        true;
+      `;
+      webViewRef.current.injectJavaScript(script);
+    }
+  }, [selectedChairs]);
+
+  // Send the updated selected chairs to WebView whenever it changes
+  useEffect(() => {
+    sendSelectedChairsToWebView();
+  }, [selectedChairs, sendSelectedChairsToWebView]);
 
   const handleWebViewMessage = useCallback(
     (event) => {
       try {
         const messageData = JSON.parse(event.nativeEvent.data);
-        console.log("Received message from WebView:", messageData);
 
-        if (messageData.type === "chairClicked") {
-          console.log("Chair clicked:", messageData.name);
-          // Handle the chair click event here
-        } else if (messageData.type === "contentHeight") {
-          const height = Number(messageData.height);
-          if (height > 0 && height !== webViewHeight) {
-            console.log(`Updating WebView height to: ${height}`);
-            setWebViewHeight(height);
-          }
-        } else if (messageData.type === "interactionStart") {
-          console.log("Interaction started with WebView");
-          if (onInteractionStart) {
-            onInteractionStart();
-          }
-        } else if (messageData.type === "interactionEnd") {
-          console.log("Interaction ended with WebView");
-          if (onInteractionEnd) {
-            onInteractionEnd();
-          }
+        switch (messageData.type) {
+          case "chairClicked":
+            setSelectedChairs((prevSelected) => {
+              if (prevSelected.includes(messageData.name)) {
+                return prevSelected.filter((name) => name !== messageData.name);
+              } else {
+                return [...prevSelected, messageData.name];
+              }
+            });
+            console.log("Chair clicked:", messageData.name);
+            break;
+
+          case "contentHeight":
+            const height = Number(messageData.height);
+            if (height > 0 && height !== webViewHeight) {
+              setWebViewHeight(height);
+            }
+            break;
+
+          case "interactionStart":
+            if (onInteractionStart) {
+              onInteractionStart();
+            }
+            break;
+
+          case "interactionEnd":
+            if (onInteractionEnd) {
+              onInteractionEnd();
+            }
+            break;
+
+          default:
+            console.warn("Unhandled message type:", messageData.type);
         }
       } catch (error) {
         console.error("Failed to parse message from WebView:", error);
@@ -92,22 +94,37 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
     [webViewHeight, onInteractionStart, onInteractionEnd]
   );
 
+  // Function to cancel all selections
+  const cancelSelection = () => {
+    setSelectedChairs([]);
+  };
+
   return (
-    <Container height={webViewHeight}>
-      <StyledWebView
-        ref={webViewRef}
-        source={{ uri: serverUrl }}
-        scrollEnabled={false} // Disable WebView internal scrolling
-        cacheEnabled={false}
-        cacheMode="LOAD_NO_CACHE"
-        originWhitelist={["*"]} // Consider restricting this for security
-        onError={(syntheticEvent) => {
-          const { nativeEvent } = syntheticEvent;
-          console.warn("WebView error: ", nativeEvent);
-        }}
-        onMessage={handleWebViewMessage}
-      />
-    </Container>
+    <View style={{ flex: 1 }}>
+      <Container height={webViewHeight}>
+        <StyledWebView
+          ref={webViewRef}
+          source={{ uri: serverUrl }}
+          scrollEnabled={false} // Disable WebView internal scrolling
+          cacheEnabled={false}
+          cacheMode="LOAD_NO_CACHE"
+          originWhitelist={["*"]} // Consider restricting this for security
+          onError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.warn("WebView error: ", nativeEvent);
+          }}
+          onMessage={handleWebViewMessage}
+        />
+      </Container>
+      <Footer>
+        <SelectedText>
+          Selected Chairs: {selectedChairs.join(", ") || "None"}
+        </SelectedText>
+        <CancelButton onPress={cancelSelection}>
+          <CancelButtonText>Cancel Selection</CancelButtonText>
+        </CancelButton>
+      </Footer>
+    </View>
   );
 };
 
