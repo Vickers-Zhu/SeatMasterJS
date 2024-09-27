@@ -1,5 +1,5 @@
 // components/WebApp/WebApp.js
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { View, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview"; // Ensure correct import
 import StaticServer from "react-native-static-server";
@@ -48,10 +48,10 @@ const useStaticServer = () => {
   return url;
 };
 
-const WebApp = () => {
+const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
   const serverUrl = useStaticServer();
   const webViewRef = useRef(null);
-  const [webViewHeight, setWebViewHeight] = useState(800); // Increased initial height for better visibility
+  const [webViewHeight, setWebViewHeight] = useState(200); // Increased initial height for better visibility
 
   useEffect(() => {
     if (webViewRef.current && serverUrl) {
@@ -59,24 +59,38 @@ const WebApp = () => {
     }
   }, [serverUrl]); // Reload WebView when server URL changes
 
-  const handleWebViewMessage = (event) => {
-    try {
-      const messageData = JSON.parse(event.nativeEvent.data);
-      console.log("Received message from WebView:", messageData);
+  const handleWebViewMessage = useCallback(
+    (event) => {
+      try {
+        const messageData = JSON.parse(event.nativeEvent.data);
+        console.log("Received message from WebView:", messageData);
 
-      if (messageData.type === "chairClicked") {
-        console.log("Chair clicked:", messageData.name);
-        // Handle the chair click event here
-      } else if (messageData.type === "contentHeight") {
-        const height = messageData.height;
-        if (height > 0 && height !== webViewHeight) {
-          setWebViewHeight(height);
+        if (messageData.type === "chairClicked") {
+          console.log("Chair clicked:", messageData.name);
+          // Handle the chair click event here
+        } else if (messageData.type === "contentHeight") {
+          const height = Number(messageData.height);
+          if (height > 0 && height !== webViewHeight) {
+            console.log(`Updating WebView height to: ${height}`);
+            setWebViewHeight(height);
+          }
+        } else if (messageData.type === "interactionStart") {
+          console.log("Interaction started with WebView");
+          if (onInteractionStart) {
+            onInteractionStart();
+          }
+        } else if (messageData.type === "interactionEnd") {
+          console.log("Interaction ended with WebView");
+          if (onInteractionEnd) {
+            onInteractionEnd();
+          }
         }
+      } catch (error) {
+        console.error("Failed to parse message from WebView:", error);
       }
-    } catch (error) {
-      console.error("Failed to parse message from WebView:", error);
-    }
-  };
+    },
+    [webViewHeight, onInteractionStart, onInteractionEnd]
+  );
 
   return (
     <Container height={webViewHeight}>

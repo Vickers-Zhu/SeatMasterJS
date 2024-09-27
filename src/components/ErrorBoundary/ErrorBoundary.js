@@ -1,6 +1,6 @@
 // components/ErrorBoundary.js
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { TouchableOpacity } from "react-native";
 import styled from "styled-components/native";
 
 /**
@@ -78,53 +78,53 @@ const ErrorContainer = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  padding: ${({ theme }) => theme.space[3]}px;
+  padding: ${({ theme }) => theme.space[3]};
   background-color: ${({ theme }) => theme.colors.bg.secondary};
 `;
 
 const ErrorTitle = styled.Text`
-  font-size: ${({ theme }) => theme.fontSizes.title}px;
+  font-size: ${({ theme }) => theme.fontSizes.title};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   color: ${({ theme }) => theme.colors.text.error};
-  margin-bottom: ${({ theme }) => theme.space[2]}px;
+  margin-bottom: ${({ theme }) => theme.space[2]};
 `;
 
 const ErrorMessage = styled.Text`
-  font-size: ${({ theme }) => theme.fontSizes.body}px;
+  font-size: ${({ theme }) => theme.fontSizes.body};
   color: ${({ theme }) => theme.colors.text.primary};
   text-align: center;
-  margin-bottom: ${({ theme }) => theme.space[3]}px;
+  margin-bottom: ${({ theme }) => theme.space[3]};
 `;
 
-const RetryButton = styled.TouchableOpacity`
-  padding-vertical: ${({ theme }) => theme.space[2]}px;
-  padding-horizontal: ${({ theme }) => theme.space[3]}px;
+const RetryButton = styled(TouchableOpacity)`
+  padding-vertical: ${({ theme }) => theme.space[2]};
+  padding-horizontal: ${({ theme }) => theme.space[3]};
   background-color: ${({ theme }) => theme.colors.ui.primary};
   border-radius: 5px;
 `;
 
 const RetryButtonText = styled.Text`
-  font-size: ${({ theme }) => theme.fontSizes.button}px;
+  font-size: ${({ theme }) => theme.fontSizes.button};
   color: ${({ theme }) => theme.colors.text.inverse};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
 `;
 
 const ErrorDetails = styled.View`
-  margin-top: ${({ theme }) => theme.space[3]}px;
-  padding: ${({ theme }) => theme.space[2]}px;
+  margin-top: ${({ theme }) => theme.space[3]};
+  padding: ${({ theme }) => theme.space[2]};
   background-color: #f8d7da;
   border-radius: 5px;
 `;
 
 const ErrorDetailsTitle = styled.Text`
-  font-size: ${({ theme }) => theme.fontSizes.body}px;
+  font-size: ${({ theme }) => theme.fontSizes.body};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   color: ${({ theme }) => theme.colors.text.error};
-  margin-bottom: ${({ theme }) => theme.space[1]}px;
+  margin-bottom: ${({ theme }) => theme.space[1]};
 `;
 
 const ErrorDetailsText = styled.Text`
-  font-size: ${({ theme }) => theme.fontSizes.caption}px;
+  font-size: ${({ theme }) => theme.fontSizes.caption};
   color: ${({ theme }) => theme.colors.text.error};
 `;
 

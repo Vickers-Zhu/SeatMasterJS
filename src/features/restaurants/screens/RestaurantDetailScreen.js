@@ -46,6 +46,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
   const [isShowReservationContent, setIsShowReservationContent] =
     useState(false);
   const [opacity] = useState(new Animated.Value(1));
+  const [scrollEnabled, setScrollEnabled] = useState(true); // State to control ScrollView's scroll
 
   const animateAndSwitch = (newIsReservation) => {
     Animated.timing(opacity, {
@@ -89,11 +90,21 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
       accumulatedHeight += heights.content[routes[i].key] || 0;
     }
   };
+  // Callback when interaction starts
+  const handleInteractionStart = () => {
+    setScrollEnabled(false);
+  };
+
+  // Callback when interaction ends
+  const handleInteractionEnd = () => {
+    setScrollEnabled(true);
+  };
 
   return (
     <SafeArea>
       <View style={{ flex: 1 }}>
         <Animated.ScrollView
+          scrollEnabled={scrollEnabled}
           ref={scrollViewRef}
           scrollEventThrottle={16}
           onScroll={Animated.event(
@@ -164,9 +175,11 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
             ))}
           {isShowReservationContent && isReservation && (
             <Animated.View style={{ opacity, flex: 1 }}>
-              <Text>Reservation</Text>
               <ErrorBoundary>
-                <WebApp />
+                <WebApp
+                  onInteractionStart={handleInteractionStart}
+                  onInteractionEnd={handleInteractionEnd}
+                />
               </ErrorBoundary>
             </Animated.View>
             // <View style={{ flex: 1 }}>
