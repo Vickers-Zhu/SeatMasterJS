@@ -9,7 +9,7 @@ const RestaurantMenu = () => (
       title="Menu"
       left={(props) => <List.Icon {...props} icon="bread-slice" />}
     >
-      {Array.from({ length: 50 }, (_, index) => (
+      {Array.from({ length: 30 }, (_, index) => (
         <List.Item key={index} title={`Item ${index + 1}`} />
       ))}
     </List.Accordion>

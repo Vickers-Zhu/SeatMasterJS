@@ -1,15 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Animated, Dimensions, View, Text } from "react-native";
+// src/features/restaurants/screens/RestaurantDetailScreen.js
+import React, { useState, useRef } from "react";
+import { Animated, Dimensions, View } from "react-native";
 import styled from "styled-components/native";
-import { TabView, SceneMap } from "react-native-tab-view";
 
 import { SafeArea } from "../../../components/SafeArea/SafeArea";
 import { RestaurantInfoCard } from "../components/RestaurantInfoCard";
 import RestaurantMenu from "../components/RestaurantMenu";
 import Reviews from "../components/Reviews";
 import Others from "../components/Others";
-import TabBar from "../components/RestaurantTabBar";
 import SwitchContainer from "../../../components/Switch/Switch";
+import TabNavigation from "../components/TabNavigation";
+import useScrollHandler from "../hooks/useScrollHandler";
+import useReservationHandler from "../hooks/useReservationHandler";
 import WebApp from "../../../components/WebApp/WebApp";
 import ErrorBoundary from "../../../components/ErrorBoundary/ErrorBoundary";
 
@@ -17,13 +19,7 @@ const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};
 `;
 
-const renderSceneMap = {
-  menu: RestaurantMenu,
-  reviews: Reviews,
-  others: Others,
-};
-
-export const RestaurantDetailScreen = ({ route, navigation }) => {
+const RestaurantDetailScreen = ({ route, navigation }) => {
   const { restaurant } = route.params;
   const layout = useRef(Dimensions.get("window")).current;
   const [index, setIndex] = useState(0);
@@ -42,29 +38,12 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     content: {},
   });
 
-  const [isReservation, setIsReservation] = useState(false);
-  const [isShowReservationContent, setIsShowReservationContent] =
-    useState(false);
-  const [opacity] = useState(new Animated.Value(1));
+  const { isReservation, isShowReservationContent, opacity, animateAndSwitch } =
+    useReservationHandler();
+
   const [scrollEnabled, setScrollEnabled] = useState(true); // State to control ScrollView's scroll
 
-  const animateAndSwitch = (newIsReservation) => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      setIsReservation(newIsReservation);
-      setTimeout(() => {
-        setIsShowReservationContent(newIsReservation);
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-      }, 200); // Ensure the transition happens after the fade-out animation
-    });
-  };
+  const handleScroll = useScrollHandler(routes, heights, setIndex);
 
   const scrollToTab = (tabKey, newIndex) => {
     let yPosition = heights.restaurantInfoCard + heights.switch;
@@ -76,20 +55,6 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     setIndex(newIndex);
   };
 
-  const handleScroll = (event) => {
-    const scrollYValue = event.nativeEvent.contentOffset.y;
-    let accumulatedHeight = heights.restaurantInfoCard + heights.switch;
-    for (let i = 0; i < routes.length; i++) {
-      if (
-        scrollYValue <
-        accumulatedHeight + (heights.content[routes[i].key] || 0) / 2
-      ) {
-        setIndex(i);
-        break;
-      }
-      accumulatedHeight += heights.content[routes[i].key] || 0;
-    }
-  };
   // Callback when interaction starts
   const handleInteractionStart = () => {
     setScrollEnabled(false);
@@ -123,6 +88,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
           >
             <RestaurantInfoCard restaurant={restaurant} elevation={0} />
           </Spacing>
+
           <View
             onLayout={(event) =>
               setHeights({
@@ -136,24 +102,19 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               setIsReservation={(newValue) => animateAndSwitch(newValue)}
             />
           </View>
+
           {!isShowReservationContent && !isReservation && (
-            <Animated.View style={{ opacity }}>
-              <TabView
-                navigationState={{ index, routes }}
-                renderScene={SceneMap(renderSceneMap)}
-                renderTabBar={(props) => (
-                  <TabBar
-                    {...props}
-                    routes={routes}
-                    scrollToTab={scrollToTab}
-                    setIndex={setIndex}
-                  />
-                )}
-                onIndexChange={setIndex}
-                initialLayout={{ width: layout.width }}
-              />
-            </Animated.View>
+            <TabNavigation
+              index={index}
+              setIndex={setIndex}
+              routes={routes}
+              layout={layout}
+              renderOpacity={opacity}
+              scrollToTab={scrollToTab}
+              heights={heights}
+            />
           )}
+
           {!isShowReservationContent &&
             !isReservation &&
             routes.map((route) => (
@@ -169,10 +130,17 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
                     })
                   }
                 >
-                  {React.createElement(renderSceneMap[route.key])}
+                  {React.createElement(
+                    route.key === "menu"
+                      ? RestaurantMenu
+                      : route.key === "reviews"
+                      ? Reviews
+                      : Others
+                  )}
                 </View>
               </Animated.View>
             ))}
+
           {isShowReservationContent && isReservation && (
             <Animated.View style={{ opacity, flex: 1 }}>
               <ErrorBoundary>
@@ -182,13 +150,11 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
                 />
               </ErrorBoundary>
             </Animated.View>
-            // <View style={{ flex: 1 }}>
-            //   <Text>Reservation</Text>
-            //   {/* <WebApp /> */}
-            // </View>
           )}
         </Animated.ScrollView>
       </View>
     </SafeArea>
   );
 };
+
+export { RestaurantDetailScreen };
