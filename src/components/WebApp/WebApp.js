@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { View } from "react-native";
 import styled from "styled-components/native";
-import RNFS from "react-native-fs";
 import { WebView } from "react-native-webview";
 import useStaticServer from "./useStaticServer";
 
@@ -18,35 +17,36 @@ import {
 const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
   const serverUrl = useStaticServer();
   const webViewRef = useRef(null);
-  const [webViewHeight, setWebViewHeight] = useState(200); // Increased initial height for better visibility
-  const [selectedChairs, setSelectedChairs] = useState([]); // State to track selected chairs
+  const [webViewHeight, setWebViewHeight] = useState(200);
+  const [selectedChairs, setSelectedChairs] = useState([]);
+  const [occupiedChairs, setOccupiedChairs] = useState(["CHAIR2", "CHAIR4"]);
 
-  // Reload WebView when server URL changes
   useEffect(() => {
     if (webViewRef.current && serverUrl) {
       webViewRef.current.reload();
     }
   }, [serverUrl]);
 
-  // Function to send selected chairs to WebView
-  const sendSelectedChairsToWebView = useCallback(() => {
+  const sendChairsToWebView = useCallback(() => {
     if (webViewRef.current) {
       const script = `
         (function() {
-          if (window.updateSelectedChairs) {
-            window.updateSelectedChairs(${JSON.stringify(selectedChairs)});
+          if (window.updateChairs) {
+            window.updateChairs({
+              selectedChairs: ${JSON.stringify(selectedChairs)},
+              occupiedChairs: ${JSON.stringify(occupiedChairs)}
+            });
           }
         })();
         true;
       `;
       webViewRef.current.injectJavaScript(script);
     }
-  }, [selectedChairs]);
+  }, [selectedChairs, occupiedChairs]);
 
-  // Send the updated selected chairs to WebView whenever it changes
   useEffect(() => {
-    sendSelectedChairsToWebView();
-  }, [selectedChairs, sendSelectedChairsToWebView]);
+    sendChairsToWebView();
+  }, [selectedChairs, occupiedChairs, sendChairsToWebView]);
 
   const handleWebViewMessage = useCallback(
     (event) => {
@@ -55,6 +55,9 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
 
         switch (messageData.type) {
           case "chairClicked":
+            if (occupiedChairs.includes(messageData.name)) {
+              return;
+            }
             setSelectedChairs((prevSelected) => {
               if (prevSelected.includes(messageData.name)) {
                 return prevSelected.filter((name) => name !== messageData.name);
@@ -62,7 +65,6 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
                 return [...prevSelected, messageData.name];
               }
             });
-            console.log("Chair clicked:", messageData.name);
             break;
 
           case "contentHeight":
@@ -91,10 +93,9 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
         console.error("Failed to parse message from WebView:", error);
       }
     },
-    [webViewHeight, onInteractionStart, onInteractionEnd]
+    [occupiedChairs, webViewHeight, onInteractionStart, onInteractionEnd]
   );
 
-  // Function to cancel all selections
   const cancelSelection = () => {
     setSelectedChairs([]);
   };
@@ -105,15 +106,18 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
         <StyledWebView
           ref={webViewRef}
           source={{ uri: serverUrl }}
-          scrollEnabled={false} // Disable WebView internal scrolling
+          scrollEnabled={false}
           cacheEnabled={false}
           cacheMode="LOAD_NO_CACHE"
-          originWhitelist={["*"]} // Consider restricting this for security
+          originWhitelist={["*"]}
           onError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             console.warn("WebView error: ", nativeEvent);
           }}
           onMessage={handleWebViewMessage}
+          onLoadEnd={() => {
+            sendChairsToWebView();
+          }}
         />
       </Container>
       <Footer>
