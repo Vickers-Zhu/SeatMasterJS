@@ -1,16 +1,26 @@
-import React from 'react';
+import React from "react";
 import {
   createStackNavigator,
   CardStyleInterpolators,
-} from '@react-navigation/stack';
+} from "@react-navigation/stack";
 
-import { Text } from 'react-native';
+import { SettingsScreen } from "../../features/settings/screens/SettingsScreen";
 
 const SettingsStack = createStackNavigator();
 
 export const SettingsNavigator = () => {
-
   return (
-    <Text>Settings Navigator</Text>
-    );
-}
+    <SettingsStack.Navigator
+      headerMode="screen"
+      screenOptions={{
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+      }}
+    >
+      <SettingsStack.Screen
+        options={{ header: () => null }}
+        name="Settings"
+        component={SettingsScreen}
+      />
+    </SettingsStack.Navigator>
+  );
+};

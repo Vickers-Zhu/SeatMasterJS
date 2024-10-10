@@ -7,7 +7,6 @@ import {
   View,
   StyleSheet,
 } from "react-native";
-import { WebView } from "react-native-webview";
 import * as FileSystem from "expo-file-system";
 
 import { createStackNavigator } from "@react-navigation/stack";

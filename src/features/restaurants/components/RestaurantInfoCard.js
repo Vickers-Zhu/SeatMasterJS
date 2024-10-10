@@ -1,13 +1,13 @@
-import React from 'react';
-import { View } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import React from "react";
+import { View } from "react-native";
+import { SvgXml } from "react-native-svg";
 
-import { Spacer } from '../../../components/Spacer/Spacer';
-import { CustomText } from '../../../components/CustomText/CustomText';
-import { Favourite } from '../../../components/Favourite/Favourite';
+import { Spacer } from "../../../components/Spacer/Spacer";
+import { CustomText } from "../../../components/CustomText/CustomText";
+import { Favourite } from "../../../components/Favourite/Favourite";
 
-import star from '../../../../assets/icons/star';
-import open from '../../../../assets/icons/open';
+import star from "../../../../assets/icons/star";
+import open from "../../../../assets/icons/open";
 
 import {
   RestaurantCard,
@@ -18,17 +18,16 @@ import {
   Rating,
   OperationStatus,
   Icon,
-} from './RestaurantInfoCard.styles';
-
+} from "./RestaurantInfoCard.styles";
 
 export const RestaurantInfoCard = ({ restaurant = {}, elevation = 5 }) => {
   const {
-    name = 'Sick Eats',
-    icon = 'https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png',
+    name = "Sick Eats",
+    icon = "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",
     photos = [
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8Zm9vZHxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8Zm9vZHxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
     ],
-    address = '100 random sick avenue',
+    address = "100 random sick avenue",
     isOpenNow = true,
     rating = 4,
     isClosedTemporarily = true,
@@ -46,7 +45,12 @@ export const RestaurantInfoCard = ({ restaurant = {}, elevation = 5 }) => {
         <Section>
           <Rating>
             {ratingArray.map((_, i) => (
-              <SvgXml key={`star-${placeId}-${i}`} xml={star} width={20} height={20} />
+              <SvgXml
+                key={`star-${placeId}-${i}`}
+                xml={star}
+                width={20}
+                height={20}
+              />
             ))}
           </Rating>
           <OperationStatus>
@@ -63,4 +67,4 @@ export const RestaurantInfoCard = ({ restaurant = {}, elevation = 5 }) => {
       </Info>
     </RestaurantCard>
   );
-}
+};
