@@ -8,32 +8,9 @@ import { ReservationsScreen } from "../../features/reservations/screens/Reservat
 
 const ReservationStack = createStackNavigator();
 
-/**
- * Utility function to parse font sizes from strings (e.g., "34px") to numbers.
- * @param {string|number} size - The font size with or without "px".
- * @returns {number} - The numerical font size.
- */
-const parseFontSize = (size) => {
-  if (typeof size === "string" && size.endsWith("px")) {
-    return parseInt(size.replace("px", ""), 10);
-  }
-  return size;
-};
-
-/**
- * Utility function to parse font weights from strings (e.g., "400") to numbers.
- * @param {string|number} weight - The font weight as a string or number.
- * @returns {number} - The numerical font weight.
- */
-const parseFontWeight = (weight) => {
-  if (typeof weight === "string") {
-    return parseInt(weight, 10);
-  }
-  return weight;
-};
-
 export const ReservationsNavigator = () => {
   const theme = useTheme(); // Access the theme using styled-components
+  const getNumericValue = (value) => parseInt(value.replace("px", ""), 10);
 
   return (
     <ReservationStack.Navigator
@@ -47,10 +24,11 @@ export const ReservationsNavigator = () => {
           elevation: 0, // Remove shadow on Android
         },
         headerTitleStyle: {
-          fontSize: parseFontSize(theme.fontSizes.h4), // Remove 'px' and use numerical value
+          fontSize: getNumericValue(theme.fontSizes.h4), // Use numerical value
           fontFamily: theme.fonts.heading, // Use heading font from theme
-          fontWeight: parseFontWeight(theme.fontWeights.regular), // Remove 'px' and use numerical value
-          lineHeight: parseFontSize(theme.fontSizes.h2), // Ensure line height matches font size
+          fontWeight: theme.fontWeights.regular, // Use numerical value
+          lineHeight: getNumericValue(theme.fontSizes.h2), // Ensure line height matches font size
+          paddingLeft: getNumericValue(theme.space[2]), // Added padding left
         },
       }}
     >

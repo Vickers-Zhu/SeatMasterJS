@@ -20,10 +20,6 @@ export const ReservationCardContainer = styled(Card)`
 
   /* Remove shadow for iOS */
   shadow-color: transparent;
-  shadow-offset: {
-    width: 0px;
-    height: 0px;
-  }
   shadow-opacity: 0;
   shadow-radius: 0px;
 `;
@@ -76,8 +72,7 @@ export const TrackButton = styled(TouchableOpacity)`
 export const TrackButtonText = styled(Text)`
   padding: ${(props) => props.theme.space[2]};
   font-family: ${(props) => props.theme.fonts.body};
-  font-size: ${(props) =>
-    parseInt(props.theme.fontSizes.body.replace("px", ""), 10)};
+  font-size: ${(props) => props.theme.fontSizes.body};
   color: ${(props) => props.theme.colors.bg.primary};
   text-align: center;
 `;

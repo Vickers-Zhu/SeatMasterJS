@@ -22,18 +22,6 @@ import {
   TrackButtonText,
 } from "./ReservationCard.styles";
 
-/**
- * Utility function to parse font sizes from strings (e.g., "34px") to numbers.
- * @param {string|number} size - The font size with or without "px".
- * @returns {number} - The numerical font size.
- */
-const parseFontSize = (size) => {
-  if (typeof size === "string" && size.endsWith("px")) {
-    return parseInt(size.replace("px", ""), 10);
-  }
-  return size;
-};
-
 export const ReservationCard = ({ reservation = {} }) => {
   const theme = useTheme(); // Access the theme using styled-components
 

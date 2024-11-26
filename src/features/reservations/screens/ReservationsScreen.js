@@ -8,6 +8,8 @@ import { CustomText } from "../../../components/CustomText/CustomText";
 import { SafeArea } from "../../../components/SafeArea/SafeArea";
 import { Spacer } from "../../../components/Spacer/Spacer";
 import { ReservationCard } from "../components/ReservationCard";
+import { PastReservationCard } from "../components/PastReservationCard";
+import { Separator } from "../../../components/Separator/Separator";
 
 const Container = styled(SafeArea)`
   flex: 1;
@@ -17,6 +19,7 @@ const Container = styled(SafeArea)`
 
 const SectionTitle = styled(CustomText)`
   margin-left: ${(props) => props.theme.space[2]};
+  padding-left: ${(props) => props.theme.space[2]};
 `;
 
 export const ReservationsScreen = () => {
@@ -51,19 +54,20 @@ export const ReservationsScreen = () => {
     },
     {
       id: 4,
-      name: "Curry Corner",
-      photo: "https://images.unsplash.com/photo-1604908177520-55b6053ebf93",
-      date: "2024-03-15",
-      time: "7:30 PM",
-      seatsNumber: 5,
-      status: "Cancelled",
+      name: "Ocean Breeze Café",
+      photo:
+        "https://images.unsplash.com/photo-1544511916-0148ccdeb877?auto=format&fit=crop&w=400&q=60", // Verified new image URL
+      date: "2024-03-28",
+      time: "6:00 PM",
+      seatsNumber: 3,
+      status: "Pending",
     },
     // Add more reservations as needed
   ];
 
   // Split reservations into current and past (for future differentiation)
   const currentReservations = reservations.slice(0, 1); // First two as current
-  const pastReservations = reservations.slice(2); // Remaining as past
+  const pastReservations = reservations.slice(1); // Remaining as past
 
   return (
     <Container>
@@ -74,14 +78,16 @@ export const ReservationsScreen = () => {
         {currentReservations.map((reservation) => (
           <ReservationCard key={reservation.id} reservation={reservation} />
         ))}
-
-        <Spacer position="top" size="large" />
+        <Separator type="full" />
 
         {/* Past Reservations */}
         <SectionTitle variant="title">Past Reservations</SectionTitle>
         <Spacer position="top" size="small" />
         {pastReservations.map((reservation) => (
-          <ReservationCard key={reservation.id} reservation={reservation} />
+          <React.Fragment key={reservation.id}>
+            <PastReservationCard reservation={reservation} />
+            <Separator type="partial" />
+          </React.Fragment>
         ))}
       </ScrollView>
     </Container>
