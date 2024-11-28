@@ -4,6 +4,7 @@ import React from "react";
 import styled from "styled-components/native";
 import { ScrollView } from "react-native";
 
+import { reservations } from "../../../data/mockData";
 import { CustomText } from "../../../components/CustomText/CustomText";
 import { SafeArea } from "../../../components/SafeArea/SafeArea";
 import { Spacer } from "../../../components/Spacer/Spacer";
@@ -23,48 +24,6 @@ const SectionTitle = styled(CustomText)`
 `;
 
 export const ReservationsScreen = () => {
-  // Sample data; replace with actual data fetched from backend or state management
-  const reservations = [
-    {
-      id: 1,
-      name: "La Piazza",
-      photo: "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
-      date: "2024-04-01",
-      time: "7:00 PM",
-      seatsNumber: 4,
-      status: "Confirmed",
-    },
-    {
-      id: 2,
-      name: "Sushi World",
-      photo: "https://images.unsplash.com/photo-1553621042-f6e147245754",
-      date: "2024-04-05",
-      time: "8:00 PM",
-      seatsNumber: 2,
-      status: "Pending",
-    },
-    {
-      id: 3,
-      name: "Burger House",
-      photo: "https://images.unsplash.com/photo-1550547660-d9450f859349",
-      date: "2024-03-20",
-      time: "6:00 PM",
-      seatsNumber: 3,
-      status: "Completed",
-    },
-    {
-      id: 4,
-      name: "Ocean Breeze Café",
-      photo:
-        "https://images.unsplash.com/photo-1544511916-0148ccdeb877?auto=format&fit=crop&w=400&q=60", // Verified new image URL
-      date: "2024-03-28",
-      time: "6:00 PM",
-      seatsNumber: 3,
-      status: "Pending",
-    },
-    // Add more reservations as needed
-  ];
-
   // Split reservations into current and past (for future differentiation)
   const currentReservations = reservations.slice(0, 1); // First two as current
   const pastReservations = reservations.slice(1); // Remaining as past

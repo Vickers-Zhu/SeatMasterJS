@@ -2,6 +2,7 @@
 
 import React from "react";
 import { View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import styled, { useTheme } from "styled-components/native";
 
 import { Spacer } from "../../../components/Spacer/Spacer";
@@ -17,13 +18,22 @@ import {
   ViewStoreButtonText,
 } from "./PastReservationCard.styles";
 
+import { restaurants } from "../../../data/mockData"; // Import restaurants data
+
 export const PastReservationCard = ({ reservation = {} }) => {
+  const navigation = useNavigation();
+
   const {
     name = "Restaurant Name",
     photo = "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
     date = "2024-04-01",
     status = "Completed", // Extendable for other statuses
   } = reservation;
+
+  // Find the corresponding restaurant based on the photo URL
+  const correspondingRestaurant = restaurants.find((restaurant) =>
+    restaurant.photos.includes(photo)
+  );
 
   return (
     <PastReservationCardContainer>
@@ -37,8 +47,14 @@ export const PastReservationCard = ({ reservation = {} }) => {
       </InfoContainer>
       <ViewStoreButton
         onPress={() => {
-          // Handle view store action
-          console.log(`Viewing store for ${name}`);
+          if (correspondingRestaurant) {
+            // Navigate to RestaurantDetailScreen with restaurant data
+            navigation.navigate("RestaurantDetailScreen", {
+              restaurant: correspondingRestaurant,
+            });
+          } else {
+            console.log(`No corresponding restaurant found for ${name}`);
+          }
         }}
       >
         <ViewStoreButtonText>View Store</ViewStoreButtonText>
