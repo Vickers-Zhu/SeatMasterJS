@@ -10,6 +10,7 @@ import { RestaurantsNavigator } from "./RestaurantsNavigator";
 import { CheckoutNavigator } from "./CheckoutNavigator";
 import { ReservationsNavigator } from "./ReservationsNavigator";
 import { SettingsScreen } from "../../features/settings/screens/SettingsScreen";
+import { LoginScreen } from "../../features/auth/screens/LoginScreen";
 import { RestaurantDetailScreen } from "../../features/restaurants/screens/RestaurantDetailScreen";
 import { AccountSettingsScreen } from "../../features/settings/screens/AccountSettingsScreen";
 
@@ -69,6 +70,7 @@ export const AppNavigator = () => (
     >
       {/* Tabs */}
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen name="Login" component={LoginScreen} />
 
       {/* Account Settings Screen */}
       <Stack.Screen

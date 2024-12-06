@@ -11,7 +11,7 @@ const useStaticServer = () => {
 
     const startServer = async () => {
       const path = `${RNFS.MainBundlePath}/build`; // Ensure this path exists and contains your web app
-      server = new StaticServer(9000, path, { localOnly: true });
+      server = new StaticServer(9001, path, { localOnly: true });
       try {
         const serverUrl = await server.start();
         setUrl(serverUrl);
