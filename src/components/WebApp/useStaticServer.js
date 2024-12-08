@@ -10,7 +10,8 @@ const useStaticServer = () => {
     let server = null;
 
     const startServer = async () => {
-      const path = `${RNFS.MainBundlePath}/build`; // Ensure this path exists and contains your web app
+      const path = `${RNFS.MainBundlePath}/3d_build`; // Ensure this path exists and contains your web app
+      console.log(`Inner webapp path verified: ${path}`);
       server = new StaticServer(9001, path, { localOnly: true });
       try {
         const serverUrl = await server.start();
