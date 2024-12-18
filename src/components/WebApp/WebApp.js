@@ -1,8 +1,8 @@
 // src/components/WebApp/WebApp.js
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { View } from "react-native";
-import styled from "styled-components/native";
+import { View, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
+import styled from "styled-components/native";
 import useStaticServer from "./useStaticServer";
 
 import {
@@ -20,10 +20,12 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
   const [webViewHeight, setWebViewHeight] = useState(200);
   const [selectedChairs, setSelectedChairs] = useState([]);
   const [occupiedChairs, setOccupiedChairs] = useState(["CHAIR2", "CHAIR4"]);
+  const [isServerReady, setIsServerReady] = useState(false);
 
+  // Monitor server readiness and only load the WebView when ready
   useEffect(() => {
-    if (webViewRef.current && serverUrl) {
-      webViewRef.current.reload();
+    if (serverUrl) {
+      setIsServerReady(true);
     }
   }, [serverUrl]);
 
@@ -102,24 +104,32 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <Container height={webViewHeight}>
-        <StyledWebView
-          ref={webViewRef}
-          source={{ uri: serverUrl }}
-          scrollEnabled={false}
-          cacheEnabled={false}
-          cacheMode="LOAD_NO_CACHE"
-          originWhitelist={["*"]}
-          onError={(syntheticEvent) => {
-            const { nativeEvent } = syntheticEvent;
-            console.warn("WebView error: ", nativeEvent);
-          }}
-          onMessage={handleWebViewMessage}
-          onLoadEnd={() => {
-            sendChairsToWebView();
-          }}
-        />
-      </Container>
+      {isServerReady ? (
+        <Container height={webViewHeight}>
+          <StyledWebView
+            ref={webViewRef}
+            source={{ uri: serverUrl }}
+            scrollEnabled={false}
+            cacheEnabled={false}
+            cacheMode="LOAD_NO_CACHE"
+            originWhitelist={["*"]}
+            onError={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              console.warn("WebView error: ", nativeEvent);
+            }}
+            onMessage={handleWebViewMessage}
+            onLoadEnd={() => {
+              sendChairsToWebView();
+            }}
+          />
+        </Container>
+      ) : (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
       <Footer>
         <SelectedText>
           Selected Chairs: {selectedChairs.join(", ") || "None"}
