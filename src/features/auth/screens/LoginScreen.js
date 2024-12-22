@@ -1,13 +1,13 @@
-// src/features/auth/screens/LoginScreen.js
-
-import React from "react";
+import styled from "styled-components/native";
+import React, { useState } from "react";
+import DropDownPicker from "react-native-dropdown-picker";
 import { Formik } from "formik";
 import * as yup from "yup";
-import { useNavigation } from "@react-navigation/native";
 import {
   Container,
   Logo,
   InputContainer,
+  FlexContainer,
   TextInput,
   Button,
   ButtonText,
@@ -16,21 +16,36 @@ import {
   TitleText,
 } from "./LoginScreen.styles";
 
-// Validation Schema
+// Validation
 const validationSchema = yup.object().shape({
-  email: yup.string().email("Invalid email").required("Email is required"),
+  phone: yup
+    .string()
+    .required("Phone number is required")
+    .matches(/^\d+$/, "Phone number must contain only digits"),
   password: yup
     .string()
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
 });
 
-// Component
+// Country codes
+const countryCodes = [
+  { label: "🇺🇸 +1", value: "+1" },
+  { label: "🇮🇳 +91", value: "+91" },
+  { label: "🇬🇧 +44", value: "+44" },
+  { label: "🇯🇵 +81", value: "+81" },
+  { label: "🇨🇳 +86", value: "+86" },
+];
+
 export const LoginScreen = () => {
-  const navigation = useNavigation();
+  const [selectedCode, setSelectedCode] = useState("+1");
+  const [open, setOpen] = useState(false);
 
   const handleLogin = (values) => {
-    console.log("Login Successful", values);
+    console.log("Login Successful", {
+      phone: `${selectedCode}${values.phone}`,
+      password: values.password,
+    });
     // Add your login logic here
   };
 
@@ -40,7 +55,7 @@ export const LoginScreen = () => {
       <TitleText variant="title">Login</TitleText>
 
       <Formik
-        initialValues={{ email: "", password: "" }}
+        initialValues={{ phone: "", password: "" }}
         validationSchema={validationSchema}
         onSubmit={handleLogin}
       >
@@ -54,19 +69,43 @@ export const LoginScreen = () => {
           isValid,
         }) => (
           <>
-            {/* Email Input */}
-            <InputContainer>
-              <TextInput
-                placeholder="Email"
-                placeholderTextColor="#9C9C9C" // Matches the 'disabled' text color
-                keyboardType="email-address"
-                autoCapitalize="none"
-                onChangeText={handleChange("email")}
-                onBlur={handleBlur("email")}
-                value={values.email}
-              />
-              {errors.email && touched.email && (
-                <ErrorText>{errors.email}</ErrorText>
+            <InputContainer style={{ zIndex: 9000, elevation: 9000 }}>
+              <FlexContainer>
+                <View style={{ flex: 0.29, marginRight: "2%" }}>
+                  <DropDownPicker
+                    open={open}
+                    value={selectedCode}
+                    items={countryCodes}
+                    setOpen={setOpen}
+                    setValue={setSelectedCode}
+                    placeholder="Select"
+                    containerStyle={{
+                      width: "100%", // Occupies the parent's 30%
+                    }}
+                    style={{
+                      backgroundColor: "#f0f0f0",
+                      borderColor: "#ccc",
+                    }}
+                    dropDownContainerStyle={{
+                      backgroundColor: "#ffffff",
+                      borderColor: "#ccc",
+                    }}
+                  />
+                </View>
+                <View style={{ flex: 0.71 }}>
+                  <TextInput
+                    placeholder="Phone number"
+                    placeholderTextColor="#9C9C9C"
+                    keyboardType="number-pad"
+                    onChangeText={handleChange("phone")}
+                    onBlur={handleBlur("phone")}
+                    value={values.phone}
+                  />
+                </View>
+              </FlexContainer>
+
+              {errors.phone && touched.phone && (
+                <ErrorText>{errors.phone}</ErrorText>
               )}
             </InputContainer>
 
@@ -74,7 +113,7 @@ export const LoginScreen = () => {
             <InputContainer>
               <TextInput
                 placeholder="Password"
-                placeholderTextColor="#9C9C9C" // Matches the 'disabled' text color
+                placeholderTextColor="#9C9C9C"
                 secureTextEntry
                 autoCapitalize="none"
                 onChangeText={handleChange("password")}
@@ -86,18 +125,13 @@ export const LoginScreen = () => {
               )}
             </InputContainer>
 
-            {/* Forgot Password */}
-            <LinkText onPress={() => navigation.navigate("ForgotPassword")}>
-              Forgot Password?
-            </LinkText>
-
             {/* Login Button */}
             <Button onPress={handleSubmit} disabled={!isValid}>
               <ButtonText>Login</ButtonText>
             </Button>
 
             {/* Sign Up Link */}
-            <LinkText onPress={() => navigation.navigate("SignUp")}>
+            <LinkText onPress={() => console.log("Navigate to SignUp")}>
               Don't have an account? Sign Up
             </LinkText>
           </>
@@ -106,3 +140,6 @@ export const LoginScreen = () => {
     </Container>
   );
 };
+
+// Must import View from react-native for the wrapper
+import { View } from "react-native";

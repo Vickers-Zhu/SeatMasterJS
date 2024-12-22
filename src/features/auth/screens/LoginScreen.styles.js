@@ -1,5 +1,4 @@
-// src/features/auth/screens/LoginScreen.styles.js
-
+// src/features/auth/screens/LoginScreen.js
 import styled from "styled-components/native";
 import { CustomText } from "../../../components/CustomText/CustomText";
 
@@ -29,6 +28,14 @@ export const TextInput = styled.TextInput`
   color: ${(props) => props.theme.colors.text.primary};
   background-color: ${(props) => props.theme.colors.bg.secondary};
   border-radius: ${(props) => props.theme.space[2]};
+`;
+
+export const FlexContainer = styled.View`
+  z-index: 9999;
+  elevation: 9999;
+  flex-direction: row;
+  align-items: center; /* Correct property */
+  width: 100%;
 `;
 
 export const Button = styled.TouchableOpacity`
