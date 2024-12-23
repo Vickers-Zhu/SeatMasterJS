@@ -72,7 +72,6 @@ export const AppNavigator = () => (
       <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen name="Login" component={LoginScreen} />
 
-      {/* Account Settings Screen */}
       <Stack.Screen
         name="RestaurantDetailScreen"
         component={RestaurantDetailScreen}

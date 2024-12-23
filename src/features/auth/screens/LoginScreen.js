@@ -16,6 +16,8 @@ import {
   TitleText,
 } from "./LoginScreen.styles";
 
+import LoginDropDownPicker from "../components/LoginDropDownPicker";
+
 // Validation
 const validationSchema = yup.object().shape({
   phone: yup
@@ -30,15 +32,49 @@ const validationSchema = yup.object().shape({
 
 // Country codes
 const countryCodes = [
-  { label: "🇺🇸 +1", value: "+1" },
-  { label: "🇮🇳 +91", value: "+91" },
-  { label: "🇬🇧 +44", value: "+44" },
-  { label: "🇯🇵 +81", value: "+81" },
-  { label: "🇨🇳 +86", value: "+86" },
+  {
+    flag: "🇺🇸",
+    countryName: "United States",
+    code: "+1",
+  },
+  {
+    flag: "🇬🇧",
+    countryName: "United Kingdom",
+    code: "+44",
+  },
+  {
+    flag: "🇨🇦",
+    countryName: "Canada",
+    code: "+1",
+  },
+  {
+    flag: "🇦🇺",
+    countryName: "Australia",
+    code: "+61",
+  },
+  {
+    flag: "🇳🇿",
+    countryName: "New Zealand",
+    code: "+64",
+  },
+  {
+    flag: "🇮🇳",
+    countryName: "India",
+    code: "+91",
+  },
+  {
+    flag: "🇨🇳",
+    countryName: "China",
+    code: "+86",
+  },
+  {
+    flag: "🇯🇵",
+    countryName: "Japan",
+    code: "+81",
+  },
 ];
-
 export const LoginScreen = () => {
-  const [selectedCode, setSelectedCode] = useState("+1");
+  const [selectedCountry, setSelectedCountry] = useState("United States");
   const [open, setOpen] = useState(false);
 
   const handleLogin = (values) => {
@@ -69,27 +105,20 @@ export const LoginScreen = () => {
           isValid,
         }) => (
           <>
-            <InputContainer style={{ zIndex: 9000, elevation: 9000 }}>
+            <InputContainer style={{ zIndex: 2000, elevation: 2000 }}>
               <FlexContainer>
-                <View style={{ flex: 0.29, marginRight: "2%" }}>
-                  <DropDownPicker
-                    open={open}
-                    value={selectedCode}
-                    items={countryCodes}
-                    setOpen={setOpen}
-                    setValue={setSelectedCode}
-                    placeholder="Select"
-                    containerStyle={{
-                      width: "100%", // Occupies the parent's 30%
-                    }}
-                    style={{
-                      backgroundColor: "#f0f0f0",
-                      borderColor: "#ccc",
-                    }}
-                    dropDownContainerStyle={{
-                      backgroundColor: "#ffffff",
-                      borderColor: "#ccc",
-                    }}
+                <View
+                  style={{
+                    flex: 0.29,
+                    marginRight: "2%",
+                    zIndex: 9000,
+                    elevation: 9000,
+                  }}
+                >
+                  <LoginDropDownPicker
+                    countryCodes={countryCodes}
+                    selectedCountry={selectedCountry}
+                    setSelectedCountry={setSelectedCountry}
                   />
                 </View>
                 <View style={{ flex: 0.71 }}>

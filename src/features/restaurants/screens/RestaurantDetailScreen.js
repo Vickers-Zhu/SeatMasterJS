@@ -2,7 +2,9 @@
 import React, { useState, useRef } from "react";
 import { Animated, Dimensions, View } from "react-native";
 import styled from "styled-components/native";
+import { IconButton } from "react-native-paper";
 
+import { CustomText } from "../../../components/CustomText/CustomText";
 import { SafeArea } from "../../../components/SafeArea/SafeArea";
 import { RestaurantInfoCard } from "../components/RestaurantInfoCard";
 import RestaurantMenu from "../components/RestaurantMenu";
@@ -17,6 +19,20 @@ import ErrorBoundary from "../../../components/ErrorBoundary/ErrorBoundary";
 
 const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};
+`;
+
+export const Header = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center; /* Centers the title */
+  padding: ${(props) => props.theme.space[2]};
+  position: relative;
+  background-color: ${(props) => props.theme.colors.bg.primary}; /* Optional */
+`;
+
+export const CloseButtonWrapper = styled.View`
+  position: absolute;
+  left: ${(props) => props.theme.space[2]};
 `;
 
 const RestaurantDetailScreen = ({ route, navigation }) => {
@@ -67,6 +83,20 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
 
   return (
     <SafeArea>
+      <Header>
+        {/* Close Button */}
+        <CloseButtonWrapper>
+          <IconButton
+            icon="arrow-left"
+            size={24}
+            onPress={() => navigation.goBack()}
+            accessibilityLabel="Close"
+          />
+        </CloseButtonWrapper>
+
+        {/* Centered Title */}
+        <CustomText variant="title">RestaurantDetail</CustomText>
+      </Header>
       <View style={{ flex: 1 }}>
         <Animated.ScrollView
           scrollEnabled={scrollEnabled}

@@ -1,3 +1,4 @@
+// src/infrastructure/options/GlobalScreenOptions.js
 import { Platform } from "react-native";
 import { colors } from "../../infrastructure/theme/colors"; // Adjust the path as needed
 import { TransitionPresets } from "@react-navigation/stack";
@@ -26,11 +27,10 @@ const commonHeaderOptions = {
 export const globalScreenOptions = {
   common: commonHeaderOptions,
   restaurantDetail: {
-    headerShown: true,
-    headerTitle: "Restaurant Detail",
-    headerTitleAlign: "center",
-    headerTintColor: colors.text.primary,
-    ...commonHeaderOptions,
-    ...TransitionPresets.SlideFromRightIOS, // Customize this to change transition
+    headerShown: false, // Disable default header for RestaurantDetailScreen
+    // If you have other specific options for restaurantDetail, add them here
+    // For example:
+    // ...commonHeaderOptions,
+    // ...TransitionPresets.SlideFromRightIOS,
   },
 };
