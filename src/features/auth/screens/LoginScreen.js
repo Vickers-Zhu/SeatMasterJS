@@ -75,7 +75,7 @@ const countryCodes = [
 ];
 export const LoginScreen = () => {
   const [selectedCountry, setSelectedCountry] = useState("United States");
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(380);
 
   const handleLogin = (values) => {
     console.log("Login Successful", {
