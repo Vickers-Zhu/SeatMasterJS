@@ -75,7 +75,7 @@ const countryCodes = [
 ];
 export const LoginScreen = () => {
   const [selectedCountry, setSelectedCountry] = useState("United States");
-  const [open, setOpen] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   const handleLogin = (values) => {
     console.log("Login Successful", {
@@ -105,7 +105,13 @@ export const LoginScreen = () => {
           isValid,
         }) => (
           <>
-            <InputContainer style={{ zIndex: 2000, elevation: 2000 }}>
+            <InputContainer
+              style={{ zIndex: 2000, elevation: 2000 }}
+              onLayout={(event) => {
+                const { width } = event.nativeEvent.layout;
+                setContainerWidth(width);
+              }}
+            >
               <FlexContainer>
                 <View
                   style={{
@@ -119,6 +125,7 @@ export const LoginScreen = () => {
                     countryCodes={countryCodes}
                     selectedCountry={selectedCountry}
                     setSelectedCountry={setSelectedCountry}
+                    containerWidth={containerWidth} // I dont know why this working for 13 pro max
                   />
                 </View>
                 <View style={{ flex: 0.71 }}>

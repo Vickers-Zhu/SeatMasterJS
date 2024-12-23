@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import DropDownPicker from "react-native-dropdown-picker";
+import { View } from "react-native";
+
 import CountryListItem from "./CountryListItem";
 
 const LoginDropDownPicker = ({
   countryCodes,
   selectedCountry,
   setSelectedCountry,
+  containerWidth,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -28,16 +31,13 @@ const LoginDropDownPicker = ({
         setSelectedCountry(selectedItem?.countryName);
       }}
       placeholder="Select"
-      containerStyle={{
-        width: "100%",
-      }}
       style={{
         backgroundColor: "#f0f0f0",
         borderColor: "#ccc",
       }}
       dropDownContainerStyle={{
         position: "absolute",
-        width: 380,
+        width: containerWidth,
         backgroundColor: "#ffffff",
         borderColor: "#ccc",
         borderRadius: 12,
