@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import DropDownPicker from "react-native-dropdown-picker";
 import { View } from "react-native";
-
+import { StyledDropDownPicker } from "./LoginDropDownPicker.styles";
 import CountryListItem from "./CountryListItem";
 
 const LoginDropDownPicker = ({
@@ -13,7 +12,7 @@ const LoginDropDownPicker = ({
   const [open, setOpen] = useState(false);
 
   return (
-    <DropDownPicker
+    <StyledDropDownPicker
       open={open}
       value={selectedCountry}
       items={countryCodes.map((item) => ({
@@ -31,17 +30,6 @@ const LoginDropDownPicker = ({
         setSelectedCountry(selectedItem?.countryName);
       }}
       placeholder="Select"
-      style={{
-        backgroundColor: "#f0f0f0",
-        borderColor: "#ccc",
-      }}
-      dropDownContainerStyle={{
-        position: "absolute",
-        width: containerWidth,
-        backgroundColor: "#ffffff",
-        borderColor: "#ccc",
-        borderRadius: 12,
-      }}
       listMode="SCROLLVIEW"
       renderListItem={({ item }) => (
         <CountryListItem
@@ -52,6 +40,7 @@ const LoginDropDownPicker = ({
           }}
         />
       )}
+      containerWidth={containerWidth}
     />
   );
 };

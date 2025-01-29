@@ -9,7 +9,7 @@ import {
 import { TouchableOpacity } from "react-native";
 
 const CountryListItem = ({ item, onPress }) => (
-  <TouchableOpacity onPress={() => onPress(item)}>
+  <TouchableOpacity onPress={() => onPress(item)} activeOpacity={0.6}>
     <ListItemContainer>
       <CountryInfoContainer>
         <FlagText>{item.flag}</FlagText>
