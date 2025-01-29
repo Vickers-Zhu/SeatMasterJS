@@ -47,6 +47,7 @@ export const ReservationCard = ({ reservation = {} }) => {
               navigation.navigate("RestaurantDetailScreen", {
                 restaurant: restaurant,
                 presentationStyle: "modal",
+                openReservationView: true,
               });
             }}
           >

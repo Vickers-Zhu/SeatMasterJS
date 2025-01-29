@@ -1,5 +1,5 @@
 // src/features/restaurants/screens/RestaurantDetailScreen.js
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Animated, Dimensions, View } from "react-native";
 import styled from "styled-components/native";
 import { IconButton } from "react-native-paper";
@@ -36,7 +36,7 @@ export const CloseButtonWrapper = styled.View`
 `;
 
 const RestaurantDetailScreen = ({ route, navigation }) => {
-  const { restaurant } = route.params;
+  const { restaurant, openReservationView } = route.params;
   const layout = useRef(Dimensions.get("window")).current;
   const [index, setIndex] = useState(0);
   const [routes] = useState([
@@ -53,6 +53,12 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
     switch: 0,
     content: {},
   });
+
+  useEffect(() => {
+    if (openReservationView) {
+      animateAndSwitch(true);
+    }
+  }, [openReservationView]);
 
   const { isReservation, isShowReservationContent, opacity, animateAndSwitch } =
     useReservationHandler();
