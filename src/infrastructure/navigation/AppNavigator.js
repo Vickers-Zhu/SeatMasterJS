@@ -75,9 +75,17 @@ export const AppNavigator = () => (
       <Stack.Screen
         name="RestaurantDetailScreen"
         component={RestaurantDetailScreen}
-        options={globalScreenOptions.restaurantDetail}
+        options={({ route }) => ({
+          ...globalScreenOptions.restaurantDetail, // Keep global options
+          presentation:
+            route.params?.presentationStyle === "modal" ? "modal" : "card",
+        })}
       />
-      <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+      <Stack.Screen
+        name="AccountSettings"
+        component={AccountSettingsScreen}
+        options={globalScreenOptions.common}
+      />
     </Stack.Navigator>
   </NavigationContainer>
 );

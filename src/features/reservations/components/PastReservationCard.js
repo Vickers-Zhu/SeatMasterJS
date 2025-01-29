@@ -18,28 +18,20 @@ import {
   ViewStoreButtonText,
 } from "./PastReservationCard.styles";
 
-import { restaurants } from "../../../data/mockData"; // Import restaurants data
-
 export const PastReservationCard = ({ reservation = {} }) => {
   const navigation = useNavigation();
 
   const {
-    name = "Restaurant Name",
-    photo = "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+    restaurant = {},
     date = "2024-04-01",
-    status = "Completed", // Extendable for other statuses
+    status = "Completed",
   } = reservation;
-
-  // Find the corresponding restaurant based on the photo URL
-  const correspondingRestaurant = restaurants.find((restaurant) =>
-    restaurant.photos.includes(photo)
-  );
 
   return (
     <PastReservationCardContainer>
-      <CircleImage source={{ uri: photo }} />
+      <CircleImage source={{ uri: restaurant.photos[0] }} />
       <InfoContainer>
-        <CustomText variant="title">{name}</CustomText>
+        <CustomText variant="title">{restaurant.name}</CustomText>
         <Spacer position="top" size="small" />
         <InfoText>Reserved Date: {date}</InfoText>
         <Spacer position="top" size="small" />
@@ -47,14 +39,9 @@ export const PastReservationCard = ({ reservation = {} }) => {
       </InfoContainer>
       <ViewStoreButton
         onPress={() => {
-          if (correspondingRestaurant) {
-            // Navigate to RestaurantDetailScreen with restaurant data
-            navigation.navigate("RestaurantDetailScreen", {
-              restaurant: correspondingRestaurant,
-            });
-          } else {
-            console.log(`No corresponding restaurant found for ${name}`);
-          }
+          navigation.navigate("RestaurantDetailScreen", {
+            restaurant: restaurant,
+          });
         }}
       >
         <ViewStoreButtonText>View Store</ViewStoreButtonText>

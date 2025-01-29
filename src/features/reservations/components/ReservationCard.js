@@ -2,14 +2,11 @@
 
 import React from "react";
 import { View } from "react-native";
-import { SvgXml } from "react-native-svg";
+import { useNavigation } from "@react-navigation/native";
 import styled, { useTheme } from "styled-components/native";
 
 import { Spacer } from "../../../components/Spacer/Spacer";
 import { CustomText } from "../../../components/CustomText/CustomText";
-
-import star from "../../../../assets/icons/star";
-import open from "../../../../assets/icons/open";
 
 import {
   ReservationCardContainer,
@@ -23,22 +20,22 @@ import {
 } from "./ReservationCard.styles";
 
 export const ReservationCard = ({ reservation = {} }) => {
-  const theme = useTheme(); // Access the theme using styled-components
+  const navigation = useNavigation();
+  const theme = useTheme();
 
   const {
-    name = "Restaurant Name",
-    photo = "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+    restaurant = {},
     date = "2024-04-01",
     time = "7:00 PM",
     seatsNumber = 4,
-    status = "Confirmed", // Possible values: 'Confirmed', 'Pending', 'Cancelled'
+    status = "Confirmed",
   } = reservation;
 
   return (
     <ReservationCardContainer elevation={0}>
-      <ReservationCardCover source={{ uri: photo }} />
+      <ReservationCardCover source={{ uri: restaurant.photos[0] }} />
       <Info>
-        <CustomText variant="title">{name}</CustomText>
+        <CustomText variant="title">{restaurant.name}</CustomText>
         <Section>
           <ReservationDetails>
             <DetailText>Time: {time}</DetailText>
@@ -47,8 +44,10 @@ export const ReservationCard = ({ reservation = {} }) => {
           </ReservationDetails>
           <TrackButton
             onPress={() => {
-              // Handle tracking reservation (e.g., navigate to tracking screen)
-              console.log(`Tracking reservation for ${name}`);
+              navigation.navigate("RestaurantDetailScreen", {
+                restaurant: restaurant,
+                presentationStyle: "modal",
+              });
             }}
           >
             <TrackButtonText>Track</TrackButtonText>

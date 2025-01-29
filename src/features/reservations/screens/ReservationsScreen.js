@@ -3,6 +3,7 @@
 import React from "react";
 import styled from "styled-components/native";
 import { ScrollView } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 import { reservations } from "../../../data/mockData";
 import { CustomText } from "../../../components/CustomText/CustomText";
@@ -24,9 +25,16 @@ const SectionTitle = styled(CustomText)`
 `;
 
 export const ReservationsScreen = () => {
-  // Split reservations into current and past (for future differentiation)
-  const currentReservations = reservations.slice(0, 1); // First two as current
-  const pastReservations = reservations.slice(1); // Remaining as past
+  const navigation = useNavigation();
+
+  // Filter reservations based on status
+  const currentReservations = reservations.filter(
+    (reservation) =>
+      reservation.status === "Confirmed" || reservation.status === "Pending"
+  );
+  const pastReservations = reservations.filter(
+    (reservation) => reservation.status === "Completed"
+  );
 
   return (
     <Container>
@@ -34,18 +42,26 @@ export const ReservationsScreen = () => {
         {/* Current Reservations */}
         <Spacer position="top" size="small" />
         <SectionTitle variant="title">Current Reservations</SectionTitle>
-        {currentReservations.map((reservation) => (
-          <ReservationCard key={reservation.id} reservation={reservation} />
+        {currentReservations.map((reservation, index) => (
+          <React.Fragment key={reservation.id}>
+            <ReservationCard reservation={reservation} />
+            {currentReservations.length > 2 &&
+              index < currentReservations.length - 1 && (
+                <Separator type="full" />
+              )}
+          </React.Fragment>
         ))}
         <Separator type="full" />
 
         {/* Past Reservations */}
         <SectionTitle variant="title">Past Reservations</SectionTitle>
         <Spacer position="top" size="small" />
-        {pastReservations.map((reservation) => (
+        {pastReservations.map((reservation, index) => (
           <React.Fragment key={reservation.id}>
             <PastReservationCard reservation={reservation} />
-            <Separator type="partial" />
+            {index < pastReservations.length - 1 && (
+              <Separator type="partial" />
+            )}
           </React.Fragment>
         ))}
       </ScrollView>

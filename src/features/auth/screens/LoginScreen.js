@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import DropDownPicker from "react-native-dropdown-picker";
 import { Formik } from "formik";
 import * as yup from "yup";
+import { View } from "react-native";
+import { countryCodes } from "../../../data/mockData"; // Import from mockData
+
 import {
   Container,
   Logo,
@@ -30,54 +33,15 @@ const validationSchema = yup.object().shape({
     .required("Password is required"),
 });
 
-// Country codes
-const countryCodes = [
-  {
-    flag: "🇺🇸",
-    countryName: "United States",
-    code: "+1",
-  },
-  {
-    flag: "🇬🇧",
-    countryName: "United Kingdom",
-    code: "+44",
-  },
-  {
-    flag: "🇨🇦",
-    countryName: "Canada",
-    code: "+1",
-  },
-  {
-    flag: "🇦🇺",
-    countryName: "Australia",
-    code: "+61",
-  },
-  {
-    flag: "🇳🇿",
-    countryName: "New Zealand",
-    code: "+64",
-  },
-  {
-    flag: "🇮🇳",
-    countryName: "India",
-    code: "+91",
-  },
-  {
-    flag: "🇨🇳",
-    countryName: "China",
-    code: "+86",
-  },
-  {
-    flag: "🇯🇵",
-    countryName: "Japan",
-    code: "+81",
-  },
-];
 export const LoginScreen = () => {
   const [selectedCountry, setSelectedCountry] = useState("United States");
   const [containerWidth, setContainerWidth] = useState(380);
 
   const handleLogin = (values) => {
+    const selectedCode =
+      countryCodes.find((country) => country.countryName === selectedCountry)
+        ?.code || "+1"; // Default to US code if not found
+
     console.log("Login Successful", {
       phone: `${selectedCode}${values.phone}`,
       password: values.password,
@@ -125,7 +89,7 @@ export const LoginScreen = () => {
                     countryCodes={countryCodes}
                     selectedCountry={selectedCountry}
                     setSelectedCountry={setSelectedCountry}
-                    containerWidth={containerWidth} // I dont know why this working for 13 pro max
+                    containerWidth={containerWidth}
                   />
                 </View>
                 <View style={{ flex: 0.71 }}>
@@ -176,6 +140,3 @@ export const LoginScreen = () => {
     </Container>
   );
 };
-
-// Must import View from react-native for the wrapper
-import { View } from "react-native";

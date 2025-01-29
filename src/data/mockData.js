@@ -49,8 +49,7 @@ export const restaurants = [
 export const reservations = [
   {
     id: 1,
-    name: "La Piazza",
-    photo: "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+    restaurant: restaurants[0],
     date: "2024-04-01",
     time: "7:00 PM",
     seatsNumber: 4,
@@ -58,17 +57,15 @@ export const reservations = [
   },
   {
     id: 2,
-    name: "Sushi World",
-    photo: "https://images.unsplash.com/photo-1553621042-f6e147245754",
-    date: "2024-04-05",
-    time: "8:00 PM",
+    restaurant: restaurants[1],
+    date: "2024-03-15",
+    time: "6:30 PM",
     seatsNumber: 2,
-    status: "Pending",
+    status: "Completed",
   },
   {
     id: 3,
-    name: "Burger House",
-    photo: "https://images.unsplash.com/photo-1550547660-d9450f859349",
+    restaurant: restaurants[2],
     date: "2024-03-20",
     time: "6:00 PM",
     seatsNumber: 3,
@@ -76,12 +73,53 @@ export const reservations = [
   },
   {
     id: 4,
-    name: "Ocean Breeze Café",
-    photo:
-      "https://images.unsplash.com/photo-1544511916-0148ccdeb877?auto=format&fit=crop&w=400&q=60",
+    restaurant: restaurants[3],
     date: "2024-03-28",
     time: "6:00 PM",
     seatsNumber: 3,
-    status: "Pending",
+    status: "Completed",
+  },
+];
+
+export const countryCodes = [
+  {
+    flag: "🇺🇸",
+    countryName: "United States",
+    code: "+1",
+  },
+  {
+    flag: "🇬🇧",
+    countryName: "United Kingdom",
+    code: "+44",
+  },
+  {
+    flag: "🇨🇦",
+    countryName: "Canada",
+    code: "+1",
+  },
+  {
+    flag: "🇦🇺",
+    countryName: "Australia",
+    code: "+61",
+  },
+  {
+    flag: "🇳🇿",
+    countryName: "New Zealand",
+    code: "+64",
+  },
+  {
+    flag: "🇮🇳",
+    countryName: "India",
+    code: "+91",
+  },
+  {
+    flag: "🇨🇳",
+    countryName: "China",
+    code: "+86",
+  },
+  {
+    flag: "🇯🇵",
+    countryName: "Japan",
+    code: "+81",
   },
 ];
