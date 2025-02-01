@@ -134,8 +134,11 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
             }
           >
             <SwitchContainer
-              isReservation={isReservation}
-              setIsReservation={(newValue) => animateAndSwitch(newValue)}
+              isOn={isReservation}
+              setIsOn={(newValue) => animateAndSwitch(newValue)}
+              leftLabel="General"
+              rightLabel="Reservation"
+              variant="default"
             />
           </View>
 

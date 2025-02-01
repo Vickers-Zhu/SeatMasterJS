@@ -1,4 +1,4 @@
-// src/features/auth/screens/LoginScreen.js
+// src/features/auth/screens/LoginScreen.styles.js
 import styled from "styled-components/native";
 import { CustomText } from "../../../components/CustomText/CustomText";
 
@@ -34,7 +34,7 @@ export const FlexContainer = styled.View`
   z-index: 9999;
   elevation: 9999;
   flex-direction: row;
-  align-items: center; /* Correct property */
+  align-items: center;
   width: 100%;
 `;
 
@@ -69,4 +69,11 @@ export const TitleText = styled(CustomText)`
   color: ${(props) => props.theme.colors.text.primary};
   padding-bottom: ${(props) => props.theme.space[4]};
   font-size: ${(props) => props.theme.fontSizes.title};
+`;
+
+export const TopRightContainer = styled.View`
+  position: absolute;
+  top: ${(props) => props.theme.space[0]};
+  right: ${(props) => props.theme.space[0]};
+  z-index: 10000;
 `;

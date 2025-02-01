@@ -7,6 +7,9 @@ import { SafeArea } from "../../../components/SafeArea/SafeArea";
 import { Separator } from "../../../components/Separator/Separator";
 import { CustomText } from "../../../components/CustomText/CustomText";
 
+// Mock Data
+import { users } from "../../../data/mockData"; // Import user data
+
 // Styled Components
 import {
   SettingsContainer,
@@ -22,11 +25,7 @@ import {
 } from "./AccountSettingsScreen.styles";
 
 export const AccountSettingsScreen = ({ navigation }) => {
-  const [userData, setUserData] = useState({
-    name: "Vickers Zhu",
-    phoneNumber: "+81 **** ****",
-    email: "****@example.com",
-  });
+  const user = users[0]; // Get the first user
 
   return (
     <SafeArea>
@@ -52,10 +51,7 @@ export const AccountSettingsScreen = ({ navigation }) => {
 
           {/* Profile Image */}
           <ProfileContainer>
-            <Avatar.Image
-              size={80}
-              source={require("../../../../assets/images/user_profile.jpg")}
-            />
+            <Avatar.Image size={80} source={user.profileImage} />
           </ProfileContainer>
 
           {/* Basic Info Section */}
@@ -65,7 +61,7 @@ export const AccountSettingsScreen = ({ navigation }) => {
           <ItemContainer>
             <ItemTextContainer>
               <BoldText variant="body">Name</BoldText>
-              <InfoText variant="body">{userData.name}</InfoText>
+              <InfoText variant="body">{user.username}</InfoText>
             </ItemTextContainer>
             <IconButton icon="chevron-right" size={24} />
           </ItemContainer>
@@ -75,7 +71,7 @@ export const AccountSettingsScreen = ({ navigation }) => {
           <ItemContainer>
             <ItemTextContainer>
               <BoldText variant="body">Phone Number</BoldText>
-              <InfoText variant="body">{userData.phoneNumber}</InfoText>
+              <InfoText variant="body">{user.phoneNumber}</InfoText>
             </ItemTextContainer>
             <IconButton icon="chevron-right" size={24} />
           </ItemContainer>
@@ -85,7 +81,7 @@ export const AccountSettingsScreen = ({ navigation }) => {
           <ItemContainer>
             <ItemTextContainer>
               <BoldText variant="body">Email</BoldText>
-              <InfoText variant="body">{userData.email}</InfoText>
+              <InfoText variant="body">{user.email}</InfoText>
             </ItemTextContainer>
             <IconButton icon="chevron-right" size={24} />
           </ItemContainer>

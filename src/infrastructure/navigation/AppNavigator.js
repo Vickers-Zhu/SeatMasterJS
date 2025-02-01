@@ -68,9 +68,9 @@ export const AppNavigator = () => (
         headerShown: false, // Globally hide headers for simplicity
       }}
     >
-      {/* Tabs */}
-      <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Home" component={HomeTabs} />
+      {/* Tabs */}
 
       <Stack.Screen
         name="RestaurantDetailScreen"

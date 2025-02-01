@@ -1,13 +1,12 @@
-import styled from "styled-components/native";
+// src/features/auth/screens/LoginScreen.js
 import React, { useState } from "react";
-import DropDownPicker from "react-native-dropdown-picker";
+import { View } from "react-native";
 import { Formik } from "formik";
 import * as yup from "yup";
-import { View } from "react-native";
-import { countryCodes } from "../../../data/mockData"; // Import from mockData
-
+import { countryCodes } from "../../../data/mockData";
 import {
   Container,
+  TopRightContainer,
   Logo,
   InputContainer,
   FlexContainer,
@@ -18,10 +17,10 @@ import {
   ErrorText,
   TitleText,
 } from "./LoginScreen.styles";
-
 import LoginDropDownPicker from "../components/LoginDropDownPicker";
+import SwitchContainer from "../../../components/Switch/Switch";
 
-// Validation
+// Validation Schema
 const validationSchema = yup.object().shape({
   phone: yup
     .string()
@@ -33,24 +32,49 @@ const validationSchema = yup.object().shape({
     .required("Password is required"),
 });
 
-export const LoginScreen = () => {
+export const LoginScreen = ({ navigation }) => {
   const [selectedCountry, setSelectedCountry] = useState("United States");
   const [containerWidth, setContainerWidth] = useState(380);
+  // isMerchant: false means Customer (default), true means Merchant.
+  const [isMerchant, setIsMerchant] = useState(false);
 
   const handleLogin = (values) => {
     const selectedCode =
       countryCodes.find((country) => country.countryName === selectedCountry)
-        ?.code || "+1"; // Default to US code if not found
+        ?.code || "+1";
 
-    console.log("Login Successful", {
-      phone: `${selectedCode}${values.phone}`,
-      password: values.password,
-    });
-    // Add your login logic here
+    if (isMerchant) {
+      console.log("Merchant Login", {
+        phone: `${selectedCode}${values.phone}`,
+        password: values.password,
+      });
+      // navigation.navigate("MerchantHome");
+    } else {
+      console.log("Customer Login", {
+        phone: `${selectedCode}${values.phone}`,
+        password: values.password,
+      });
+      navigation.navigate("Home");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
+    }
   };
 
   return (
     <Container>
+      {/* Top right switch wrapped in TopRightContainer with a scale transform */}
+      <TopRightContainer style={{ transform: [{ scale: 0.8 }] }}>
+        <SwitchContainer
+          isOn={isMerchant}
+          setIsOn={setIsMerchant}
+          leftLabel="Customer"
+          rightLabel="Merchant"
+          variant="alternate"
+        />
+      </TopRightContainer>
+
       <Logo source={require("../../../../assets/images/splash copy.png")} />
       <TitleText variant="title">Login</TitleText>
 
@@ -103,13 +127,11 @@ export const LoginScreen = () => {
                   />
                 </View>
               </FlexContainer>
-
               {errors.phone && touched.phone && (
                 <ErrorText>{errors.phone}</ErrorText>
               )}
             </InputContainer>
 
-            {/* Password Input */}
             <InputContainer>
               <TextInput
                 placeholder="Password"
@@ -125,12 +147,10 @@ export const LoginScreen = () => {
               )}
             </InputContainer>
 
-            {/* Login Button */}
             <Button onPress={handleSubmit} disabled={!isValid}>
               <ButtonText>Login</ButtonText>
             </Button>
 
-            {/* Sign Up Link */}
             <LinkText onPress={() => console.log("Navigate to SignUp")}>
               Don't have an account? Sign Up
             </LinkText>

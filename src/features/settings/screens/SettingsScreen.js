@@ -8,6 +8,9 @@ import { SafeArea } from "../../../components/SafeArea/SafeArea";
 import { Spacer } from "../../../components/Spacer/Spacer";
 import { CustomText } from "../../../components/CustomText/CustomText";
 
+// Mock Data
+import { users } from "../../../data/mockData"; // Import user data
+
 // Styled Components
 import {
   SettingsContainer,
@@ -19,7 +22,7 @@ import {
 } from "./SettingsScreen.styles";
 
 export const SettingsScreen = ({ navigation }) => {
-  const userProfileImage = require("../../../../assets/images/user_profile.jpg");
+  const user = users[0]; // Get the first user (Guest User)
 
   return (
     <SafeArea>
@@ -27,16 +30,17 @@ export const SettingsScreen = ({ navigation }) => {
         <ProfileContainer>
           <UserInfoContainer>
             {/* Username */}
-            <CustomText variant="h3">Guest User</CustomText>
+            <CustomText variant="h3">{user.username}</CustomText>
             <Spacer position="top" size="small" />
             {/* Email */}
-            <EmailText variant="caption">guest@example.com</EmailText>
+            <EmailText variant="caption">{user.email}</EmailText>
           </UserInfoContainer>
           <AvatarContainer>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            {/* Profile's onPress is now void */}
+            <TouchableOpacity onPress={() => {}}>
               <Avatar.Image
                 size={100}
-                source={userProfileImage}
+                source={user.profileImage}
                 backgroundColor={(props) => props.theme.colors.brand.primary}
               />
             </TouchableOpacity>
@@ -97,6 +101,13 @@ export const SettingsScreen = ({ navigation }) => {
                 icon="logout"
               />
             )}
+            // When Logout is pressed, reset the navigation to Login
+            onPress={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              })
+            }
           />
         </List.Section>
       </SettingsContainer>

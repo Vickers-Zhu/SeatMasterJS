@@ -123,3 +123,12 @@ export const countryCodes = [
     code: "+81",
   },
 ];
+
+export const users = [
+  {
+    username: "Vickers Zhu",
+    email: "****@example.com",
+    profileImage: require("../../assets/images/user_profile.jpg"), // Adjust the path as necessary
+    phoneNumber: "+81 **** ****",
+  },
+];

@@ -1,72 +1,48 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, Animated, TouchableWithoutFeedback } from 'react-native';
-import styled from 'styled-components/native';
+import React, { useRef, useEffect } from "react";
+import { Animated, TouchableWithoutFeedback } from "react-native";
+// Import both style sets (default and alternate)
+import * as DefaultStyles from "./Switch.styles";
+import * as AltStyles from "./SwitchAlternate.styles";
 
-const Container = styled.View`
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  margin: 10px;
-`;
+const SwitchContainer = ({
+  isOn,
+  setIsOn,
+  leftLabel,
+  rightLabel,
+  variant = "default", // "default" or "alternate"
+}) => {
+  // Select the style set based on the variant prop.
+  const Styles = variant === "alternate" ? AltStyles : DefaultStyles;
 
-const SwitchBackground = styled.View`
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  background-color: ${(props) => props.theme.colors.ui.disabled};
-  border-radius: 25px;
-  width: 200px; /* Make the container longer */
-  height: 50px;
-  padding: 3px;
-`;
-
-const Capsule = styled(Animated.View)`
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  background-color: ${(props) => props.theme.colors.bg.primary};
-  border-radius: 25px;
-  margin: 3px; 
-`;
-
-const TextWrapper = styled.View`
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Label = styled(Text)`
-  font-size: ${(props) => props.theme.fontSizes.button};
-  color: ${(props) => props.theme.colors.text.primary};
-`;
-
-const SwitchContainer = ({ isReservation, setIsReservation }) => {
-  const capsulePosition = useRef(new Animated.Value(isReservation ? 96 : 0)).current;
+  // The capsule position animates based on the isOn state.
+  const capsulePosition = useRef(new Animated.Value(isOn ? 96 : 0)).current;
 
   useEffect(() => {
     Animated.timing(capsulePosition, {
-      toValue: isReservation ? 96 : 0,
+      toValue: isOn ? 96 : 0,
       duration: 200,
       useNativeDriver: false,
     }).start();
-  }, [isReservation]);
+  }, [isOn]);
 
   return (
-    <Container>
-      <SwitchBackground>
-        <Capsule style={{ left: capsulePosition }} />
-        <TouchableWithoutFeedback onPress={() => setIsReservation(false)}>
-          <TextWrapper>
-            <Label>General</Label>
-          </TextWrapper>
+    <Styles.Container>
+      <Styles.SwitchBackground>
+        <Styles.Capsule style={{ left: capsulePosition }} />
+        <TouchableWithoutFeedback onPress={() => setIsOn(false)}>
+          <Styles.TextWrapper>
+            {/* Left label is active when isOn is false */}
+            <Styles.Label active={!isOn}>{leftLabel}</Styles.Label>
+          </Styles.TextWrapper>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => setIsReservation(true)}>
-          <TextWrapper>
-            <Label>Reservation</Label>
-          </TextWrapper>
+        <TouchableWithoutFeedback onPress={() => setIsOn(true)}>
+          <Styles.TextWrapper>
+            {/* Right label is active when isOn is true */}
+            <Styles.Label active={isOn}>{rightLabel}</Styles.Label>
+          </Styles.TextWrapper>
         </TouchableWithoutFeedback>
-      </SwitchBackground>
-    </Container>
+      </Styles.SwitchBackground>
+    </Styles.Container>
   );
 };
 
