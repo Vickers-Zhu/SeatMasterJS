@@ -139,6 +139,7 @@ export const LoginScreen = ({ navigation }) => {
             <Button onPress={handleSubmit} disabled={!isValid}>
               <ButtonText> {isLoading ? "Logging in..." : "Login"} </ButtonText>
             </Button>
+            {error && <ErrorText>{error}</ErrorText>}
 
             <LinkText onPress={() => console.log("Navigate to SignUp")}>
               Don't have an account? Sign Up
