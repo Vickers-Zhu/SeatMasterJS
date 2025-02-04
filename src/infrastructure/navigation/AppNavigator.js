@@ -5,10 +5,12 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 
+import { useAuthentication } from "../../services/AuthenticationContext";
 import { globalScreenOptions } from "../options/GlobalScreenOptions";
 import { RestaurantsNavigator } from "./RestaurantsNavigator";
 import { CheckoutNavigator } from "./CheckoutNavigator";
 import { ReservationsNavigator } from "./ReservationsNavigator";
+import { MerchantNavigator } from "./MerchantNavigator";
 import { SettingsScreen } from "../../features/settings/screens/SettingsScreen";
 import { LoginScreen } from "../../features/auth/screens/LoginScreen";
 import { RestaurantDetailScreen } from "../../features/restaurants/screens/RestaurantDetailScreen";
@@ -61,31 +63,41 @@ const HomeTabs = () => (
 );
 
 // App Navigator (contains stack navigators)
-export const AppNavigator = () => (
-  <NavigationContainer>
+export const AppNavigator = () => {
+  const { user } = useAuthentication();
+  const role = user?.role;
+  return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false, // Globally hide headers for simplicity
       }}
     >
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Home" component={HomeTabs} />
-      {/* Tabs */}
+      {role === "customer" ? (
+        <>
+          {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
+          <Stack.Screen name="Home" component={HomeTabs} />
+          {/* Tabs */}
 
-      <Stack.Screen
-        name="RestaurantDetailScreen"
-        component={RestaurantDetailScreen}
-        options={({ route }) => ({
-          ...globalScreenOptions.restaurantDetail, // Keep global options
-          presentation:
-            route.params?.presentationStyle === "modal" ? "modal" : "card",
-        })}
-      />
-      <Stack.Screen
-        name="AccountSettings"
-        component={AccountSettingsScreen}
-        options={globalScreenOptions.common}
-      />
+          <Stack.Screen
+            name="RestaurantDetailScreen"
+            component={RestaurantDetailScreen}
+            options={({ route }) => ({
+              ...globalScreenOptions.restaurantDetail, // Keep global options
+              presentation:
+                route.params?.presentationStyle === "modal" ? "modal" : "card",
+            })}
+          />
+          <Stack.Screen
+            name="AccountSettings"
+            component={AccountSettingsScreen}
+            options={globalScreenOptions.common}
+          />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Merchant" component={MerchantNavigator} />
+        </>
+      )}
     </Stack.Navigator>
-  </NavigationContainer>
-);
+  );
+};

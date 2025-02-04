@@ -19,6 +19,7 @@ import {
 } from "./LoginScreen.styles";
 import LoginDropDownPicker from "../components/LoginDropDownPicker";
 import SwitchContainer from "../../../components/Switch/Switch";
+import { useAuthentication } from "../../../services/AuthenticationContext";
 
 // Validation Schema
 const validationSchema = yup.object().shape({
@@ -37,29 +38,17 @@ export const LoginScreen = ({ navigation }) => {
   const [containerWidth, setContainerWidth] = useState(380);
   // isMerchant: false means Customer (default), true means Merchant.
   const [isMerchant, setIsMerchant] = useState(false);
+  const { onLogin, isLoading, error } = useAuthentication();
 
   const handleLogin = (values) => {
     const selectedCode =
       countryCodes.find((country) => country.countryName === selectedCountry)
         ?.code || "+1";
-
-    if (isMerchant) {
-      console.log("Merchant Login", {
-        phone: `${selectedCode}${values.phone}`,
-        password: values.password,
-      });
-      // navigation.navigate("MerchantHome");
-    } else {
-      console.log("Customer Login", {
-        phone: `${selectedCode}${values.phone}`,
-        password: values.password,
-      });
-      navigation.navigate("Home");
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Home" }],
-      });
-    }
+    onLogin(
+      `${selectedCode}${values.phone}`,
+      values.password,
+      isMerchant ? "merchant" : "customer"
+    );
   };
 
   return (
@@ -148,7 +137,7 @@ export const LoginScreen = ({ navigation }) => {
             </InputContainer>
 
             <Button onPress={handleSubmit} disabled={!isValid}>
-              <ButtonText>Login</ButtonText>
+              <ButtonText> {isLoading ? "Logging in..." : "Login"} </ButtonText>
             </Button>
 
             <LinkText onPress={() => console.log("Navigate to SignUp")}>

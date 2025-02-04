@@ -3,6 +3,8 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import { List, Avatar } from "react-native-paper";
 
+import { useAuthentication } from "../../../services/AuthenticationContext";
+
 // Components
 import { SafeArea } from "../../../components/SafeArea/SafeArea";
 import { Spacer } from "../../../components/Spacer/Spacer";
@@ -20,8 +22,10 @@ import {
   SettingsItem,
   EmailText,
 } from "./SettingsScreen.styles";
+import { use } from "react";
 
 export const SettingsScreen = ({ navigation }) => {
+  const { onLogout } = useAuthentication();
   const user = users[0]; // Get the first user (Guest User)
 
   return (
@@ -102,12 +106,9 @@ export const SettingsScreen = ({ navigation }) => {
               />
             )}
             // When Logout is pressed, reset the navigation to Login
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Login" }],
-              })
-            }
+            onPress={() => {
+              onLogout();
+            }}
           />
         </List.Section>
       </SettingsContainer>
