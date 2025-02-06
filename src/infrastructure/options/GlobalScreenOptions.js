@@ -5,8 +5,8 @@ import { TransitionPresets } from "@react-navigation/stack";
 
 const commonHeaderOptions = {
   headerStyle: {
-    height: Platform.OS === "ios" ? 56 : 66, // Adjust the height for iOS and Android
-    backgroundColor: colors.bg.primary, // Use your app's primary background color
+    height: Platform.select({ ios: 56, android: 66 }),
+    backgroundColor: colors.bg.primary,
   },
   headerTitleStyle: {
     fontWeight: "bold",
@@ -17,20 +17,24 @@ const commonHeaderOptions = {
   headerBackTitleVisible: false,
   headerTitleAlign: "center",
   headerLeftContainerStyle: {
-    marginTop: Platform.OS === "ios" ? -45 : -41,
+    marginTop: Platform.select({ ios: -45, android: -41 }),
   },
   headerTitleContainerStyle: {
-    marginTop: Platform.OS === "ios" ? -50 : -45, // Adjust this value to move the title position up
+    marginTop: Platform.select({ ios: -50, android: -45 }),
   },
 };
 
+// New preset that disables the header
 export const globalScreenOptions = {
   common: commonHeaderOptions,
+  nonHeader: {
+    ...commonHeaderOptions,
+    headerShown: false,
+  },
   restaurantDetail: {
-    headerShown: false, // Disable default header for RestaurantDetailScreen
-    // If you have other specific options for restaurantDetail, add them here
+    headerShown: false,
+    // Additional options for restaurant detail can be added here
     // For example:
-    // ...commonHeaderOptions,
     // ...TransitionPresets.SlideFromRightIOS,
   },
 };
