@@ -11,7 +11,7 @@ import { RestaurantsNavigator } from "./RestaurantsNavigator";
 import { CheckoutNavigator } from "./CheckoutNavigator";
 import { ReservationsNavigator } from "./ReservationsNavigator";
 import { MerchantNavigator } from "./MerchantNavigator";
-import { SettingsScreen } from "../../features/settings/screens/SettingsScreen";
+import { SettingsNavigator } from "./SettingsNavigator";
 import { LoginScreen } from "../../features/auth/screens/LoginScreen";
 import { RestaurantDetailScreen } from "../../features/restaurants/screens/RestaurantDetailScreen";
 import { AccountSettingsScreen } from "../../features/settings/screens/AccountSettingsScreen";
@@ -56,7 +56,7 @@ const HomeTabs = () => (
     />
     <Tab.Screen
       name="Settings"
-      component={SettingsScreen} // Settings is still a Tab Screen
+      component={SettingsNavigator} // Settings is still a Tab Screen
       options={{ headerShown: false }}
     />
   </Tab.Navigator>
