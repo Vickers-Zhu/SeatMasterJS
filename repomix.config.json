@@ -1,0 +1,13 @@
+{
+  "include": ["src/**/*", "*.*"],
+  "ignore": {
+    "customPatterns": ["**/*.log", "node_modules/**/*"]
+  },
+  "output": {
+    "style": "plain",
+    "filePath": "repomix-output.txt",
+    "removeComments": true,
+    "showLineNumbers": true,
+    "topFilesLength": 10
+  }
+}
