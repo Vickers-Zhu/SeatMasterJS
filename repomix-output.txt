@@ -90,6 +90,8 @@ src/
         LoginScreen.styles.js
     merchant/
       components/
+        SeatMatrix.js
+        TableLayout.js
         TimeScroll.js
       screens/
         MerchantHomeScreen.js
@@ -1455,194 +1457,429 @@ File: src/features/auth/screens/LoginScreen.styles.js
 78: `;
 
 ================
-File: src/features/merchant/components/TimeScroll.js
+File: src/features/merchant/components/SeatMatrix.js
 ================
-  1: import React, { useRef } from "react";
-  2: import styled from "styled-components/native";
-  3: import { Animated } from "react-native";
-  4: 
-  5: const ITEM_HEIGHT = 50;
-  6: const VISIBLE_ITEMS = 5;
-  7: const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
-  8: const CONTAINER_WIDTH = 100;
-  9: const PADDING_VERTICAL = (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2;
+ 1: import React, { useState } from "react";
+ 2: import { TouchableOpacity, View, Text } from "react-native";
+ 3: import styled from "styled-components/native";
+ 4: 
+ 5: const Row = styled.View`
+ 6:   flex-direction: row;
+ 7:   margin-bottom: 16px;
+ 8: `;
+ 9: 
+10: const SeatButton = styled(TouchableOpacity)`
+11:   width: 60px;
+12:   height: 60px;
+13:   background-color: ${({ status, theme }) =>
+14:     status === "occupied"
+15:       ? "#ff4d4d"
+16:       : status === "reserved"
+17:       ? "#ffd11a"
+18:       : "#b3ffb3"};
+19:   margin-right: 16px;
+20:   justify-content: center;
+21:   align-items: center;
+22:   border-radius: 8px;
+23:   padding: 8px;
+24: `;
+25: 
+26: export const SeatMatrix = ({
+27:   matrix,
+28:   seatStatuses: initialSeatStatuses,
+29:   onSeatPress,
+30: }) => {
+31:   const [seatStatuses, setSeatStatuses] = useState(initialSeatStatuses);
+32: 
+33:   const handlePress = (seatId, status) => {
+34:     const newStatus = status === "empty" ? "occupied" : "empty";
+35:     setSeatStatuses((prev) => ({ ...prev, [seatId]: newStatus }));
+36:     if (onSeatPress) {
+37:       onSeatPress(seatId, newStatus);
+38:     }
+39:   };
+40: 
+41:   return (
+42:     <View>
+43:       {matrix.map((row, rowIndex) => (
+44:         <Row key={rowIndex}>
+45:           {row.map((cell, colIndex) => {
+46:             if (cell === 1) {
+47:               const seatId = `${rowIndex}-${colIndex}`;
+48:               const status = seatStatuses[seatId] || "empty";
+49:               return (
+50:                 <SeatButton
+51:                   key={seatId}
+52:                   status={status}
+53:                   onPress={() => handlePress(seatId, status)}
+54:                 >
+55:                   <Text>{seatId}</Text>
+56:                 </SeatButton>
+57:               );
+58:             } else {
+59:               return (
+60:                 <View
+61:                   key={`${rowIndex}-${colIndex}`}
+62:                   style={{ width: 60, height: 60, marginRight: 16 }}
+63:                 />
+64:               );
+65:             }
+66:           })}
+67:         </Row>
+68:       ))}
+69:     </View>
+70:   );
+71: };
+
+================
+File: src/features/merchant/components/TableLayout.js
+================
+  1: import React, { useState, useRef, useEffect } from "react";
+  2: import {
+  3:   View,
+  4:   Text,
+  5:   Animated,
+  6:   PanResponder,
+  7:   TouchableOpacity,
+  8: } from "react-native";
+  9: import styled from "styled-components/native";
  10: 
- 11: const Container = styled.View`
- 12:   height: ${CONTAINER_HEIGHT}px;
- 13:   width: ${CONTAINER_WIDTH}px;
- 14:   background-color: ${(props) => props.theme.colors.bg.secondary};
- 15:   overflow: hidden;
- 16:   border-radius: 8px;
- 17: `;
- 18: 
- 19: const StyledAnimatedItem = styled(Animated.View)`
- 20:   height: ${ITEM_HEIGHT}px;
- 21:   justify-content: center;
- 22:   align-items: center;
- 23: `;
- 24: 
- 25: const TimeText = styled.Text`
- 26:   color: ${(props) => props.theme.colors.text.primary};
- 27:   font-size: 18px;
- 28:   font-family: ${(props) => props.theme.fonts.body};
- 29: `;
- 30: 
- 31: export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
- 32: 
- 33:   const scrollY = useRef(new Animated.Value(0)).current;
- 34: 
- 35: 
- 36:   const handleMomentumScrollEnd = (event) => {
- 37:     const offsetY = event.nativeEvent.contentOffset.y;
- 38:     const index = Math.round(offsetY / ITEM_HEIGHT);
- 39:     if (index >= 0 && index < times.length) {
- 40:       onTimeChange(times[index]);
- 41:     }
- 42:   };
- 43: 
- 44:   return (
- 45:     <Container>
- 46:       <Animated.ScrollView
- 47:         contentContainerStyle={{ paddingVertical: PADDING_VERTICAL }}
- 48:         showsVerticalScrollIndicator={false}
- 49:         snapToInterval={ITEM_HEIGHT}
- 50:         decelerationRate="fast"
- 51:         bounces={false}
- 52:         onMomentumScrollEnd={handleMomentumScrollEnd}
- 53:         onScroll={Animated.event(
- 54:           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
- 55:           { useNativeDriver: true }
- 56:         )}
- 57:         scrollEventThrottle={16}
- 58:       >
- 59:         {times.map((time, index) => {
- 60: 
- 61:           const inputRange = [
- 62:             (index - 1) * ITEM_HEIGHT,
- 63:             index * ITEM_HEIGHT,
- 64:             (index + 1) * ITEM_HEIGHT,
- 65:           ];
- 66: 
+ 11: const FloorPlanContainer = styled.View`
+ 12:   width: 100%;
+ 13:   height: 400px;
+ 14:   background-color: ${({ theme }) => theme.colors.bg.secondary};
+ 15:   position: relative;
+ 16: `;
+ 17: 
+ 18: const TableMarkerContainer = styled(Animated.View)`
+ 19:   position: absolute;
+ 20:   width: 60px;
+ 21:   height: 60px;
+ 22:   background-color: ${({ status, theme }) =>
+ 23:     status === "occupied" ? "#ff4d4d" : "#b3ffb3"};
+ 24:   border-radius: 8px;
+ 25:   justify-content: center;
+ 26:   align-items: center;
+ 27:   border: 2px solid ${({ theme }) => theme.colors.ui.primary};
+ 28: `;
+ 29: 
+ 30: const ResetButton = styled(TouchableOpacity)`
+ 31:   background-color: ${({ theme }) => theme.colors.ui.primary};
+ 32:   padding: 10px;
+ 33:   border-radius: 8px;
+ 34:   align-self: center;
+ 35:   margin-top: 16px;
+ 36: `;
+ 37: 
+ 38: const ButtonText = styled.Text`
+ 39:   color: ${({ theme }) => theme.colors.text.inverse};
+ 40:   font-weight: bold;
+ 41: `;
+ 42: 
+ 43: const defaultTablesData = [
+ 44:   { id: 1, x: 20, y: 30, status: "empty" },
+ 45:   { id: 2, x: 100, y: 30, status: "occupied" },
+ 46:   { id: 3, x: 180, y: 30, status: "empty" },
+ 47:   { id: 4, x: 20, y: 120, status: "reserved" },
+ 48:   { id: 5, x: 100, y: 120, status: "empty" },
+ 49:   { id: 6, x: 180, y: 120, status: "occupied" },
+ 50: ];
+ 51: 
+ 52: export const TableLayout = ({ tables = defaultTablesData, onTablePress }) => {
+ 53: 
+ 54:   const initialPositions = {};
+ 55:   tables.forEach((table) => {
+ 56:     initialPositions[table.id] = { x: table.x, y: table.y };
+ 57:   });
+ 58: 
+ 59: 
+ 60:   const [positions] = useState(() => {
+ 61:     const pos = {};
+ 62:     tables.forEach((table) => {
+ 63:       pos[table.id] = new Animated.ValueXY({ x: table.x, y: table.y });
+ 64:     });
+ 65:     return pos;
+ 66:   });
  67: 
- 68:           const scale = scrollY.interpolate({
- 69:             inputRange,
- 70:             outputRange: [0.7, 1, 0.7],
- 71:             extrapolate: "clamp",
- 72:           });
- 73: 
- 74: 
- 75:           const opacity = scrollY.interpolate({
- 76:             inputRange,
- 77:             outputRange: [0.3, 1, 0.3],
- 78:             extrapolate: "clamp",
- 79:           });
+ 68: 
+ 69:   const resetPositions = () => {
+ 70:     tables.forEach((table) => {
+ 71:       Animated.spring(positions[table.id], {
+ 72:         toValue: {
+ 73:           x: initialPositions[table.id].x,
+ 74:           y: initialPositions[table.id].y,
+ 75:         },
+ 76:         useNativeDriver: false,
+ 77:       }).start();
+ 78:     });
+ 79:   };
  80: 
  81: 
- 82:           const rotateX = scrollY.interpolate({
- 83:             inputRange,
- 84:             outputRange: ["30deg", "0deg", "-30deg"],
- 85:             extrapolate: "clamp",
- 86:           });
- 87: 
- 88:           return (
- 89:             <StyledAnimatedItem
- 90:               key={index}
- 91:               style={{
- 92:                 transform: [{ perspective: 1000 }, { rotateX }, { scale }],
- 93:                 opacity,
- 94:               }}
- 95:             >
- 96:               <TimeText>{time}</TimeText>
- 97:             </StyledAnimatedItem>
- 98:           );
- 99:         })}
-100:       </Animated.ScrollView>
-101:     </Container>
-102:   );
-103: };
+ 82:   const createPanResponder = (tableId) => {
+ 83:     return PanResponder.create({
+ 84:       onStartShouldSetPanResponder: () => true,
+ 85:       onPanResponderGrant: () => {
+ 86:         positions[tableId].setOffset({
+ 87:           x: positions[tableId].x._value,
+ 88:           y: positions[tableId].y._value,
+ 89:         });
+ 90:         positions[tableId].setValue({ x: 0, y: 0 });
+ 91:       },
+ 92:       onPanResponderMove: Animated.event(
+ 93:         [null, { dx: positions[tableId].x, dy: positions[tableId].y }],
+ 94:         { useNativeDriver: false }
+ 95:       ),
+ 96:       onPanResponderRelease: () => {
+ 97:         positions[tableId].flattenOffset();
+ 98:         if (onTablePress) {
+ 99:           onTablePress(tableId);
+100:         }
+101:       },
+102:     });
+103:   };
+104: 
+105: 
+106:   const panRespondersRef = useRef({});
+107:   useEffect(() => {
+108:     tables.forEach((table) => {
+109:       panRespondersRef.current[table.id] = createPanResponder(table.id);
+110:     });
+111:   }, [tables]);
+112: 
+113:   return (
+114:     <>
+115:       <FloorPlanContainer>
+116:         {tables.map((table) => (
+117:           <TableMarkerContainer
+118:             key={table.id}
+119:             status={table.status}
+120:             style={positions[table.id].getLayout()}
+121:             {...(panRespondersRef.current[table.id]
+122:               ? panRespondersRef.current[table.id].panHandlers
+123:               : {})}
+124:           >
+125:             <Text>{table.id}</Text>
+126:           </TableMarkerContainer>
+127:         ))}
+128:       </FloorPlanContainer>
+129:       <ResetButton onPress={resetPositions}>
+130:         <ButtonText>Reset Layout</ButtonText>
+131:       </ResetButton>
+132:     </>
+133:   );
+134: };
+
+================
+File: src/features/merchant/components/TimeScroll.js
+================
+ 1: import React, { useRef } from "react";
+ 2: import styled from "styled-components/native";
+ 3: import { Animated } from "react-native";
+ 4: 
+ 5: const ITEM_HEIGHT = 50;
+ 6: const VISIBLE_ITEMS = 5;
+ 7: const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
+ 8: const CONTAINER_WIDTH = 50;
+ 9: const PADDING_VERTICAL = (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2;
+10: 
+11: const Container = styled.View`
+12:   height: ${CONTAINER_HEIGHT}px;
+13:   width: ${CONTAINER_WIDTH}px;
+14:   background-color: ${(props) => props.theme.colors.bg.secondary};
+15:   overflow: hidden;
+16:   border-radius: 8px;
+17:   margin-right: 0px;
+18: `;
+19: 
+20: const StyledAnimatedItem = styled(Animated.View)`
+21:   height: ${ITEM_HEIGHT}px;
+22:   justify-content: center;
+23:   align-items: center;
+24: `;
+25: 
+26: const TimeText = styled.Text`
+27:   color: ${(props) => props.theme.colors.text.primary};
+28:   font-size: 18px;
+29:   font-family: ${(props) => props.theme.fonts.body};
+30: `;
+31: 
+32: export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
+33:   const scrollY = useRef(new Animated.Value(0)).current;
+34: 
+35:   const handleMomentumScrollEnd = (event) => {
+36:     const offsetY = event.nativeEvent.contentOffset.y;
+37:     const index = Math.round(offsetY / ITEM_HEIGHT);
+38:     if (index >= 0 && index < times.length) {
+39:       onTimeChange(times[index]);
+40:     }
+41:   };
+42: 
+43:   return (
+44:     <Container>
+45:       <Animated.ScrollView
+46:         contentContainerStyle={{ paddingVertical: PADDING_VERTICAL }}
+47:         showsVerticalScrollIndicator={false}
+48:         snapToInterval={ITEM_HEIGHT}
+49:         decelerationRate="fast"
+50:         bounces={false}
+51:         onMomentumScrollEnd={handleMomentumScrollEnd}
+52:         onScroll={Animated.event(
+53:           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+54:           { useNativeDriver: true }
+55:         )}
+56:         scrollEventThrottle={16}
+57:       >
+58:         {times.map((time, index) => {
+59:           const inputRange = [
+60:             (index - 1) * ITEM_HEIGHT,
+61:             index * ITEM_HEIGHT,
+62:             (index + 1) * ITEM_HEIGHT,
+63:           ];
+64: 
+65:           const scale = scrollY.interpolate({
+66:             inputRange,
+67:             outputRange: [0.7, 1, 0.7],
+68:             extrapolate: "clamp",
+69:           });
+70: 
+71:           const opacity = scrollY.interpolate({
+72:             inputRange,
+73:             outputRange: [0.3, 1, 0.3],
+74:             extrapolate: "clamp",
+75:           });
+76: 
+77:           const rotateX = scrollY.interpolate({
+78:             inputRange,
+79:             outputRange: ["30deg", "0deg", "-30deg"],
+80:             extrapolate: "clamp",
+81:           });
+82: 
+83:           return (
+84:             <StyledAnimatedItem
+85:               key={index}
+86:               style={{
+87:                 transform: [{ perspective: 1000 }, { rotateX }, { scale }],
+88:                 opacity,
+89:               }}
+90:             >
+91:               <TimeText>{time}</TimeText>
+92:             </StyledAnimatedItem>
+93:           );
+94:         })}
+95:       </Animated.ScrollView>
+96:     </Container>
+97:   );
+98: };
 
 ================
 File: src/features/merchant/screens/MerchantHomeScreen.js
 ================
- 1: import React, { useState } from "react";
- 2: import styled from "styled-components/native";
- 3: import { TimeScroll } from "../components/TimeScroll";
- 4: 
- 5: 
- 6: const Container = styled.View`
- 7:   flex: 1;
- 8:   flex-direction: row;
- 9:   background-color: ${(props) => props.theme.colors.bg.primary};
-10: `;
-11: 
-12: const Content = styled.View`
-13:   flex: 1;
-14:   justify-content: center;
-15:   align-items: center;
-16: `;
-17: 
-18: export const MerchantHomeScreen = () => {
-19: 
-20:   const times = ["10:00", "10:15", "10:30", "10:45", "11:00"];
-21:   const [selectedTime, setSelectedTime] = useState(times[0]);
-22: 
-23: 
-24:   const seatMatrix = [
-25:     [0, 1, 1, 0],
-26:     [1, 1, 1, 1],
-27:     [1, 1, 1, 1],
-28:     [0, 1, 1, 0],
-29:   ];
-30: 
-31: 
-32:   const [seatStatuses, setSeatStatuses] = useState({
-33:     "0-1": "empty",
-34:     "0-2": "empty",
-35:     "1-0": "empty",
-36:     "1-1": "occupied",
-37:     "1-2": "empty",
-38:     "1-3": "empty",
-39:     "2-0": "reserved",
-40:     "2-1": "empty",
-41:     "2-2": "empty",
-42:     "2-3": "occupied",
-43:     "3-1": "empty",
-44:     "3-2": "empty",
-45:   });
-46: 
-47:   const handleTimeChange = (time) => {
-48:     setSelectedTime(time);
-49: 
-50:     console.log("Time changed to:", time);
-51:   };
-52: 
-53:   const handleSeatPress = (seatId, status) => {
-54: 
-55:     const newStatus = status === "empty" ? "occupied" : "empty";
-56:     setSeatStatuses((prev) => ({ ...prev, [seatId]: newStatus }));
-57:   };
-58: 
-59:   return (
-60:     <Container>
-61:       {}
-62:       {
-63: 
-64: 
-65: 
-66: 
-67: 
-68: }
-69:       {}
-70:       <Content style={{ flex: 1 }}>
-71:         <TimeScroll
-72:           times={times}
-73:           selectedTime={selectedTime}
-74:           onTimeChange={handleTimeChange}
-75:         />
-76:       </Content>
-77:     </Container>
-78:   );
-79: };
+  1: import React, { useState, useEffect } from "react";
+  2: import styled from "styled-components/native";
+  3: import { TimeScroll } from "../components/TimeScroll";
+  4: import { SeatMatrix } from "../components/SeatMatrix";
+  5: 
+  6: 
+  7: const generateTimes = (count) => {
+  8:   let times = [];
+  9:   let current = new Date();
+ 10: 
+ 11:   current.setSeconds(0);
+ 12:   current.setMilliseconds(0);
+ 13:   for (let i = 0; i < count; i++) {
+ 14: 
+ 15:     const hours = current.getHours();
+ 16:     const minutes = current.getMinutes();
+ 17:     const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+ 18:       .toString()
+ 19:       .padStart(2, "0")}`;
+ 20:     times.push(timeString);
+ 21:     current.setHours(current.getHours() + 1);
+ 22:   }
+ 23:   return times;
+ 24: };
+ 25: 
+ 26: const Container = styled.View`
+ 27:   flex: 1;
+ 28:   flex-direction: row;
+ 29:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 30: `;
+ 31: 
+ 32: const Content = styled.View`
+ 33:   flex: 1;
+ 34:   justify-content: center;
+ 35:   align-items: center;
+ 36: `;
+ 37: 
+ 38: export const MerchantHomeScreen = () => {
+ 39:   const [times, setTimes] = useState(generateTimes(5));
+ 40:   const [selectedTime, setSelectedTime] = useState(times[0]);
+ 41: 
+ 42: 
+ 43:   useEffect(() => {
+ 44:     const updateTimes = () => {
+ 45:       const newTimes = generateTimes(5);
+ 46:       setTimes(newTimes);
+ 47:       setSelectedTime(newTimes[0]);
+ 48:     };
+ 49: 
+ 50: 
+ 51:     updateTimes();
+ 52:     const interval = setInterval(updateTimes, 6000);
+ 53:     return () => clearInterval(interval);
+ 54:   }, []);
+ 55: 
+ 56:   const seatMatrix = [
+ 57:     [0, 1, 1, 0],
+ 58:     [1, 1, 1, 1],
+ 59:     [1, 1, 1, 1],
+ 60:     [0, 1, 1, 0],
+ 61:   ];
+ 62: 
+ 63:   const [seatStatuses, setSeatStatuses] = useState({
+ 64:     "0-1": "empty",
+ 65:     "0-2": "empty",
+ 66:     "1-0": "empty",
+ 67:     "1-1": "occupied",
+ 68:     "1-2": "empty",
+ 69:     "1-3": "empty",
+ 70:     "2-0": "reserved",
+ 71:     "2-1": "empty",
+ 72:     "2-2": "empty",
+ 73:     "2-3": "occupied",
+ 74:     "3-1": "empty",
+ 75:     "3-2": "empty",
+ 76:   });
+ 77: 
+ 78:   const handleTimeChange = (time) => {
+ 79:     setSelectedTime(time);
+ 80:     console.log("Time changed to:", time);
+ 81:   };
+ 82: 
+ 83:   const handleSeatPress = (seatId, status) => {
+ 84:     const newStatus = status === "empty" ? "occupied" : "empty";
+ 85:     setSeatStatuses((prev) => ({ ...prev, [seatId]: newStatus }));
+ 86:   };
+ 87: 
+ 88:   return (
+ 89:     <Container>
+ 90:       <Content style={{ flex: 3 }}>
+ 91:         <SeatMatrix
+ 92:           matrix={seatMatrix}
+ 93:           seatStatuses={seatStatuses}
+ 94:           onSeatPress={handleSeatPress}
+ 95:         />
+ 96:       </Content>
+ 97:       <Content style={{ flex: 1, alignItems: "flex-end", paddingRight: 8 }}>
+ 98:         <TimeScroll
+ 99:           times={times}
+100:           selectedTime={selectedTime}
+101:           onTimeChange={handleTimeChange}
+102:         />
+103:       </Content>
+104:     </Container>
+105:   );
+106: };
 
 ================
 File: src/features/merchant/screens/MerchantSettingsScreen.js
@@ -3168,32 +3405,32 @@ File: src/infrastructure/navigation/MerchantNavigator.js
 ================
  1: import React from "react";
  2: import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
- 3: import { Ionicons } from "@expo/vector-icons";
- 4: import { MerchantHomeScreen } from "../../features/merchant/screens/MerchantHomeScreen";
- 5: import { MerchantSettingsScreen } from "../../features/merchant/screens/MerchantSettingsScreen";
- 6: import { globalScreenOptions } from "../options/GlobalScreenOptions";
+ 3: import { MerchantHomeScreen } from "../../features/merchant/screens/MerchantHomeScreen";
+ 4: import { MerchantSettingsScreen } from "../../features/merchant/screens/MerchantSettingsScreen";
+ 5: import { Ionicons } from "@expo/vector-icons";
+ 6: import { useTheme } from "styled-components/native";
  7: 
  8: const Tab = createBottomTabNavigator();
  9: 
 10: export const MerchantNavigator = () => {
-11:   return (
-12:     <Tab.Navigator
-13:       screenOptions={({ route }) => ({
-14:         ...globalScreenOptions.common,
-15:         headerShown: true,
+11:   const theme = useTheme();
+12:   return (
+13:     <Tab.Navigator
+14:       screenOptions={({ route }) => ({
+15:         headerShown: false,
 16:         tabBarIcon: ({ color, size }) => {
-17:           const icons = {
-18:             MerchantHome: "home",
-19:             MerchantSettings: "settings",
-20:           };
-21:           return (
-22:             <Ionicons name={icons[route.name]} size={size} color={color} />
-23:           );
+17:           let iconName = route.name === "Home" ? "home" : "settings";
+18:           return <Ionicons name={iconName} size={size} color={color} />;
+19:         },
+20:         tabBarActiveTintColor: theme.colors.text.primary,
+21:         tabBarInactiveTintColor: theme.colors.text.secondary,
+22:         tabBarStyle: {
+23:           backgroundColor: theme.colors.bg.primary,
 24:         },
 25:       })}
 26:     >
-27:       <Tab.Screen name="MerchantHome" component={MerchantHomeScreen} />
-28:       <Tab.Screen name="MerchantSettings" component={MerchantSettingsScreen} />
+27:       <Tab.Screen name="Home" component={MerchantHomeScreen} />
+28:       <Tab.Screen name="Settings" component={MerchantSettingsScreen} />
 29:     </Tab.Navigator>
 30:   );
 31: };
