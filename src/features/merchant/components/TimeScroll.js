@@ -2,11 +2,12 @@
 import React, { useRef } from "react";
 import styled from "styled-components/native";
 import { Animated } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 const ITEM_HEIGHT = 50;
 const VISIBLE_ITEMS = 5;
 const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
-const CONTAINER_WIDTH = 50; // Reduced width for an even thinner background
+const CONTAINER_WIDTH = 60;
 const PADDING_VERTICAL = (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2;
 
 const Container = styled.View`
@@ -14,8 +15,8 @@ const Container = styled.View`
   width: ${CONTAINER_WIDTH}px;
   background-color: ${(props) => props.theme.colors.bg.secondary};
   overflow: hidden;
-  border-radius: 8px;
-  margin-right: 0px;
+  border-radius: 30px;
+  position: relative;
 `;
 
 const StyledAnimatedItem = styled(Animated.View)`
@@ -94,6 +95,30 @@ export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
           );
         })}
       </Animated.ScrollView>
+      {/* Top gradient overlay */}
+      <LinearGradient
+        colors={["rgba(241,241,241,1)", "rgba(241,241,241,0)"]}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 20,
+        }}
+        pointerEvents="none"
+      />
+      {/* Bottom gradient overlay */}
+      <LinearGradient
+        colors={["rgba(241,241,241,0)", "rgba(241,241,241,1)"]}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 20,
+        }}
+        pointerEvents="none"
+      />
     </Container>
   );
 };

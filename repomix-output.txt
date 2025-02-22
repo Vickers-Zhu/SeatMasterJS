@@ -90,8 +90,8 @@ src/
         LoginScreen.styles.js
     merchant/
       components/
-        SeatMatrix.js
         TableLayout.js
+        TableMatrix.js
         TimeScroll.js
       screens/
         MerchantHomeScreen.js
@@ -1076,6 +1076,23 @@ File: src/data/mockData.js
 131:     phoneNumber: "+81 **** ****",
 132:   },
 133: ];
+134: 
+135: 
+136: 
+137: export const tableStatuses = {
+138:   "0-1": { id: 1, row: 0, col: 1, status: "empty" },
+139:   "0-2": { id: 2, row: 0, col: 2, status: "empty" },
+140:   "1-0": { id: 3, row: 1, col: 0, status: "empty" },
+141:   "1-1": { id: 4, row: 1, col: 1, status: "occupied" },
+142:   "1-2": { id: 5, row: 1, col: 2, status: "empty" },
+143:   "1-3": { id: 6, row: 1, col: 3, status: "empty" },
+144:   "2-0": { id: 7, row: 2, col: 0, status: "reserved" },
+145:   "2-1": { id: 8, row: 2, col: 1, status: "empty" },
+146:   "2-2": { id: 9, row: 2, col: 2, status: "empty" },
+147:   "2-3": { id: 10, row: 2, col: 3, status: "occupied" },
+148:   "3-1": { id: 11, row: 3, col: 1, status: "empty" },
+149:   "3-2": { id: 12, row: 3, col: 2, status: "empty" },
+150: };
 
 ================
 File: src/features/auth/components/CountryListItem.js
@@ -1457,81 +1474,6 @@ File: src/features/auth/screens/LoginScreen.styles.js
 78: `;
 
 ================
-File: src/features/merchant/components/SeatMatrix.js
-================
- 1: import React, { useState } from "react";
- 2: import { TouchableOpacity, View, Text } from "react-native";
- 3: import styled from "styled-components/native";
- 4: 
- 5: const Row = styled.View`
- 6:   flex-direction: row;
- 7:   margin-bottom: 16px;
- 8: `;
- 9: 
-10: const SeatButton = styled(TouchableOpacity)`
-11:   width: 60px;
-12:   height: 60px;
-13:   background-color: ${({ status, theme }) =>
-14:     status === "occupied"
-15:       ? "#ff4d4d"
-16:       : status === "reserved"
-17:       ? "#ffd11a"
-18:       : "#b3ffb3"};
-19:   margin-right: 16px;
-20:   justify-content: center;
-21:   align-items: center;
-22:   border-radius: 8px;
-23:   padding: 8px;
-24: `;
-25: 
-26: export const SeatMatrix = ({
-27:   matrix,
-28:   seatStatuses: initialSeatStatuses,
-29:   onSeatPress,
-30: }) => {
-31:   const [seatStatuses, setSeatStatuses] = useState(initialSeatStatuses);
-32: 
-33:   const handlePress = (seatId, status) => {
-34:     const newStatus = status === "empty" ? "occupied" : "empty";
-35:     setSeatStatuses((prev) => ({ ...prev, [seatId]: newStatus }));
-36:     if (onSeatPress) {
-37:       onSeatPress(seatId, newStatus);
-38:     }
-39:   };
-40: 
-41:   return (
-42:     <View>
-43:       {matrix.map((row, rowIndex) => (
-44:         <Row key={rowIndex}>
-45:           {row.map((cell, colIndex) => {
-46:             if (cell === 1) {
-47:               const seatId = `${rowIndex}-${colIndex}`;
-48:               const status = seatStatuses[seatId] || "empty";
-49:               return (
-50:                 <SeatButton
-51:                   key={seatId}
-52:                   status={status}
-53:                   onPress={() => handlePress(seatId, status)}
-54:                 >
-55:                   <Text>{seatId}</Text>
-56:                 </SeatButton>
-57:               );
-58:             } else {
-59:               return (
-60:                 <View
-61:                   key={`${rowIndex}-${colIndex}`}
-62:                   style={{ width: 60, height: 60, marginRight: 16 }}
-63:                 />
-64:               );
-65:             }
-66:           })}
-67:         </Row>
-68:       ))}
-69:     </View>
-70:   );
-71: };
-
-================
 File: src/features/merchant/components/TableLayout.js
 ================
   1: import React, { useState, useRef, useEffect } from "react";
@@ -1670,243 +1612,402 @@ File: src/features/merchant/components/TableLayout.js
 134: };
 
 ================
-File: src/features/merchant/components/TimeScroll.js
+File: src/features/merchant/components/TableMatrix.js
 ================
- 1: import React, { useRef } from "react";
- 2: import styled from "styled-components/native";
- 3: import { Animated } from "react-native";
+ 1: import React, { useState } from "react";
+ 2: import { TouchableOpacity, View, Text, useWindowDimensions } from "react-native";
+ 3: import styled from "styled-components/native";
  4: 
- 5: const ITEM_HEIGHT = 50;
- 6: const VISIBLE_ITEMS = 5;
- 7: const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
- 8: const CONTAINER_WIDTH = 50;
- 9: const PADDING_VERTICAL = (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2;
-10: 
-11: const Container = styled.View`
-12:   height: ${CONTAINER_HEIGHT}px;
-13:   width: ${CONTAINER_WIDTH}px;
-14:   background-color: ${(props) => props.theme.colors.bg.secondary};
-15:   overflow: hidden;
-16:   border-radius: 8px;
-17:   margin-right: 0px;
-18: `;
-19: 
-20: const StyledAnimatedItem = styled(Animated.View)`
-21:   height: ${ITEM_HEIGHT}px;
-22:   justify-content: center;
-23:   align-items: center;
-24: `;
-25: 
-26: const TimeText = styled.Text`
-27:   color: ${(props) => props.theme.colors.text.primary};
-28:   font-size: 18px;
-29:   font-family: ${(props) => props.theme.fonts.body};
-30: `;
-31: 
-32: export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
-33:   const scrollY = useRef(new Animated.Value(0)).current;
-34: 
-35:   const handleMomentumScrollEnd = (event) => {
-36:     const offsetY = event.nativeEvent.contentOffset.y;
-37:     const index = Math.round(offsetY / ITEM_HEIGHT);
-38:     if (index >= 0 && index < times.length) {
-39:       onTimeChange(times[index]);
-40:     }
-41:   };
+ 5: const Row = styled.View`
+ 6:   flex-direction: row;
+ 7:   margin-bottom: 16px;
+ 8: `;
+ 9: 
+10: const FIXED_BUTTON_SIZE = 60;
+11: const FIXED_MARGIN_RIGHT = 16;
+12: 
+13: const TableButton = styled(TouchableOpacity)`
+14:   background-color: ${({ status, theme }) =>
+15:     status === "occupied"
+16:       ? "#ff4d4d"
+17:       : status === "reserved"
+18:       ? "#ffd11a"
+19:       : "#b3ffb3"};
+20:   margin-right: ${({ marginRight }) => marginRight}px;
+21:   justify-content: center;
+22:   align-items: center;
+23:   border-radius: 8px;
+24:   padding: 8px;
+25: `;
+26: 
+27: export const TableMatrix = ({
+28:   tableStatuses: initialTableStatuses,
+29:   onTablePress,
+30: }) => {
+31:   // tableStatuses is an object keyed by "row-col"
+32:   // Each entry is { id, row, col, status }
+33:   const [tableStatuses, setTableStatuses] = useState(initialTableStatuses);
+34:   const { width: screenWidth } = useWindowDimensions();
+35: 
+36:   // Calculate the maximum rows and columns from the provided statuses
+37:   const entries = Object.values(tableStatuses);
+38:   const maxRow = entries.length > 0 ? Math.max(...entries.map(e => e.row)) : 0;
+39:   const maxCol = entries.length > 0 ? Math.max(...entries.map(e => e.col)) : 0;
+40:   const rows = maxRow + 1;
+41:   const columns = maxCol + 1;
 42: 
-43:   return (
-44:     <Container>
-45:       <Animated.ScrollView
-46:         contentContainerStyle={{ paddingVertical: PADDING_VERTICAL }}
-47:         showsVerticalScrollIndicator={false}
-48:         snapToInterval={ITEM_HEIGHT}
-49:         decelerationRate="fast"
-50:         bounces={false}
-51:         onMomentumScrollEnd={handleMomentumScrollEnd}
-52:         onScroll={Animated.event(
-53:           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-54:           { useNativeDriver: true }
-55:         )}
-56:         scrollEventThrottle={16}
-57:       >
-58:         {times.map((time, index) => {
-59:           const inputRange = [
-60:             (index - 1) * ITEM_HEIGHT,
-61:             index * ITEM_HEIGHT,
-62:             (index + 1) * ITEM_HEIGHT,
-63:           ];
-64: 
-65:           const scale = scrollY.interpolate({
-66:             inputRange,
-67:             outputRange: [0.7, 1, 0.7],
-68:             extrapolate: "clamp",
-69:           });
-70: 
-71:           const opacity = scrollY.interpolate({
-72:             inputRange,
-73:             outputRange: [0.3, 1, 0.3],
-74:             extrapolate: "clamp",
-75:           });
-76: 
-77:           const rotateX = scrollY.interpolate({
-78:             inputRange,
-79:             outputRange: ["30deg", "0deg", "-30deg"],
-80:             extrapolate: "clamp",
-81:           });
-82: 
-83:           return (
-84:             <StyledAnimatedItem
-85:               key={index}
-86:               style={{
-87:                 transform: [{ perspective: 1000 }, { rotateX }, { scale }],
-88:                 opacity,
-89:               }}
-90:             >
-91:               <TimeText>{time}</TimeText>
-92:             </StyledAnimatedItem>
-93:           );
-94:         })}
-95:       </Animated.ScrollView>
-96:     </Container>
+43:   const horizontalPadding = 32;
+44:   const totalRequiredWidth =
+45:     columns * FIXED_BUTTON_SIZE + (columns - 1) * FIXED_MARGIN_RIGHT;
+46:   const availableWidth = screenWidth - horizontalPadding;
+47:   const scale =
+48:     totalRequiredWidth > availableWidth ? availableWidth / totalRequiredWidth : 1;
+49: 
+50:   const buttonSize = FIXED_BUTTON_SIZE * scale;
+51:   const marginRight = FIXED_MARGIN_RIGHT * scale;
+52: 
+53:   const handlePress = (row, col, currentStatus) => {
+54:     const key = `${row}-${col}`;
+55:     const newStatus = currentStatus === "empty" ? "occupied" : "empty";
+56:     console.log(`Table pressed: key=${key}, oldStatus=${currentStatus}, newStatus=${newStatus}`);
+57:     setTableStatuses((prev) => ({
+58:       ...prev,
+59:       [key]: { id: prev[key]?.id || key, row, col, status: newStatus },
+60:     }));
+61:     if (onTablePress) {
+62:       onTablePress(key, newStatus);
+63:     }
+64:   };
+65: 
+66:   return (
+67:     <View style={{ padding: 16 }}>
+68:       {Array.from({ length: rows }).map((_, rowIndex) => (
+69:         <Row key={rowIndex}>
+70:           {Array.from({ length: columns }).map((_, colIndex) => {
+71:             const key = `${rowIndex}-${colIndex}`;
+72:             const entry = tableStatuses[key];
+73:             if (entry) {
+74:               return (
+75:                 <TableButton
+76:                   key={key}
+77:                   status={entry.status}
+78:                   marginRight={marginRight}
+79:                   onPress={() => handlePress(rowIndex, colIndex, entry.status)}
+80:                   style={{ width: buttonSize, height: buttonSize }}
+81:                 >
+82:                   <Text>{entry.id}</Text>
+83:                 </TableButton>
+84:               );
+85:             } else {
+86:               return (
+87:                 <View
+88:                   key={key}
+89:                   style={{ width: buttonSize, height: buttonSize, marginRight }}
+90:                 />
+91:               );
+92:             }
+93:           })}
+94:         </Row>
+95:       ))}
+96:     </View>
 97:   );
 98: };
+
+================
+File: src/features/merchant/components/TimeScroll.js
+================
+  1: import React, { useRef } from "react";
+  2: import styled from "styled-components/native";
+  3: import { Animated } from "react-native";
+  4: import { LinearGradient } from "expo-linear-gradient";
+  5: 
+  6: const ITEM_HEIGHT = 50;
+  7: const VISIBLE_ITEMS = 5;
+  8: const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
+  9: const CONTAINER_WIDTH = 60;
+ 10: const PADDING_VERTICAL = (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2;
+ 11: 
+ 12: const Container = styled.View`
+ 13:   height: ${CONTAINER_HEIGHT}px;
+ 14:   width: ${CONTAINER_WIDTH}px;
+ 15:   background-color: ${(props) => props.theme.colors.bg.secondary};
+ 16:   overflow: hidden;
+ 17:   border-radius: 30px;
+ 18:   position: relative;
+ 19: `;
+ 20: 
+ 21: const StyledAnimatedItem = styled(Animated.View)`
+ 22:   height: ${ITEM_HEIGHT}px;
+ 23:   justify-content: center;
+ 24:   align-items: center;
+ 25: `;
+ 26: 
+ 27: const TimeText = styled.Text`
+ 28:   color: ${(props) => props.theme.colors.text.primary};
+ 29:   font-size: 18px;
+ 30:   font-family: ${(props) => props.theme.fonts.body};
+ 31: `;
+ 32: 
+ 33: export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
+ 34:   const scrollY = useRef(new Animated.Value(0)).current;
+ 35: 
+ 36:   const handleMomentumScrollEnd = (event) => {
+ 37:     const offsetY = event.nativeEvent.contentOffset.y;
+ 38:     const index = Math.round(offsetY / ITEM_HEIGHT);
+ 39:     if (index >= 0 && index < times.length) {
+ 40:       onTimeChange(times[index]);
+ 41:     }
+ 42:   };
+ 43: 
+ 44:   return (
+ 45:     <Container>
+ 46:       <Animated.ScrollView
+ 47:         contentContainerStyle={{ paddingVertical: PADDING_VERTICAL }}
+ 48:         showsVerticalScrollIndicator={false}
+ 49:         snapToInterval={ITEM_HEIGHT}
+ 50:         decelerationRate="fast"
+ 51:         bounces={false}
+ 52:         onMomentumScrollEnd={handleMomentumScrollEnd}
+ 53:         onScroll={Animated.event(
+ 54:           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+ 55:           { useNativeDriver: true }
+ 56:         )}
+ 57:         scrollEventThrottle={16}
+ 58:       >
+ 59:         {times.map((time, index) => {
+ 60:           const inputRange = [
+ 61:             (index - 1) * ITEM_HEIGHT,
+ 62:             index * ITEM_HEIGHT,
+ 63:             (index + 1) * ITEM_HEIGHT,
+ 64:           ];
+ 65: 
+ 66:           const scale = scrollY.interpolate({
+ 67:             inputRange,
+ 68:             outputRange: [0.7, 1, 0.7],
+ 69:             extrapolate: "clamp",
+ 70:           });
+ 71: 
+ 72:           const opacity = scrollY.interpolate({
+ 73:             inputRange,
+ 74:             outputRange: [0.3, 1, 0.3],
+ 75:             extrapolate: "clamp",
+ 76:           });
+ 77: 
+ 78:           const rotateX = scrollY.interpolate({
+ 79:             inputRange,
+ 80:             outputRange: ["30deg", "0deg", "-30deg"],
+ 81:             extrapolate: "clamp",
+ 82:           });
+ 83: 
+ 84:           return (
+ 85:             <StyledAnimatedItem
+ 86:               key={index}
+ 87:               style={{
+ 88:                 transform: [{ perspective: 1000 }, { rotateX }, { scale }],
+ 89:                 opacity,
+ 90:               }}
+ 91:             >
+ 92:               <TimeText>{time}</TimeText>
+ 93:             </StyledAnimatedItem>
+ 94:           );
+ 95:         })}
+ 96:       </Animated.ScrollView>
+ 97:       {}
+ 98:       <LinearGradient
+ 99:         colors={["rgba(241,241,241,1)", "rgba(241,241,241,0)"]}
+100:         style={{
+101:           position: "absolute",
+102:           top: 0,
+103:           left: 0,
+104:           right: 0,
+105:           height: 20,
+106:         }}
+107:         pointerEvents="none"
+108:       />
+109:       {}
+110:       <LinearGradient
+111:         colors={["rgba(241,241,241,0)", "rgba(241,241,241,1)"]}
+112:         style={{
+113:           position: "absolute",
+114:           bottom: 0,
+115:           left: 0,
+116:           right: 0,
+117:           height: 20,
+118:         }}
+119:         pointerEvents="none"
+120:       />
+121:     </Container>
+122:   );
+123: };
 
 ================
 File: src/features/merchant/screens/MerchantHomeScreen.js
 ================
   1: import React, { useState, useEffect } from "react";
   2: import styled from "styled-components/native";
-  3: import { TimeScroll } from "../components/TimeScroll";
-  4: import { SeatMatrix } from "../components/SeatMatrix";
-  5: 
-  6: 
-  7: const generateTimes = (count) => {
-  8:   let times = [];
-  9:   let current = new Date();
- 10: 
- 11:   current.setSeconds(0);
- 12:   current.setMilliseconds(0);
- 13:   for (let i = 0; i < count; i++) {
- 14: 
- 15:     const hours = current.getHours();
- 16:     const minutes = current.getMinutes();
- 17:     const timeString = `${hours.toString().padStart(2, "0")}:${minutes
- 18:       .toString()
- 19:       .padStart(2, "0")}`;
- 20:     times.push(timeString);
- 21:     current.setHours(current.getHours() + 1);
- 22:   }
- 23:   return times;
- 24: };
- 25: 
- 26: const Container = styled.View`
- 27:   flex: 1;
- 28:   flex-direction: row;
- 29:   background-color: ${(props) => props.theme.colors.bg.primary};
- 30: `;
- 31: 
- 32: const Content = styled.View`
- 33:   flex: 1;
- 34:   justify-content: center;
- 35:   align-items: center;
- 36: `;
- 37: 
- 38: export const MerchantHomeScreen = () => {
- 39:   const [times, setTimes] = useState(generateTimes(5));
- 40:   const [selectedTime, setSelectedTime] = useState(times[0]);
- 41: 
- 42: 
- 43:   useEffect(() => {
- 44:     const updateTimes = () => {
- 45:       const newTimes = generateTimes(5);
- 46:       setTimes(newTimes);
- 47:       setSelectedTime(newTimes[0]);
- 48:     };
- 49: 
- 50: 
- 51:     updateTimes();
- 52:     const interval = setInterval(updateTimes, 6000);
- 53:     return () => clearInterval(interval);
- 54:   }, []);
- 55: 
- 56:   const seatMatrix = [
- 57:     [0, 1, 1, 0],
- 58:     [1, 1, 1, 1],
- 59:     [1, 1, 1, 1],
- 60:     [0, 1, 1, 0],
- 61:   ];
+  3: import { View, Text } from "react-native";
+  4: import { TimeScroll } from "../components/TimeScroll";
+  5: import { TableMatrix } from "../components/TableMatrix";
+  6: import SwitchContainer from "../../../components/Switch/Switch";
+  7: import { tableStatuses as initialTableStatusesData } from "../../../data/mockData";
+  8: 
+  9: 
+ 10: const generateTimes = (count) => {
+ 11:   let times = [];
+ 12:   let current = new Date();
+ 13:   current.setSeconds(0);
+ 14:   current.setMilliseconds(0);
+ 15:   for (let i = 0; i < count; i++) {
+ 16:     const hours = current.getHours();
+ 17:     const minutes = current.getMinutes();
+ 18:     const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+ 19:       .toString()
+ 20:       .padStart(2, "0")}`;
+ 21:     times.push(timeString);
+ 22:     current.setHours(current.getHours() + 1);
+ 23:   }
+ 24:   return times;
+ 25: };
+ 26: 
+ 27: 
+ 28: const SeatMatrixPlaceholder = () => (
+ 29:   <View style={{ padding: 16 }}>
+ 30:     <Text>Seat-level view placeholder</Text>
+ 31:   </View>
+ 32: );
+ 33: 
+ 34: const Container = styled.View`
+ 35:   flex: 1;
+ 36:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 37:   padding: 16px;
+ 38:   position: relative;
+ 39: `;
+ 40: 
+ 41: const MatrixWrapper = styled.View`
+ 42:   flex: 1;
+ 43:   margin-top: 16px;
+ 44: `;
+ 45: 
+ 46: const TimeScrollContainer = styled.View`
+ 47:   position: absolute;
+ 48:   right: 16px;
+ 49:   top: 0;
+ 50:   bottom: 0;
+ 51:   justify-content: center;
+ 52:   align-items: center;
+ 53: `;
+ 54: 
+ 55: export const MerchantHomeScreen = () => {
+ 56:   const [times, setTimes] = useState(generateTimes(5));
+ 57:   const [selectedTime, setSelectedTime] = useState(times[0]);
+ 58:   const [isSeatMode, setIsSeatMode] = useState(false);
+ 59: 
+ 60:   // Use tableStatuses imported from mockData.js as the initial state.
+ 61:   const [tableStatuses, setTableStatuses] = useState(initialTableStatusesData);
  62: 
- 63:   const [seatStatuses, setSeatStatuses] = useState({
- 64:     "0-1": "empty",
- 65:     "0-2": "empty",
- 66:     "1-0": "empty",
- 67:     "1-1": "occupied",
- 68:     "1-2": "empty",
- 69:     "1-3": "empty",
- 70:     "2-0": "reserved",
- 71:     "2-1": "empty",
- 72:     "2-2": "empty",
- 73:     "2-3": "occupied",
- 74:     "3-1": "empty",
- 75:     "3-2": "empty",
- 76:   });
- 77: 
- 78:   const handleTimeChange = (time) => {
- 79:     setSelectedTime(time);
- 80:     console.log("Time changed to:", time);
- 81:   };
- 82: 
- 83:   const handleSeatPress = (seatId, status) => {
- 84:     const newStatus = status === "empty" ? "occupied" : "empty";
- 85:     setSeatStatuses((prev) => ({ ...prev, [seatId]: newStatus }));
- 86:   };
- 87: 
- 88:   return (
- 89:     <Container>
- 90:       <Content style={{ flex: 3 }}>
- 91:         <SeatMatrix
- 92:           matrix={seatMatrix}
- 93:           seatStatuses={seatStatuses}
- 94:           onSeatPress={handleSeatPress}
- 95:         />
- 96:       </Content>
- 97:       <Content style={{ flex: 1, alignItems: "flex-end", paddingRight: 8 }}>
- 98:         <TimeScroll
- 99:           times={times}
-100:           selectedTime={selectedTime}
-101:           onTimeChange={handleTimeChange}
-102:         />
-103:       </Content>
-104:     </Container>
-105:   );
-106: };
+ 63:   useEffect(() => {
+ 64:     const updateTimes = () => {
+ 65:       const newTimes = generateTimes(5);
+ 66:       setTimes(newTimes);
+ 67:       setSelectedTime(newTimes[0]);
+ 68:     };
+ 69:     updateTimes();
+ 70:     const interval = setInterval(updateTimes, 6000);
+ 71:     return () => clearInterval(interval);
+ 72:   }, []);
+ 73: 
+ 74:   const handleTimeChange = (time) => {
+ 75:     setSelectedTime(time);
+ 76:     console.log("Time changed to:", time);
+ 77:   };
+ 78: 
+ 79:   const handleTablePress = (key, status) => {
+ 80:     const newStatus = status === "empty" ? "occupied" : "empty";
+ 81:     console.log(
+ 82:       `HomeScreen: Table ${key} changed from ${status} to ${newStatus}`
+ 83:     );
+ 84:     setTableStatuses((prev) => ({
+ 85:       ...prev,
+ 86:       [key]: { ...prev[key], status: newStatus },
+ 87:     }));
+ 88:   };
+ 89: 
+ 90:   return (
+ 91:     <Container>
+ 92:       <SwitchContainer
+ 93:         isOn={isSeatMode}
+ 94:         setIsOn={setIsSeatMode}
+ 95:         leftLabel="Tables"
+ 96:         rightLabel="Seats"
+ 97:         variant="default"
+ 98:       />
+ 99:       <MatrixWrapper>
+100:         {isSeatMode ? (
+101:           <SeatMatrixPlaceholder />
+102:         ) : (
+103:           <TableMatrix
+104:             tableStatuses={tableStatuses}
+105:             onTablePress={handleTablePress}
+106:           />
+107:         )}
+108:       </MatrixWrapper>
+109:       <TimeScrollContainer>
+110:         <TimeScroll
+111:           times={times}
+112:           selectedTime={selectedTime}
+113:           onTimeChange={handleTimeChange}
+114:         />
+115:       </TimeScrollContainer>
+116:     </Container>
+117:   );
+118: };
 
 ================
 File: src/features/merchant/screens/MerchantSettingsScreen.js
 ================
  1: import React from "react";
  2: import styled from "styled-components/native";
- 3: 
- 4: const Container = styled.View`
- 5:   flex: 1;
- 6:   justify-content: center;
- 7:   align-items: center;
- 8:   background-color: ${(props) => props.theme.colors.bg.secondary};
- 9: `;
-10: 
-11: const Title = styled.Text`
-12:   font-family: ${(props) => props.theme.fonts.heading};
-13:   font-size: ${(props) => props.theme.fontSizes.title};
-14:   color: ${(props) => props.theme.colors.text.primary};
-15: `;
-16: 
-17: export const MerchantSettingsScreen = () => {
-18:   return (
-19:     <Container>
-20:       <Title>Merchant Settings Screen</Title>
-21:     </Container>
-22:   );
-23: };
+ 3: import { TouchableOpacity } from "react-native";
+ 4: import { useAuthentication } from "../../../services/AuthenticationContext";
+ 5: 
+ 6: const Container = styled.View`
+ 7:   flex: 1;
+ 8:   justify-content: center;
+ 9:   align-items: center;
+10:   background-color: ${(props) => props.theme.colors.bg.secondary};
+11: `;
+12: 
+13: const Title = styled.Text`
+14:   font-family: ${(props) => props.theme.fonts.heading};
+15:   font-size: ${(props) => props.theme.fontSizes.title};
+16:   color: ${(props) => props.theme.colors.text.primary};
+17: `;
+18: 
+19: const LogoutButton = styled(TouchableOpacity)`
+20:   margin-top: 20px;
+21:   padding: 10px 20px;
+22:   background-color: ${(props) => props.theme.colors.ui.error};
+23:   border-radius: 8px;
+24: `;
+25: 
+26: const LogoutButtonText = styled.Text`
+27:   color: ${(props) => props.theme.colors.text.inverse};
+28:   font-size: ${(props) => props.theme.fontSizes.body};
+29:   font-family: ${(props) => props.theme.fonts.body};
+30: `;
+31: 
+32: export const MerchantSettingsScreen = () => {
+33:   const { onLogout } = useAuthentication();
+34: 
+35:   return (
+36:     <Container>
+37:       <Title>Merchant Settings Screen</Title>
+38:       <LogoutButton onPress={onLogout}>
+39:         <LogoutButtonText>Logout</LogoutButtonText>
+40:       </LogoutButton>
+41:     </Container>
+42:   );
+43: };
 
 ================
 File: src/features/reservations/components/PastReservationCard.js
@@ -3944,48 +4045,49 @@ File: package.json
 22:     "expo-file-system": "^17.0.1",
 23:     "expo-font": "~12.0.9",
 24:     "expo-gl": "^14.0.2",
-25:     "expo-linking": "~6.3.1",
-26:     "expo-router": "~3.5.18",
-27:     "expo-splash-screen": "~0.27.5",
-28:     "expo-status-bar": "~1.12.1",
-29:     "expo-system-ui": "~3.0.7",
-30:     "expo-web-browser": "~13.0.3",
-31:     "firebase": "^11.1.0",
-32:     "formik": "^2.4.6",
-33:     "react": "18.2.0",
-34:     "react-dom": "18.2.0",
-35:     "react-native": "^0.74.5",
-36:     "react-native-asset": "^2.1.1",
-37:     "react-native-collapsible-tab-view": "^8.0.0",
-38:     "react-native-dropdown-picker": "^5.4.6",
-39:     "react-native-fs": "^2.20.0",
-40:     "react-native-gesture-handler": "^2.20.0",
-41:     "react-native-pager-view": "6.3.0",
-42:     "react-native-paper": "^5.12.3",
-43:     "react-native-reanimated": "~3.10.1",
-44:     "react-native-safe-area-context": "4.10.5",
-45:     "react-native-static-server": "^0.5.0",
-46:     "react-native-svg": "15.2.0",
-47:     "react-native-tab-view": "^3.5.2",
-48:     "react-native-web": "~0.19.10",
-49:     "react-native-webview": "13.8.6",
-50:     "react-native-webview-autoheight": "^1.0.6",
-51:     "react-promise-suspense": "^0.3.4",
-52:     "styled-components": "^6.1.12",
-53:     "yup": "^1.5.0"
-54:   },
-55:   "devDependencies": {
-56:     "@babel/core": "^7.20.0",
-57:     "@types/react": "~18.2.45",
-58:     "@types/react-native": "^0.73.0",
-59:     "depcheck": "^1.4.7",
-60:     "jest": "^29.2.1",
-61:     "jest-expo": "~51.0.3",
-62:     "react-test-renderer": "18.2.0",
-63:     "typescript": "~5.3.3"
-64:   },
-65:   "private": true
-66: }
+25:     "expo-linear-gradient": "~13.0.2",
+26:     "expo-linking": "~6.3.1",
+27:     "expo-router": "~3.5.18",
+28:     "expo-splash-screen": "~0.27.5",
+29:     "expo-status-bar": "~1.12.1",
+30:     "expo-system-ui": "~3.0.7",
+31:     "expo-web-browser": "~13.0.3",
+32:     "firebase": "^11.1.0",
+33:     "formik": "^2.4.6",
+34:     "react": "18.2.0",
+35:     "react-dom": "18.2.0",
+36:     "react-native": "^0.74.5",
+37:     "react-native-asset": "^2.1.1",
+38:     "react-native-collapsible-tab-view": "^8.0.0",
+39:     "react-native-dropdown-picker": "^5.4.6",
+40:     "react-native-fs": "^2.20.0",
+41:     "react-native-gesture-handler": "^2.20.0",
+42:     "react-native-pager-view": "6.3.0",
+43:     "react-native-paper": "^5.12.3",
+44:     "react-native-reanimated": "~3.10.1",
+45:     "react-native-safe-area-context": "4.10.5",
+46:     "react-native-static-server": "^0.5.0",
+47:     "react-native-svg": "15.2.0",
+48:     "react-native-tab-view": "^3.5.2",
+49:     "react-native-web": "~0.19.10",
+50:     "react-native-webview": "13.8.6",
+51:     "react-native-webview-autoheight": "^1.0.6",
+52:     "react-promise-suspense": "^0.3.4",
+53:     "styled-components": "^6.1.12",
+54:     "yup": "^1.5.0"
+55:   },
+56:   "devDependencies": {
+57:     "@babel/core": "^7.20.0",
+58:     "@types/react": "~18.2.45",
+59:     "@types/react-native": "^0.73.0",
+60:     "depcheck": "^1.4.7",
+61:     "jest": "^29.2.1",
+62:     "jest-expo": "~51.0.3",
+63:     "react-test-renderer": "18.2.0",
+64:     "typescript": "~5.3.3"
+65:   },
+66:   "private": true
+67: }
 
 ================
 File: repomix.config.json

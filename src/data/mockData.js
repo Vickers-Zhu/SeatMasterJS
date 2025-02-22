@@ -132,3 +132,20 @@ export const users = [
     phoneNumber: "+81 **** ****",
   },
 ];
+
+// File: src/data/mockData.js
+
+export const tableStatuses = {
+  "0-1": { id: 1, row: 0, col: 1, status: "empty" },
+  "0-2": { id: 2, row: 0, col: 2, status: "empty" },
+  "1-0": { id: 3, row: 1, col: 0, status: "empty" },
+  "1-1": { id: 4, row: 1, col: 1, status: "occupied" },
+  "1-2": { id: 5, row: 1, col: 2, status: "empty" },
+  "1-3": { id: 6, row: 1, col: 3, status: "empty" },
+  "2-0": { id: 7, row: 2, col: 0, status: "reserved" },
+  "2-1": { id: 8, row: 2, col: 1, status: "empty" },
+  "2-2": { id: 9, row: 2, col: 2, status: "empty" },
+  "2-3": { id: 10, row: 2, col: 3, status: "occupied" },
+  "3-1": { id: 11, row: 3, col: 1, status: "empty" },
+  "3-2": { id: 12, row: 3, col: 2, status: "empty" },
+};
