@@ -1,37 +1,14 @@
 // File: src/features/merchant/screens/MerchantHomeScreen.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { Animated } from "react-native";
 import styled from "styled-components/native";
-import { View, Text } from "react-native";
-import { TimeScroll } from "../components/TimeScroll";
-import { TableMatrix } from "../components/TableMatrix";
 import SwitchContainer from "../../../components/Switch/Switch";
-import { tableStatuses as initialTableStatusesData } from "../../../data/mockData";
+import { TableMatrix } from "../components/TableMatrix";
+import { TimeScroll } from "../components/TimeScroll";
+import { SeatView } from "../components/SeatView";
+import { tableStatuses, seatingData } from "../../../data/mockData";
 
-// Generates an array of times starting from the current time, stepping by 1 hour.
-const generateTimes = (count) => {
-  let times = [];
-  let current = new Date();
-  current.setSeconds(0);
-  current.setMilliseconds(0);
-  for (let i = 0; i < count; i++) {
-    const hours = current.getHours();
-    const minutes = current.getMinutes();
-    const timeString = `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}`;
-    times.push(timeString);
-    current.setHours(current.getHours() + 1);
-  }
-  return times;
-};
-
-// Placeholder component for the seat-level view
-const SeatMatrixPlaceholder = () => (
-  <View style={{ padding: 16 }}>
-    <Text>Seat-level view placeholder</Text>
-  </View>
-);
-
+// Container for the entire screen.
 const Container = styled.View`
   flex: 1;
   background-color: ${(props) => props.theme.colors.bg.primary};
@@ -39,28 +16,50 @@ const Container = styled.View`
   position: relative;
 `;
 
+// Wrapper for the main content area (tables or seats).
 const MatrixWrapper = styled.View`
   flex: 1;
   margin-top: 16px;
 `;
 
-const TimeScrollContainer = styled.View`
-  position: absolute;
-  right: 16px;
-  top: 0;
-  bottom: 0;
-  justify-content: center;
-  align-items: center;
-`;
+// Animated container for the time scroll overlay.
+const AnimatedTimeScrollContainer =
+  Animated.createAnimatedComponent(styled.View`
+    position: absolute;
+    right: 16px;
+    top: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+  `);
 
 export const MerchantHomeScreen = () => {
   const [times, setTimes] = useState(generateTimes(5));
   const [selectedTime, setSelectedTime] = useState(times[0]);
   const [isSeatMode, setIsSeatMode] = useState(false);
+  const [tableStatusesState, setTableStatusesState] = useState(tableStatuses);
+  // overlayOpacity controls the transparency of the time scroll overlay.
+  const overlayOpacity = useRef(new Animated.Value(1)).current;
 
-  // Use tableStatuses imported from mockData.js as the initial state.
-  const [tableStatuses, setTableStatuses] = useState(initialTableStatusesData);
+  // Function to generate times.
+  function generateTimes(count) {
+    let timesArray = [];
+    let current = new Date();
+    current.setSeconds(0);
+    current.setMilliseconds(0);
+    for (let i = 0; i < count; i++) {
+      const hours = current.getHours();
+      const minutes = current.getMinutes();
+      const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+      timesArray.push(timeString);
+      current.setHours(current.getHours() + 1);
+    }
+    return timesArray;
+  }
 
+  // Update times periodically.
   useEffect(() => {
     const updateTimes = () => {
       const newTimes = generateTimes(5);
@@ -78,14 +77,31 @@ export const MerchantHomeScreen = () => {
   };
 
   const handleTablePress = (key, status) => {
+    // Example logic to update table statuses.
     const newStatus = status === "empty" ? "occupied" : "empty";
-    console.log(
-      `HomeScreen: Table ${key} changed from ${status} to ${newStatus}`
-    );
-    setTableStatuses((prev) => ({
+    console.log(`Table ${key} changed from ${status} to ${newStatus}`);
+    setTableStatusesState((prev) => ({
       ...prev,
       [key]: { ...prev[key], status: newStatus },
     }));
+  };
+
+  // Animate overlay to fully transparent (opacity 0) when scrolling begins.
+  const onScrollBegin = () => {
+    Animated.timing(overlayOpacity, {
+      toValue: 0,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Animate overlay to fully opaque (opacity 1) when scrolling ends.
+  const onScrollEnd = () => {
+    Animated.timing(overlayOpacity, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
   return (
@@ -99,21 +115,30 @@ export const MerchantHomeScreen = () => {
       />
       <MatrixWrapper>
         {isSeatMode ? (
-          <SeatMatrixPlaceholder />
+          <Animated.ScrollView
+            onScrollBeginDrag={onScrollBegin}
+            onScrollEndDrag={onScrollEnd}
+            scrollEventThrottle={16}
+          >
+            <SeatView
+              seatingData={seatingData}
+              tableStatuses={tableStatusesState}
+            />
+          </Animated.ScrollView>
         ) : (
           <TableMatrix
-            tableStatuses={tableStatuses}
+            tableStatuses={tableStatusesState}
             onTablePress={handleTablePress}
           />
         )}
       </MatrixWrapper>
-      <TimeScrollContainer>
+      <AnimatedTimeScrollContainer style={{ opacity: overlayOpacity }}>
         <TimeScroll
           times={times}
           selectedTime={selectedTime}
           onTimeChange={handleTimeChange}
         />
-      </TimeScrollContainer>
+      </AnimatedTimeScrollContainer>
     </Container>
   );
 };

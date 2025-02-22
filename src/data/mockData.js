@@ -133,8 +133,6 @@ export const users = [
   },
 ];
 
-// File: src/data/mockData.js
-
 export const tableStatuses = {
   "0-1": { id: 1, row: 0, col: 1, status: "empty" },
   "0-2": { id: 2, row: 0, col: 2, status: "empty" },
@@ -148,4 +146,50 @@ export const tableStatuses = {
   "2-3": { id: 10, row: 2, col: 3, status: "occupied" },
   "3-1": { id: 11, row: 3, col: 1, status: "empty" },
   "3-2": { id: 12, row: 3, col: 2, status: "empty" },
+};
+
+export const seatingData = {
+  tables: [
+    { id: 1, chairs: [{ id: "1A" }, { id: "1B" }, { id: "1C" }] },
+    { id: 2, chairs: [{ id: "2A" }, { id: "2B" }, { id: "2C" }, { id: "2D" }] },
+    // Table 3 expanded to 10 chairs for testing
+    {
+      id: 3,
+      chairs: ["3A", "3B", "3C", "3D", "3E", "3F", "3G", "3H", "3I", "3J"].map(
+        (id) => ({ id })
+      ),
+    },
+    { id: 4, chairs: [{ id: "4A" }, { id: "4B" }, { id: "4C" }, { id: "4D" }] },
+    { id: 5, chairs: [{ id: "5A" }, { id: "5B" }, { id: "5C" }] },
+    { id: 6, chairs: [{ id: "6A" }, { id: "6B" }] },
+    // Table 7 expanded to 10 chairs
+    {
+      id: 7,
+      chairs: ["7A", "7B", "7C", "7D", "7E", "7F", "7G", "7H", "7I", "7J"].map(
+        (id) => ({ id })
+      ),
+    },
+    { id: 8, chairs: [{ id: "8A" }, { id: "8B" }] },
+    { id: 9, chairs: [{ id: "9A" }, { id: "9B" }, { id: "9C" }] },
+    // Table 10 expanded to 10 chairs
+    {
+      id: 10,
+      chairs: [
+        "10A",
+        "10B",
+        "10C",
+        "10D",
+        "10E",
+        "10F",
+        "10G",
+        "10H",
+        "10I",
+        "10J",
+      ].map((id) => ({ id })),
+    },
+    { id: 11, chairs: [{ id: "11A" }, { id: "11B" }] },
+    { id: 12, chairs: [{ id: "12A" }, { id: "12B" }, { id: "12C" }] },
+  ],
+  // Increased number of counter seats to 30 for performance testing
+  counterSeats: Array.from({ length: 30 }, (_, i) => ({ id: `C${i + 1}` })),
 };

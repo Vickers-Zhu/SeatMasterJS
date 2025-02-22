@@ -1,59 +1,51 @@
+// File: src/features/merchant/components/TableMatrix.js
 import React, { useState } from "react";
-import { TouchableOpacity, View, Text, useWindowDimensions } from "react-native";
+import { View, Text, useWindowDimensions } from "react-native";
 import styled from "styled-components/native";
+import { SharedTableItem } from "./SharedTableStyles.styles"; // Using shared table style
 
 const Row = styled.View`
   flex-direction: row;
-  margin-bottom: 16px;
+  margin-bottom: ${({ theme }) => theme.space[2]};
 `;
 
 const FIXED_BUTTON_SIZE = 60;
 const FIXED_MARGIN_RIGHT = 16;
 
-const TableButton = styled(TouchableOpacity)`
-  background-color: ${({ status, theme }) =>
-    status === "occupied"
-      ? "#ff4d4d"
-      : status === "reserved"
-      ? "#ffd11a"
-      : "#b3ffb3"};
-  margin-right: ${({ marginRight }) => marginRight}px;
-  justify-content: center;
-  align-items: center;
-  border-radius: 8px;
-  padding: 8px;
-`;
-
 export const TableMatrix = ({
   tableStatuses: initialTableStatuses,
   onTablePress,
 }) => {
-  // tableStatuses is an object keyed by "row-col"
-  // Each entry is { id, row, col, status }
   const [tableStatuses, setTableStatuses] = useState(initialTableStatuses);
   const { width: screenWidth } = useWindowDimensions();
 
-  // Calculate the maximum rows and columns from the provided statuses
+  // Calculate maximum rows and columns based on tableStatuses keys (assumed format "row-col")
   const entries = Object.values(tableStatuses);
-  const maxRow = entries.length > 0 ? Math.max(...entries.map(e => e.row)) : 0;
-  const maxCol = entries.length > 0 ? Math.max(...entries.map(e => e.col)) : 0;
+  const maxRow =
+    entries.length > 0 ? Math.max(...entries.map((e) => e.row)) : 0;
+  const maxCol =
+    entries.length > 0 ? Math.max(...entries.map((e) => e.col)) : 0;
   const rows = maxRow + 1;
   const columns = maxCol + 1;
-  
+
   const horizontalPadding = 32;
   const totalRequiredWidth =
     columns * FIXED_BUTTON_SIZE + (columns - 1) * FIXED_MARGIN_RIGHT;
   const availableWidth = screenWidth - horizontalPadding;
   const scale =
-    totalRequiredWidth > availableWidth ? availableWidth / totalRequiredWidth : 1;
-  
+    totalRequiredWidth > availableWidth
+      ? availableWidth / totalRequiredWidth
+      : 1;
+
   const buttonSize = FIXED_BUTTON_SIZE * scale;
   const marginRight = FIXED_MARGIN_RIGHT * scale;
 
   const handlePress = (row, col, currentStatus) => {
     const key = `${row}-${col}`;
     const newStatus = currentStatus === "empty" ? "occupied" : "empty";
-    console.log(`Table pressed: key=${key}, oldStatus=${currentStatus}, newStatus=${newStatus}`);
+    console.log(
+      `Table pressed: key=${key}, oldStatus=${currentStatus}, newStatus=${newStatus}`
+    );
     setTableStatuses((prev) => ({
       ...prev,
       [key]: { id: prev[key]?.id || key, row, col, status: newStatus },
@@ -72,15 +64,14 @@ export const TableMatrix = ({
             const entry = tableStatuses[key];
             if (entry) {
               return (
-                <TableButton
-                  key={key}
+                <SharedTableItem
+                  key={entry.id} // using table id as the key
                   status={entry.status}
-                  marginRight={marginRight}
                   onPress={() => handlePress(rowIndex, colIndex, entry.status)}
-                  style={{ width: buttonSize, height: buttonSize }}
+                  style={{ width: buttonSize, height: buttonSize, marginRight }}
                 >
                   <Text>{entry.id}</Text>
-                </TableButton>
+                </SharedTableItem>
               );
             } else {
               return (
