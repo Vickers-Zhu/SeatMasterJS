@@ -3,7 +3,7 @@
 import styled from "styled-components/native";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 import { List } from "react-native-paper";
-import { CustomText } from "../../../components/CustomText/CustomText";
+import { CustomText } from "../../../../components/CustomText/CustomText";
 
 export const SafeArea = styled.View`
   flex: 1;

@@ -150,28 +150,83 @@ export const tableStatuses = {
 
 export const seatingData = {
   tables: [
-    { id: 1, chairs: [{ id: "1A" }, { id: "1B" }, { id: "1C" }] },
-    { id: 2, chairs: [{ id: "2A" }, { id: "2B" }, { id: "2C" }, { id: "2D" }] },
-    // Table 3 expanded to 10 chairs for testing
+    {
+      id: 1,
+      chairs: [
+        { id: "1A", status: "occupied" },
+        { id: "1B", status: "empty" },
+        { id: "1C", status: "empty" },
+      ],
+    },
+    {
+      id: 2,
+      chairs: [
+        { id: "2A", status: "empty" },
+        { id: "2B", status: "empty" },
+        { id: "2C", status: "reserved" },
+        { id: "2D", status: "reserved" },
+      ],
+    },
     {
       id: 3,
       chairs: ["3A", "3B", "3C", "3D", "3E", "3F", "3G", "3H", "3I", "3J"].map(
-        (id) => ({ id })
+        (chairId, index) => {
+          if (index === 2 || index === 5) {
+            return { id: chairId, status: "occupied" };
+          }
+          return { id: chairId, status: "empty" };
+        }
       ),
     },
-    { id: 4, chairs: [{ id: "4A" }, { id: "4B" }, { id: "4C" }, { id: "4D" }] },
-    { id: 5, chairs: [{ id: "5A" }, { id: "5B" }, { id: "5C" }] },
-    { id: 6, chairs: [{ id: "6A" }, { id: "6B" }] },
-    // Table 7 expanded to 10 chairs
+    {
+      id: 4,
+      chairs: [
+        { id: "4A", status: "empty" },
+        { id: "4B", status: "occupied" },
+        { id: "4C", status: "empty" },
+        { id: "4D", status: "empty" },
+      ],
+    },
+    {
+      id: 5,
+      chairs: [
+        { id: "5A", status: "empty" },
+        { id: "5B", status: "reserved" },
+        { id: "5C", status: "empty" },
+      ],
+    },
+    {
+      id: 6,
+      chairs: [
+        { id: "6A", status: "occupied" },
+        { id: "6B", status: "occupied" },
+      ],
+    },
     {
       id: 7,
       chairs: ["7A", "7B", "7C", "7D", "7E", "7F", "7G", "7H", "7I", "7J"].map(
-        (id) => ({ id })
+        (chairId, index) => {
+          return index % 3 === 0
+            ? { id: chairId, status: "reserved" }
+            : { id: chairId, status: "empty" };
+        }
       ),
     },
-    { id: 8, chairs: [{ id: "8A" }, { id: "8B" }] },
-    { id: 9, chairs: [{ id: "9A" }, { id: "9B" }, { id: "9C" }] },
-    // Table 10 expanded to 10 chairs
+    {
+      id: 8,
+      chairs: [
+        { id: "8A", status: "empty" },
+        { id: "8B", status: "occupied" },
+      ],
+    },
+    {
+      id: 9,
+      chairs: [
+        { id: "9A", status: "empty" },
+        { id: "9B", status: "empty" },
+        { id: "9C", status: "reserved" },
+      ],
+    },
     {
       id: 10,
       chairs: [
@@ -185,11 +240,30 @@ export const seatingData = {
         "10H",
         "10I",
         "10J",
-      ].map((id) => ({ id })),
+      ].map((chairId, index) => {
+        if (index === 4) return { id: chairId, status: "occupied" };
+        if (index === 7) return { id: chairId, status: "reserved" };
+        return { id: chairId, status: "empty" };
+      }),
     },
-    { id: 11, chairs: [{ id: "11A" }, { id: "11B" }] },
-    { id: 12, chairs: [{ id: "12A" }, { id: "12B" }, { id: "12C" }] },
+    {
+      id: 11,
+      chairs: [
+        { id: "11A", status: "empty" },
+        { id: "11B", status: "empty" },
+      ],
+    },
+    {
+      id: 12,
+      chairs: [
+        { id: "12A", status: "occupied" },
+        { id: "12B", status: "empty" },
+        { id: "12C", status: "empty" },
+      ],
+    },
   ],
-  // Increased number of counter seats to 30 for performance testing
-  counterSeats: Array.from({ length: 30 }, (_, i) => ({ id: `C${i + 1}` })),
+  counterSeats: Array.from({ length: 30 }, (_, i) => ({
+    id: `C${i + 1}`,
+    status: i % 5 === 0 ? "occupied" : i % 7 === 0 ? "reserved" : "empty",
+  })),
 };

@@ -2,12 +2,12 @@ import React from "react";
 import { View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
-import { Spacer } from "../../../components/Spacer/Spacer";
-import { CustomText } from "../../../components/CustomText/CustomText";
-import { Favourite } from "../../../components/Favourite/Favourite";
+import { Spacer } from "../../../../components/Spacer/Spacer";
+import { CustomText } from "../../../../components/CustomText/CustomText";
+import { Favourite } from "../../../../components/Favourite/Favourite";
 
-import star from "../../../../assets/icons/star";
-import open from "../../../../assets/icons/open";
+import star from "../../../../../assets/icons/star";
+import open from "../../../../../assets/icons/open";
 
 import {
   RestaurantCard,

@@ -1,7 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-
-import { TabBar as OriginalTabBar } from 'react-native-tab-view';
+import React from "react";
+import styled from "styled-components/native";
+import { TabBar as OriginalTabBar } from "react-native-tab-view";
 
 const CustomTabBarContainer = styled(OriginalTabBar).attrs((props) => ({
   indicatorStyle: {
@@ -22,7 +21,7 @@ const TabBar = (props) => {
       {...props}
       onTabPress={({ route, preventDefault }) => {
         preventDefault();
-        const tabIndex = routes.findIndex(r => r.key === route.key);
+        const tabIndex = routes.findIndex((r) => r.key === route.key);
         scrollToTab(route.key, tabIndex);
       }}
     />

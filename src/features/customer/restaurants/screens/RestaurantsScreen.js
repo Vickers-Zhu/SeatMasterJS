@@ -3,12 +3,13 @@ import React, { useContext, useState } from "react";
 import { View, TouchableOpacity } from "react-native";
 import { ActivityIndicator, Colors } from "react-native-paper";
 import styled from "styled-components/native";
-import { Text } from "react-native";
 
-import { restaurants } from "../../../data/mockData";
-import { SafeArea } from "../../../components/SafeArea/SafeArea";
-import { FadeInView } from "../../../components/FadeInView/FadeInView";
-import { Spacer } from "../../../components/Spacer/Spacer";
+import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+import { FadeInView } from "../../../../components/FadeInView/FadeInView";
+import { Spacer } from "../../../../components/Spacer/Spacer";
+
+import { restaurants } from "../../../../data/mockData";
+
 import { Search } from "../components/Search";
 import { RestaurantList } from "../components/RestaurantList.styles";
 import { RestaurantInfoCard } from "../components/RestaurantInfoCard";

@@ -5,13 +5,13 @@ import styled from "styled-components/native";
 import { ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-import { reservations } from "../../../data/mockData";
-import { CustomText } from "../../../components/CustomText/CustomText";
-import { SafeArea } from "../../../components/SafeArea/SafeArea";
-import { Spacer } from "../../../components/Spacer/Spacer";
+import { reservations } from "../../../../data/mockData";
+import { CustomText } from "../../../../components/CustomText/CustomText";
+import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+import { Spacer } from "../../../../components/Spacer/Spacer";
+import { Separator } from "../../../../components/Separator/Separator";
 import { ReservationCard } from "../components/ReservationCard";
 import { PastReservationCard } from "../components/PastReservationCard";
-import { Separator } from "../../../components/Separator/Separator";
 
 const Container = styled(SafeArea)`
   flex: 1;

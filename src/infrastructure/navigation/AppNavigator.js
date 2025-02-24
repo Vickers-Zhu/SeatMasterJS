@@ -12,9 +12,8 @@ import { CheckoutNavigator } from "./CheckoutNavigator";
 import { ReservationsNavigator } from "./ReservationsNavigator";
 import { MerchantNavigator } from "./MerchantNavigator";
 import { SettingsNavigator } from "./SettingsNavigator";
-import { LoginScreen } from "../../features/auth/screens/LoginScreen";
-import { RestaurantDetailScreen } from "../../features/restaurants/screens/RestaurantDetailScreen";
-import { AccountSettingsScreen } from "../../features/settings/screens/AccountSettingsScreen";
+import { RestaurantDetailScreen } from "../../features/customer/restaurants/screens/RestaurantDetailScreen";
+import { AccountSettingsScreen } from "../../features/customer/settings/screens/AccountSettingsScreen";
 
 const TAB_ICON = {
   Restaurants: "restaurant",

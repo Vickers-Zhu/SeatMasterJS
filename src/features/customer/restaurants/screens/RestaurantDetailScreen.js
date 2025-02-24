@@ -4,18 +4,19 @@ import { Animated, Dimensions, View } from "react-native";
 import styled from "styled-components/native";
 import { IconButton } from "react-native-paper";
 
-import { CustomText } from "../../../components/CustomText/CustomText";
-import { SafeArea } from "../../../components/SafeArea/SafeArea";
+import { CustomText } from "../../../../components/CustomText/CustomText";
+import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+import SwitchContainer from "../../../../components/Switch/Switch";
+import WebApp from "../../../../components/WebApp/WebApp";
+import ErrorBoundary from "../../../../components/ErrorBoundary/ErrorBoundary";
+
 import { RestaurantInfoCard } from "../components/RestaurantInfoCard";
 import RestaurantMenu from "../components/RestaurantMenu";
 import Reviews from "../components/Reviews";
 import Others from "../components/Others";
-import SwitchContainer from "../../../components/Switch/Switch";
 import TabNavigation from "../components/TabNavigation";
 import useScrollHandler from "../hooks/useScrollHandler";
 import useReservationHandler from "../hooks/useReservationHandler";
-import WebApp from "../../../components/WebApp/WebApp";
-import ErrorBoundary from "../../../components/ErrorBoundary/ErrorBoundary";
 
 const Spacing = styled.View`
   padding-bottom: ${(props) => props.theme.space[2]};

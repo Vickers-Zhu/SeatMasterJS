@@ -3,12 +3,12 @@ import React, { useState } from "react";
 import { IconButton, Avatar } from "react-native-paper";
 
 // Components
-import { SafeArea } from "../../../components/SafeArea/SafeArea";
-import { Separator } from "../../../components/Separator/Separator";
-import { CustomText } from "../../../components/CustomText/CustomText";
+import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+import { Separator } from "../../../../components/Separator/Separator";
+import { CustomText } from "../../../../components/CustomText/CustomText";
 
 // Mock Data
-import { users } from "../../../data/mockData"; // Import user data
+import { users } from "../../../../data/mockData"; // Import user data
 
 // Styled Components
 import {

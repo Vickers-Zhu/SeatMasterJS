@@ -1,6 +1,7 @@
 // src/infrastructure/navigation/AuthNavigator.js
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+
 import { LoginScreen } from "../../features/auth/screens/LoginScreen";
 import { globalScreenOptions } from "../options/GlobalScreenOptions";
 

@@ -2,7 +2,6 @@
 import styled from "styled-components/native";
 import { TouchableOpacity, View } from "react-native";
 
-// Shared table style used by both table view and seat view.
 export const SharedTableItem = styled(TouchableOpacity)`
   background-color: ${({ status, theme }) =>
     status === "occupied"
@@ -19,9 +18,14 @@ export const SharedTableItem = styled(TouchableOpacity)`
   min-height: 60px;
 `;
 
-// Shared chair style: a smaller version of the table style.
+// Modified SharedChairItem to support status-based colors like tables
 export const SharedChairItem = styled(TouchableOpacity)`
-  background-color: ${({ theme }) => theme.colors.bg.secondary};
+  background-color: ${({ status, theme }) =>
+    status === "occupied"
+      ? "#ff4d4d"
+      : status === "reserved"
+      ? "#ffd11a"
+      : "#b3ffb3"};
   padding: 4px;
   border-radius: 4px;
   margin: 4px;
@@ -31,13 +35,11 @@ export const SharedChairItem = styled(TouchableOpacity)`
   min-height: 40px;
 `;
 
-// Container for the chairs row that wraps if needed.
 export const SharedChairsRow = styled(View)`
   flex-direction: row;
   flex-wrap: wrap;
 `;
 
-// A vertical separator that spans the full height of its parent.
 export const VerticalSeparator = styled(View)`
   width: 1px;
   background-color: rgba(0, 0, 0, 0.1);

@@ -5,8 +5,8 @@ import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import styled, { useTheme } from "styled-components/native";
 
-import { Spacer } from "../../../components/Spacer/Spacer";
-import { CustomText } from "../../../components/CustomText/CustomText";
+import { Spacer } from "../../../../components/Spacer/Spacer";
+import { CustomText } from "../../../../components/CustomText/CustomText";
 
 import {
   ReservationCardContainer,

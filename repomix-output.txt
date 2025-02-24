@@ -90,9 +90,9 @@ src/
         LoginScreen.styles.js
     merchant/
       components/
+        CounterSeats.js
         SeatView.js
         SharedTableStyles.styles.js
-        TableLayout.js
         TableMatrix.js
         TimeScroll.js
       screens/
@@ -1096,30 +1096,123 @@ File: src/data/mockData.js
 149: 
 150: export const seatingData = {
 151:   tables: [
-152:     { id: 1, chairs: [{ id: "1A" }, { id: "1B" }, { id: "1C" }] },
-153:     { id: 2, chairs: [{ id: "2A" }, { id: "2B" }, { id: "2C" }, { id: "2D" }] },
-154:     { id: 3, chairs: [{ id: "3A" }, { id: "3B" }] },
-155:     { id: 4, chairs: [{ id: "4A" }, { id: "4B" }, { id: "4C" }, { id: "4D" }] },
-156:     { id: 5, chairs: [{ id: "5A" }, { id: "5B" }, { id: "5C" }] },
-157:     { id: 6, chairs: [{ id: "6A" }, { id: "6B" }] },
-158:     { id: 7, chairs: [{ id: "7A" }, { id: "7B" }, { id: "7C" }, { id: "7D" }] },
-159:     { id: 8, chairs: [{ id: "8A" }, { id: "8B" }] },
-160:     { id: 9, chairs: [{ id: "9A" }, { id: "9B" }, { id: "9C" }] },
-161:     {
-162:       id: 10,
-163:       chairs: [{ id: "10A" }, { id: "10B" }, { id: "10C" }, { id: "10D" }],
-164:     },
-165:     { id: 11, chairs: [{ id: "11A" }, { id: "11B" }] },
-166:     { id: 12, chairs: [{ id: "12A" }, { id: "12B" }, { id: "12C" }] },
-167:   ],
-168:   counterSeats: [
-169:     { id: "C1" },
-170:     { id: "C2" },
-171:     { id: "C3" },
-172:     { id: "C4" },
-173:     { id: "C5" },
-174:   ],
-175: };
+152:     {
+153:       id: 1,
+154:       chairs: [
+155:         { id: "1A", status: "occupied" },
+156:         { id: "1B", status: "empty" },
+157:         { id: "1C", status: "empty" },
+158:       ],
+159:     },
+160:     {
+161:       id: 2,
+162:       chairs: [
+163:         { id: "2A", status: "empty" },
+164:         { id: "2B", status: "empty" },
+165:         { id: "2C", status: "reserved" },
+166:         { id: "2D", status: "reserved" },
+167:       ],
+168:     },
+169:     {
+170:       id: 3,
+171:       chairs: ["3A", "3B", "3C", "3D", "3E", "3F", "3G", "3H", "3I", "3J"].map(
+172:         (chairId, index) => {
+173:           if (index === 2 || index === 5) {
+174:             return { id: chairId, status: "occupied" };
+175:           }
+176:           return { id: chairId, status: "empty" };
+177:         }
+178:       ),
+179:     },
+180:     {
+181:       id: 4,
+182:       chairs: [
+183:         { id: "4A", status: "empty" },
+184:         { id: "4B", status: "occupied" },
+185:         { id: "4C", status: "empty" },
+186:         { id: "4D", status: "empty" },
+187:       ],
+188:     },
+189:     {
+190:       id: 5,
+191:       chairs: [
+192:         { id: "5A", status: "empty" },
+193:         { id: "5B", status: "reserved" },
+194:         { id: "5C", status: "empty" },
+195:       ],
+196:     },
+197:     {
+198:       id: 6,
+199:       chairs: [
+200:         { id: "6A", status: "occupied" },
+201:         { id: "6B", status: "occupied" },
+202:       ],
+203:     },
+204:     {
+205:       id: 7,
+206:       chairs: ["7A", "7B", "7C", "7D", "7E", "7F", "7G", "7H", "7I", "7J"].map(
+207:         (chairId, index) => {
+208:           return index % 3 === 0
+209:             ? { id: chairId, status: "reserved" }
+210:             : { id: chairId, status: "empty" };
+211:         }
+212:       ),
+213:     },
+214:     {
+215:       id: 8,
+216:       chairs: [
+217:         { id: "8A", status: "empty" },
+218:         { id: "8B", status: "occupied" },
+219:       ],
+220:     },
+221:     {
+222:       id: 9,
+223:       chairs: [
+224:         { id: "9A", status: "empty" },
+225:         { id: "9B", status: "empty" },
+226:         { id: "9C", status: "reserved" },
+227:       ],
+228:     },
+229:     {
+230:       id: 10,
+231:       chairs: [
+232:         "10A",
+233:         "10B",
+234:         "10C",
+235:         "10D",
+236:         "10E",
+237:         "10F",
+238:         "10G",
+239:         "10H",
+240:         "10I",
+241:         "10J",
+242:       ].map((chairId, index) => {
+243:         if (index === 4) return { id: chairId, status: "occupied" };
+244:         if (index === 7) return { id: chairId, status: "reserved" };
+245:         return { id: chairId, status: "empty" };
+246:       }),
+247:     },
+248:     {
+249:       id: 11,
+250:       chairs: [
+251:         { id: "11A", status: "empty" },
+252:         { id: "11B", status: "empty" },
+253:       ],
+254:     },
+255:     {
+256:       id: 12,
+257:       chairs: [
+258:         { id: "12A", status: "occupied" },
+259:         { id: "12B", status: "empty" },
+260:         { id: "12C", status: "empty" },
+261:       ],
+262:     },
+263:   ],
+264:   counterSeats: Array.from({ length: 30 }, (_, i) => ({
+265:     id: `C${i + 1}`,
+266:     status: i % 5 === 0 ? "occupied" : i % 7 === 0 ? "reserved" : "empty",
+267:   })),
+268: };
 
 ================
 File: src/features/auth/components/CountryListItem.js
@@ -1501,98 +1594,124 @@ File: src/features/auth/screens/LoginScreen.styles.js
 78: `;
 
 ================
+File: src/features/merchant/components/CounterSeats.js
+================
+ 1: import React from "react";
+ 2: import styled from "styled-components/native";
+ 3: import { CustomText } from "../../../components/CustomText/CustomText";
+ 4: import { SharedChairsRow, SharedChairItem } from "./SharedTableStyles.styles";
+ 5: 
+ 6: const CounterContainer = styled.View`
+ 7:   margin-bottom: ${({ theme }) => theme.space[1]};
+ 8:   padding: ${({ theme }) => theme.space[2]};
+ 9: `;
+10: 
+11: export const CounterSeats = ({ counterSeats }) => {
+12:   return (
+13:     <CounterContainer>
+14:       <CustomText variant="label">Counter</CustomText>
+15:       <SharedChairsRow>
+16:         {counterSeats.map((seat) => {
+17:           const seatData =
+18:             typeof seat === "object" ? seat : { id: seat, status: "empty" };
+19:           return (
+20:             <SharedChairItem
+21:               key={seatData.id}
+22:               status={seatData.status || "empty"}
+23:               style={{ width: 40, height: 40, margin: 4 }}
+24:             >
+25:               <CustomText variant="body">{seatData.id}</CustomText>
+26:             </SharedChairItem>
+27:           );
+28:         })}
+29:       </SharedChairsRow>
+30:     </CounterContainer>
+31:   );
+32: };
+33: 
+34: export default CounterSeats;
+
+================
 File: src/features/merchant/components/SeatView.js
 ================
  1: import React from "react";
  2: import { ScrollView } from "react-native";
  3: import styled from "styled-components/native";
  4: import { CustomText } from "../../../components/CustomText/CustomText";
- 5: import {
- 6:   SharedTableItem,
- 7:   SharedChairItem,
- 8:   SharedChairsRow,
- 9:   VerticalSeparator as DefaultVerticalSeparator,
-10: } from "./SharedTableStyles.styles";
-11: 
-12: 
-13: const RowContainer = styled.View`
-14:   flex-direction: row;
-15:   align-items: center;
-16:   margin-bottom: ${({ theme }) => theme.space[2]};
-17: `;
-18: 
-19: // Left column: table item with fixed dimensions
+ 5: import { Separator } from "../../../components/Separator/Separator";
+ 6: import {
+ 7:   SharedTableItem,
+ 8:   SharedChairItem,
+ 9:   SharedChairsRow,
+10:   VerticalSeparator as DefaultVerticalSeparator,
+11: } from "./SharedTableStyles.styles";
+12: import CounterSeats from "./CounterSeats";
+13: 
+14: const RowContainer = styled.View`
+15:   flex-direction: row;
+16:   align-items: center;
+17:   margin-bottom: ${({ theme }) => theme.space[2]};
+18: `;
+19: 
 20: const TableColumn = styled.View`
 21:   width: 60px;
 22:   align-items: center;
 23: `;
 24: 
-25: // Right column: chairs for that table
-26: const ChairsColumn = styled.View`
-27:   flex: 1;
-28:   padding-left: ${({ theme }) => theme.space[2]};
-29: `;
-30: 
-31: // Vertical separator with fixed height (matching table height)
-32: const VerticalSeparator = styled(DefaultVerticalSeparator)`
-33:   height: 60px;
-34: `;
-35: 
-36: // Container for the counter seats section
-37: const CounterContainer = styled.View`
-38:   margin-bottom: ${({ theme }) => theme.space[3]};
-39:   padding: ${({ theme }) => theme.space[2]};
-40: `;
-41: 
-42: export const SeatView = ({ seatingData, tableStatuses }) => {
-43:   return (
-44:     <ScrollView>
-45:       {}
-46:       {seatingData.counterSeats && seatingData.counterSeats.length > 0 && (
-47:         <CounterContainer>
-48:           <CustomText variant="label">Counter</CustomText>
-49:           <SharedChairsRow>
-50:             {seatingData.counterSeats.map((seat) => (
-51:               <SharedChairItem
-52:                 key={seat.id}
-53:                 style={{ width: 40, height: 40, margin: 4 }}
-54:               >
-55:                 <CustomText variant="body">{seat.id}</CustomText>
-56:               </SharedChairItem>
-57:             ))}
-58:           </SharedChairsRow>
-59:         </CounterContainer>
-60:       )}
-61: 
-62:       {}
-63:       {seatingData.tables.map((table) => (
-64:         <RowContainer key={table.id}>
-65:           <TableColumn>
-66:             <SharedTableItem
-67:               status={((tableStatuses || {})[table.id] || {}).status || "empty"}
-68:               style={{ width: 60, height: 60 }}
-69:             >
-70:               <CustomText variant="label">{table.id}</CustomText>
-71:             </SharedTableItem>
-72:           </TableColumn>
-73:           <VerticalSeparator />
-74:           <ChairsColumn>
-75:             <SharedChairsRow>
-76:               {table.chairs.map((chair) => (
-77:                 <SharedChairItem
-78:                   key={chair.id}
-79:                   style={{ width: 40, height: 40, margin: 4 }}
-80:                 >
-81:                   <CustomText variant="body">{chair.id}</CustomText>
-82:                 </SharedChairItem>
-83:               ))}
-84:             </SharedChairsRow>
-85:           </ChairsColumn>
-86:         </RowContainer>
-87:       ))}
-88:     </ScrollView>
-89:   );
-90: };
+25: const ChairsColumn = styled.View`
+26:   flex: 1;
+27:   padding-left: ${({ theme }) => theme.space[2]};
+28: `;
+29: 
+30: const VerticalSeparator = styled(DefaultVerticalSeparator)`
+31:   height: 60px;
+32: `;
+33: 
+34: export const SeatView = ({ seatingData, tableStatuses }) => {
+35:   return (
+36:     <ScrollView>
+37:       <CounterSeats counterSeats={seatingData.counterSeats} />
+38:       <Separator type="full" />
+39:       {seatingData.tables.map((table) => {
+40:         const tableStatus = Object.values(tableStatuses || {}).find(
+41:           (statusObj) => statusObj.id === table.id
+42:         );
+43:         return (
+44:           <RowContainer key={table.id}>
+45:             <TableColumn>
+46:               <SharedTableItem
+47:                 status={tableStatus ? tableStatus.status : "empty"}
+48:                 style={{ width: 60, height: 60 }}
+49:               >
+50:                 <CustomText variant="label">{table.id}</CustomText>
+51:               </SharedTableItem>
+52:             </TableColumn>
+53:             <VerticalSeparator />
+54:             <ChairsColumn>
+55:               <SharedChairsRow>
+56:                 {table.chairs.map((chair) => {
+57:                   const chairData =
+58:                     typeof chair === "object"
+59:                       ? chair
+60:                       : { id: chair, status: "empty" };
+61:                   return (
+62:                     <SharedChairItem
+63:                       key={chairData.id}
+64:                       status={chairData.status || "empty"}
+65:                       style={{ width: 40, height: 40, margin: 4 }}
+66:                     >
+67:                       <CustomText variant="body">{chairData.id}</CustomText>
+68:                     </SharedChairItem>
+69:                   );
+70:                 })}
+71:               </SharedChairsRow>
+72:             </ChairsColumn>
+73:           </RowContainer>
+74:         );
+75:       })}
+76:     </ScrollView>
+77:   );
+78: };
 
 ================
 File: src/features/merchant/components/SharedTableStyles.styles.js
@@ -1600,186 +1719,50 @@ File: src/features/merchant/components/SharedTableStyles.styles.js
  1: import styled from "styled-components/native";
  2: import { TouchableOpacity, View } from "react-native";
  3: 
- 4: 
- 5: export const SharedTableItem = styled(TouchableOpacity)`
- 6:   background-color: ${({ status, theme }) =>
- 7:     status === "occupied"
- 8:       ? "#ff4d4d"
- 9:       : status === "reserved"
-10:       ? "#ffd11a"
-11:       : "#b3ffb3"};
-12:   padding: 8px;
-13:   border-radius: 8px;
-14:   margin-bottom: ${({ theme }) => theme.space[2]};
-15:   justify-content: center;
-16:   align-items: center;
-17:   min-width: 60px;
-18:   min-height: 60px;
-19: `;
+ 4: export const SharedTableItem = styled(TouchableOpacity)`
+ 5:   background-color: ${({ status, theme }) =>
+ 6:     status === "occupied"
+ 7:       ? "#ff4d4d"
+ 8:       : status === "reserved"
+ 9:       ? "#ffd11a"
+10:       : "#b3ffb3"};
+11:   padding: 8px;
+12:   border-radius: 8px;
+13:   margin-bottom: ${({ theme }) => theme.space[2]};
+14:   justify-content: center;
+15:   align-items: center;
+16:   min-width: 60px;
+17:   min-height: 60px;
+18: `;
+19: 
 20: 
-21: 
-22: export const SharedChairItem = styled(TouchableOpacity)`
-23:   background-color: ${({ theme }) => theme.colors.bg.secondary};
-24:   padding: 4px;
-25:   border-radius: 4px;
-26:   margin: 4px;
-27:   justify-content: center;
-28:   align-items: center;
-29:   min-width: 40px;
-30:   min-height: 40px;
-31: `;
-32: 
-33: 
-34: export const SharedChairsRow = styled(View)`
-35:   flex-direction: row;
-36:   flex-wrap: wrap;
-37: `;
-38: 
-39: 
-40: export const VerticalSeparator = styled(View)`
-41:   width: 1px;
-42:   background-color: rgba(0, 0, 0, 0.1);
-43:   margin-horizontal: ${({ theme }) => theme.space[2]};
-44:   align-self: stretch;
-45: `;
-
-================
-File: src/features/merchant/components/TableLayout.js
-================
-  1: import React, { useState, useRef, useEffect } from "react";
-  2: import {
-  3:   View,
-  4:   Text,
-  5:   Animated,
-  6:   PanResponder,
-  7:   TouchableOpacity,
-  8: } from "react-native";
-  9: import styled from "styled-components/native";
- 10: 
- 11: const FloorPlanContainer = styled.View`
- 12:   width: 100%;
- 13:   height: 400px;
- 14:   background-color: ${({ theme }) => theme.colors.bg.secondary};
- 15:   position: relative;
- 16: `;
- 17: 
- 18: const TableMarkerContainer = styled(Animated.View)`
- 19:   position: absolute;
- 20:   width: 60px;
- 21:   height: 60px;
- 22:   background-color: ${({ status, theme }) =>
- 23:     status === "occupied" ? "#ff4d4d" : "#b3ffb3"};
- 24:   border-radius: 8px;
- 25:   justify-content: center;
- 26:   align-items: center;
- 27:   border: 2px solid ${({ theme }) => theme.colors.ui.primary};
- 28: `;
- 29: 
- 30: const ResetButton = styled(TouchableOpacity)`
- 31:   background-color: ${({ theme }) => theme.colors.ui.primary};
- 32:   padding: 10px;
- 33:   border-radius: 8px;
- 34:   align-self: center;
- 35:   margin-top: 16px;
- 36: `;
- 37: 
- 38: const ButtonText = styled.Text`
- 39:   color: ${({ theme }) => theme.colors.text.inverse};
- 40:   font-weight: bold;
- 41: `;
- 42: 
- 43: const defaultTablesData = [
- 44:   { id: 1, x: 20, y: 30, status: "empty" },
- 45:   { id: 2, x: 100, y: 30, status: "occupied" },
- 46:   { id: 3, x: 180, y: 30, status: "empty" },
- 47:   { id: 4, x: 20, y: 120, status: "reserved" },
- 48:   { id: 5, x: 100, y: 120, status: "empty" },
- 49:   { id: 6, x: 180, y: 120, status: "occupied" },
- 50: ];
- 51: 
- 52: export const TableLayout = ({ tables = defaultTablesData, onTablePress }) => {
- 53: 
- 54:   const initialPositions = {};
- 55:   tables.forEach((table) => {
- 56:     initialPositions[table.id] = { x: table.x, y: table.y };
- 57:   });
- 58: 
- 59: 
- 60:   const [positions] = useState(() => {
- 61:     const pos = {};
- 62:     tables.forEach((table) => {
- 63:       pos[table.id] = new Animated.ValueXY({ x: table.x, y: table.y });
- 64:     });
- 65:     return pos;
- 66:   });
- 67: 
- 68: 
- 69:   const resetPositions = () => {
- 70:     tables.forEach((table) => {
- 71:       Animated.spring(positions[table.id], {
- 72:         toValue: {
- 73:           x: initialPositions[table.id].x,
- 74:           y: initialPositions[table.id].y,
- 75:         },
- 76:         useNativeDriver: false,
- 77:       }).start();
- 78:     });
- 79:   };
- 80: 
- 81: 
- 82:   const createPanResponder = (tableId) => {
- 83:     return PanResponder.create({
- 84:       onStartShouldSetPanResponder: () => true,
- 85:       onPanResponderGrant: () => {
- 86:         positions[tableId].setOffset({
- 87:           x: positions[tableId].x._value,
- 88:           y: positions[tableId].y._value,
- 89:         });
- 90:         positions[tableId].setValue({ x: 0, y: 0 });
- 91:       },
- 92:       onPanResponderMove: Animated.event(
- 93:         [null, { dx: positions[tableId].x, dy: positions[tableId].y }],
- 94:         { useNativeDriver: false }
- 95:       ),
- 96:       onPanResponderRelease: () => {
- 97:         positions[tableId].flattenOffset();
- 98:         if (onTablePress) {
- 99:           onTablePress(tableId);
-100:         }
-101:       },
-102:     });
-103:   };
-104: 
-105: 
-106:   const panRespondersRef = useRef({});
-107:   useEffect(() => {
-108:     tables.forEach((table) => {
-109:       panRespondersRef.current[table.id] = createPanResponder(table.id);
-110:     });
-111:   }, [tables]);
-112: 
-113:   return (
-114:     <>
-115:       <FloorPlanContainer>
-116:         {tables.map((table) => (
-117:           <TableMarkerContainer
-118:             key={table.id}
-119:             status={table.status}
-120:             style={positions[table.id].getLayout()}
-121:             {...(panRespondersRef.current[table.id]
-122:               ? panRespondersRef.current[table.id].panHandlers
-123:               : {})}
-124:           >
-125:             <Text>{table.id}</Text>
-126:           </TableMarkerContainer>
-127:         ))}
-128:       </FloorPlanContainer>
-129:       <ResetButton onPress={resetPositions}>
-130:         <ButtonText>Reset Layout</ButtonText>
-131:       </ResetButton>
-132:     </>
-133:   );
-134: };
+21: export const SharedChairItem = styled(TouchableOpacity)`
+22:   background-color: ${({ status, theme }) =>
+23:     status === "occupied"
+24:       ? "#ff4d4d"
+25:       : status === "reserved"
+26:       ? "#ffd11a"
+27:       : "#b3ffb3"};
+28:   padding: 4px;
+29:   border-radius: 4px;
+30:   margin: 4px;
+31:   justify-content: center;
+32:   align-items: center;
+33:   min-width: 40px;
+34:   min-height: 40px;
+35: `;
+36: 
+37: export const SharedChairsRow = styled(View)`
+38:   flex-direction: row;
+39:   flex-wrap: wrap;
+40: `;
+41: 
+42: export const VerticalSeparator = styled(View)`
+43:   width: 1px;
+44:   background-color: rgba(0, 0, 0, 0.1);
+45:   margin-horizontal: ${({ theme }) => theme.space[2]};
+46:   align-self: stretch;
+47: `;
 
 ================
 File: src/features/merchant/components/TableMatrix.js
@@ -2004,148 +1987,146 @@ File: src/features/merchant/components/TimeScroll.js
 File: src/features/merchant/screens/MerchantHomeScreen.js
 ================
   1: import React, { useState, useEffect, useRef } from "react";
-  2: import { Animated } from "react-native";
+  2: import { Animated, ScrollView, View } from "react-native";
   3: import styled from "styled-components/native";
   4: import SwitchContainer from "../../../components/Switch/Switch";
   5: import { TableMatrix } from "../components/TableMatrix";
   6: import { TimeScroll } from "../components/TimeScroll";
   7: import { SeatView } from "../components/SeatView";
   8: import { tableStatuses, seatingData } from "../../../data/mockData";
-  9: 
- 10: 
- 11: const Container = styled.View`
- 12:   flex: 1;
- 13:   background-color: ${(props) => props.theme.colors.bg.primary};
- 14:   padding: 16px;
- 15:   position: relative;
- 16: `;
- 17: 
- 18: // Wrapper for the main content area (tables or seats).
+  9: import { Separator } from "../../../components/Separator/Separator";
+ 10: import CounterSeats from "../components/CounterSeats";
+ 11: 
+ 12: const Container = styled.View`
+ 13:   flex: 1;
+ 14:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 15:   padding: 16px;
+ 16:   position: relative;
+ 17: `;
+ 18: 
  19: const MatrixWrapper = styled.View`
  20:   flex: 1;
  21:   margin-top: 16px;
  22: `;
  23: 
- 24: // Animated container for the time scroll overlay.
- 25: const AnimatedTimeScrollContainer =
- 26:   Animated.createAnimatedComponent(styled.View`
- 27:     position: absolute;
- 28:     right: 16px;
- 29:     top: 0;
- 30:     bottom: 0;
- 31:     justify-content: center;
- 32:     align-items: center;
- 33:   `);
+ 24: const AnimatedTimeScrollContainer = Animated.createAnimatedComponent(
+ 25:   styled.View`
+ 26:     position: absolute;
+ 27:     right: 16px;
+ 28:     top: 0;
+ 29:     bottom: 0;
+ 30:     justify-content: center;
+ 31:     align-items: center;
+ 32:   `
+ 33: );
  34: 
  35: export const MerchantHomeScreen = () => {
  36:   const [times, setTimes] = useState(generateTimes(5));
  37:   const [selectedTime, setSelectedTime] = useState(times[0]);
  38:   const [isSeatMode, setIsSeatMode] = useState(false);
  39:   const [tableStatusesState, setTableStatusesState] = useState(tableStatuses);
- 40:   // overlayOpacity controls the transparency of the time scroll overlay.
- 41:   const overlayOpacity = useRef(new Animated.Value(1)).current;
- 42: 
- 43:   // Function to generate times.
- 44:   function generateTimes(count) {
- 45:     let timesArray = [];
- 46:     let current = new Date();
- 47:     current.setSeconds(0);
- 48:     current.setMilliseconds(0);
- 49:     for (let i = 0; i < count; i++) {
- 50:       const hours = current.getHours();
- 51:       const minutes = current.getMinutes();
- 52:       const timeString = `${hours.toString().padStart(2, "0")}:${minutes
- 53:         .toString()
- 54:         .padStart(2, "0")}`;
- 55:       timesArray.push(timeString);
- 56:       current.setHours(current.getHours() + 1);
- 57:     }
- 58:     return timesArray;
- 59:   }
- 60: 
- 61:   // Update times periodically.
- 62:   useEffect(() => {
- 63:     const updateTimes = () => {
- 64:       const newTimes = generateTimes(5);
- 65:       setTimes(newTimes);
- 66:       setSelectedTime(newTimes[0]);
- 67:     };
- 68:     updateTimes();
- 69:     const interval = setInterval(updateTimes, 6000);
- 70:     return () => clearInterval(interval);
- 71:   }, []);
- 72: 
- 73:   const handleTimeChange = (time) => {
- 74:     setSelectedTime(time);
- 75:     console.log("Time changed to:", time);
- 76:   };
- 77: 
- 78:   const handleTablePress = (key, status) => {
- 79:     // Example logic to update table statuses.
- 80:     const newStatus = status === "empty" ? "occupied" : "empty";
- 81:     console.log(`Table ${key} changed from ${status} to ${newStatus}`);
- 82:     setTableStatusesState((prev) => ({
- 83:       ...prev,
- 84:       [key]: { ...prev[key], status: newStatus },
- 85:     }));
- 86:   };
- 87: 
- 88: 
- 89:   const onScrollBegin = () => {
- 90:     Animated.timing(overlayOpacity, {
- 91:       toValue: 0,
- 92:       duration: 100,
- 93:       useNativeDriver: true,
- 94:     }).start();
- 95:   };
- 96: 
- 97: 
- 98:   const onScrollEnd = () => {
- 99:     Animated.timing(overlayOpacity, {
-100:       toValue: 1,
-101:       duration: 100,
-102:       useNativeDriver: true,
-103:     }).start();
-104:   };
-105: 
-106:   return (
-107:     <Container>
-108:       <SwitchContainer
-109:         isOn={isSeatMode}
-110:         setIsOn={setIsSeatMode}
-111:         leftLabel="Tables"
-112:         rightLabel="Seats"
-113:         variant="default"
-114:       />
-115:       <MatrixWrapper>
-116:         {isSeatMode ? (
-117:           <Animated.ScrollView
-118:             onScrollBeginDrag={onScrollBegin}
-119:             onScrollEndDrag={onScrollEnd}
-120:             scrollEventThrottle={16}
-121:           >
-122:             <SeatView
-123:               seatingData={seatingData}
+ 40:   const overlayOpacity = useRef(new Animated.Value(1)).current;
+ 41: 
+ 42:   function generateTimes(count) {
+ 43:     let timesArray = [];
+ 44:     let current = new Date();
+ 45:     current.setSeconds(0);
+ 46:     current.setMilliseconds(0);
+ 47:     for (let i = 0; i < count; i++) {
+ 48:       const hours = current.getHours();
+ 49:       const minutes = current.getMinutes();
+ 50:       const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+ 51:         .toString()
+ 52:         .padStart(2, "0")}`;
+ 53:       timesArray.push(timeString);
+ 54:       current.setHours(current.getHours() + 1);
+ 55:     }
+ 56:     return timesArray;
+ 57:   }
+ 58: 
+ 59:   useEffect(() => {
+ 60:     const updateTimes = () => {
+ 61:       const newTimes = generateTimes(5);
+ 62:       setTimes(newTimes);
+ 63:       setSelectedTime(newTimes[0]);
+ 64:     };
+ 65:     updateTimes();
+ 66:     const interval = setInterval(updateTimes, 6000);
+ 67:     return () => clearInterval(interval);
+ 68:   }, []);
+ 69: 
+ 70:   const handleTimeChange = (time) => {
+ 71:     setSelectedTime(time);
+ 72:     console.log("Time changed to:", time);
+ 73:   };
+ 74: 
+ 75:   const handleTablePress = (key, status) => {
+ 76:     const newStatus = status === "empty" ? "occupied" : "empty";
+ 77:     console.log(`Table ${key} changed from ${status} to ${newStatus}`);
+ 78:     setTableStatusesState((prev) => ({
+ 79:       ...prev,
+ 80:       [key]: { ...prev[key], status: newStatus },
+ 81:     }));
+ 82:   };
+ 83: 
+ 84:   const onScrollBegin = () => {
+ 85:     Animated.timing(overlayOpacity, {
+ 86:       toValue: 0,
+ 87:       duration: 100,
+ 88:       useNativeDriver: true,
+ 89:     }).start();
+ 90:   };
+ 91: 
+ 92:   const onScrollEnd = () => {
+ 93:     Animated.timing(overlayOpacity, {
+ 94:       toValue: 1,
+ 95:       duration: 100,
+ 96:       useNativeDriver: true,
+ 97:     }).start();
+ 98:   };
+ 99: 
+100:   return (
+101:     <Container>
+102:       <SwitchContainer
+103:         isOn={isSeatMode}
+104:         setIsOn={setIsSeatMode}
+105:         leftLabel="Tables"
+106:         rightLabel="Seats"
+107:         variant="default"
+108:       />
+109:       <MatrixWrapper>
+110:         {isSeatMode ? (
+111:           <Animated.ScrollView
+112:             onScrollBeginDrag={onScrollBegin}
+113:             onScrollEndDrag={onScrollEnd}
+114:             scrollEventThrottle={16}
+115:           >
+116:             <SeatView
+117:               seatingData={seatingData}
+118:               tableStatuses={tableStatusesState}
+119:             />
+120:           </Animated.ScrollView>
+121:         ) : (
+122:           <>
+123:             <TableMatrix
 124:               tableStatuses={tableStatusesState}
-125:             />
-126:           </Animated.ScrollView>
-127:         ) : (
-128:           <TableMatrix
-129:             tableStatuses={tableStatusesState}
-130:             onTablePress={handleTablePress}
-131:           />
-132:         )}
-133:       </MatrixWrapper>
-134:       <AnimatedTimeScrollContainer style={{ opacity: overlayOpacity }}>
-135:         <TimeScroll
-136:           times={times}
-137:           selectedTime={selectedTime}
-138:           onTimeChange={handleTimeChange}
-139:         />
-140:       </AnimatedTimeScrollContainer>
-141:     </Container>
-142:   );
-143: };
+125:               onTablePress={handleTablePress}
+126:             />
+127:             <Separator type="full" />
+128:             <CounterSeats counterSeats={seatingData.counterSeats} />
+129:           </>
+130:         )}
+131:       </MatrixWrapper>
+132:       <AnimatedTimeScrollContainer style={{ opacity: overlayOpacity }}>
+133:         <TimeScroll
+134:           times={times}
+135:           selectedTime={selectedTime}
+136:           onTimeChange={handleTimeChange}
+137:         />
+138:       </AnimatedTimeScrollContainer>
+139:     </Container>
+140:   );
+141: };
 
 ================
 File: src/features/merchant/screens/MerchantSettingsScreen.js

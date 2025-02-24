@@ -4,7 +4,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useTheme } from "styled-components/native";
 
-import { ReservationsScreen } from "../../features/reservations/screens/ReservationsScreen";
+import { ReservationsScreen } from "../../features/customer/reservations/screens/ReservationsScreen";
 
 const ReservationStack = createStackNavigator();
 

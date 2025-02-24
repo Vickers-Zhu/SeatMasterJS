@@ -3,15 +3,15 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import { List, Avatar } from "react-native-paper";
 
-import { useAuthentication } from "../../../services/AuthenticationContext";
+import { useAuthentication } from "../../../../services/AuthenticationContext";
 
 // Components
-import { SafeArea } from "../../../components/SafeArea/SafeArea";
-import { Spacer } from "../../../components/Spacer/Spacer";
-import { CustomText } from "../../../components/CustomText/CustomText";
+import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+import { Spacer } from "../../../../components/Spacer/Spacer";
+import { CustomText } from "../../../../components/CustomText/CustomText";
 
 // Mock Data
-import { users } from "../../../data/mockData"; // Import user data
+import { users } from "../../../../data/mockData"; // Import user data
 
 // Styled Components
 import {

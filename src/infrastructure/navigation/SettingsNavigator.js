@@ -4,7 +4,7 @@ import {
   CardStyleInterpolators,
 } from "@react-navigation/stack";
 
-import { SettingsScreen } from "../../features/settings/screens/SettingsScreen";
+import { SettingsScreen } from "../../features/customer/settings/screens/SettingsScreen";
 
 const SettingsStack = createStackNavigator();
 
