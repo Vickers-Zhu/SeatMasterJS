@@ -1,8 +1,8 @@
 import React from "react";
 import { ScrollView } from "react-native";
 import styled from "styled-components/native";
-import { CustomText } from "../../../components/CustomText/CustomText";
-import { Separator } from "../../../components/Separator/Separator";
+import { CustomText } from "../../../../components/CustomText/CustomText";
+import { Separator } from "../../../../components/Separator/Separator";
 import {
   SharedTableItem,
   SharedChairItem,

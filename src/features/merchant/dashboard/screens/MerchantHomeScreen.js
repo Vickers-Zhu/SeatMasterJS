@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Animated, ScrollView, View } from "react-native";
 import styled from "styled-components/native";
-import SwitchContainer from "../../../components/Switch/Switch";
+import SwitchContainer from "../../../../components/Switch/Switch";
+import { Separator } from "../../../../components/Separator/Separator";
+
+import { tableStatuses, seatingData } from "../../../../data/mockData";
+
 import { TableMatrix } from "../components/TableMatrix";
 import { TimeScroll } from "../components/TimeScroll";
 import { SeatView } from "../components/SeatView";
-import { tableStatuses, seatingData } from "../../../data/mockData";
-import { Separator } from "../../../components/Separator/Separator";
 import CounterSeats from "../components/CounterSeats";
 
 const Container = styled.View`

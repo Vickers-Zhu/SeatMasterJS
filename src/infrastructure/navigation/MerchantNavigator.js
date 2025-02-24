@@ -1,10 +1,11 @@
 // File: src/infrastructure/navigation/MerchantNavigator.js
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MerchantHomeScreen } from "../../features/merchant/screens/MerchantHomeScreen";
-import { MerchantSettingsScreen } from "../../features/merchant/screens/MerchantSettingsScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "styled-components/native";
+
+import { MerchantHomeScreen } from "../../features/merchant/dashboard/screens/MerchantHomeScreen";
+import { MerchantSettingsScreen } from "../../features/merchant/settings/screens/MerchantSettingsScreen";
 
 const Tab = createBottomTabNavigator();
 

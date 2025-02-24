@@ -2,7 +2,7 @@
 import React from "react";
 import styled from "styled-components/native";
 import { TouchableOpacity } from "react-native";
-import { useAuthentication } from "../../../services/AuthenticationContext";
+import { useAuthentication } from "../../../../services/AuthenticationContext";
 
 const Container = styled.View`
   flex: 1;

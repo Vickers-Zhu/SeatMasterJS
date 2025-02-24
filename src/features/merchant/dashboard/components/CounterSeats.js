@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components/native";
-import { CustomText } from "../../../components/CustomText/CustomText";
+import { CustomText } from "../../../../components/CustomText/CustomText";
 import { SharedChairsRow, SharedChairItem } from "./SharedTableStyles.styles";
 
 const CounterContainer = styled.View`
