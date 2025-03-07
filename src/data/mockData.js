@@ -1,4 +1,6 @@
 // src/data/mockData.js
+
+// Existing mock data...
 export const restaurants = [
   {
     name: "La Piazza",
@@ -128,7 +130,7 @@ export const users = [
   {
     username: "Vickers Zhu",
     email: "****@example.com",
-    profileImage: require("../../assets/images/user_profile.jpg"), // Adjust the path as necessary
+    profileImage: require("../../assets/images/user_profile.jpg"),
     phoneNumber: "+81 **** ****",
   },
 ];
@@ -267,3 +269,96 @@ export const seatingData = {
     status: i % 5 === 0 ? "occupied" : i % 7 === 0 ? "reserved" : "empty",
   })),
 };
+
+// New Mock Data added for MerchantReservationsScreen
+
+// Mock merchant reservations data
+export const merchantReservations = [
+  {
+    id: 1,
+    customerName: "John Smith",
+    people: 2,
+    time: "11:00",
+    duration: 90,
+    tableId: 2,
+    chairs: ["2A", "2B"],
+    status: "confirmed",
+    note: "Anniversary celebration",
+  },
+  {
+    id: 2,
+    customerName: "Emma Wilson",
+    people: 4,
+    time: "12:30",
+    duration: 120,
+    tableId: 4,
+    chairs: ["4A", "4B", "4C", "4D"],
+    status: "pending",
+    note: "Window seat preferred",
+  },
+  {
+    id: 3,
+    customerName: "David Lee",
+    people: 1,
+    time: "13:00",
+    duration: 60,
+    tableId: 6,
+    chairs: ["6A"],
+    status: "confirmed",
+    note: "",
+  },
+  {
+    id: 4,
+    customerName: "Sarah Johnson",
+    people: 3,
+    time: "15:30",
+    duration: 90,
+    tableId: 1,
+    chairs: ["1A", "1B", "1C"],
+    status: "confirmed",
+    note: "Allergic to nuts",
+  },
+  {
+    id: 5,
+    customerName: "Michael Brown",
+    people: 2,
+    time: "18:00",
+    duration: 120,
+    tableId: 5,
+    chairs: ["5A", "5B"],
+    status: "confirmed",
+    note: "Birthday celebration",
+  },
+];
+
+// Pre-generated time slots for restaurant operating hours (9:00 AM to 10:30 PM)
+export const timeSlots = [
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+  "17:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00",
+  "20:30",
+  "21:00",
+  "21:30",
+  "22:00",
+  "22:30",
+];
