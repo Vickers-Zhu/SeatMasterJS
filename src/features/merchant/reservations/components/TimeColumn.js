@@ -22,7 +22,6 @@ const TimeColumn = ({
 }) => {
   return (
     <FixedLeftColumn>
-      {/* Scrollable time slots */}
       <ScrollView
         ref={scrollRef}
         onScroll={onScroll}
@@ -37,7 +36,6 @@ const TimeColumn = ({
           ))}
         </StyledTimeColumn>
 
-        {/* Current time indicator for time column */}
         {currentTimePosition > 0 && (
           <View
             style={{

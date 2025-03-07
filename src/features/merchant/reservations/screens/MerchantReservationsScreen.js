@@ -10,13 +10,11 @@ import {
   timeSlots,
 } from "../../../../data/mockData";
 
-// Components
 import TimeColumn from "../components/TimeColumn";
 import TableHeader from "../components/TableHeader";
 import ReservationGrid from "../components/ReservationGrid";
 import ReservationDetailsPanel from "../components/ReservationDetailsPanel";
 
-// Styles
 import {
   Container,
   MainGrid,
@@ -30,31 +28,25 @@ import {
   ExpandAllButtonText,
 } from "../components/MerchantReservation.styles";
 
-// Utils
 import { calculateCurrentTimePosition } from "../utils/reservationUtils";
 
 export const MerchantReservationsScreen = () => {
-  // State
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [expandedTableIds, setExpandedTableIds] = useState(new Set());
   const [areAllExpanded, setAreAllExpanded] = useState(false);
   const [currentTimePosition, setCurrentTimePosition] = useState(0);
 
-  // Refs for scrolling
   const [verticalScrollRef, setVerticalScrollRef] = useState(null);
   const leftColumnScrollRef = useRef(null);
   const headerScrollRef = useRef(null);
   const gridScrollRef = useRef(null);
 
-  // Constants
   const tableWidth = 100;
   const timeColumnWidth = 60;
   const timeSlotHeight = 30;
 
-  // Get all tables from seatingData
   const tables = seatingData.tables;
 
-  // Toggle a single table's expanded state
   const toggleExpandTable = (tableId) => {
     setExpandedTableIds((prevExpandedIds) => {
       const newExpandedIds = new Set(prevExpandedIds);
@@ -67,27 +59,22 @@ export const MerchantReservationsScreen = () => {
     });
   };
 
-  // Toggle all tables' expanded state
   const toggleAllTables = () => {
     if (areAllExpanded) {
-      // Collapse all tables
       setExpandedTableIds(new Set());
     } else {
-      // Expand all tables
       const allTableIds = new Set(tables.map((table) => table.id));
       setExpandedTableIds(allTableIds);
     }
     setAreAllExpanded(!areAllExpanded);
   };
 
-  // Handle reservation selection
   const handleReservationPress = (reservation) => {
     setSelectedReservation(
       selectedReservation?.id === reservation.id ? null : reservation
     );
   };
 
-  // Synchronize horizontal scrolling between header and grid
   const handleHeaderScroll = (event) => {
     if (gridScrollRef.current) {
       gridScrollRef.current.scrollTo({
@@ -108,7 +95,6 @@ export const MerchantReservationsScreen = () => {
     }
   };
 
-  // Synchronize vertical scrolling between time column and grid
   const handleVerticalScroll = (event) => {
     if (leftColumnScrollRef.current) {
       leftColumnScrollRef.current.scrollTo({
@@ -127,22 +113,18 @@ export const MerchantReservationsScreen = () => {
     }
   };
 
-  // Update current time position
   useEffect(() => {
     const updateTimePosition = () => {
       setCurrentTimePosition(calculateCurrentTimePosition(timeSlotHeight));
     };
 
-    // Calculate initially
     updateTimePosition();
 
-    // Update every minute
     const interval = setInterval(updateTimePosition, 60000);
 
     return () => clearInterval(interval);
   }, [timeSlotHeight]);
 
-  // Update areAllExpanded state based on expandedTableIds
   useEffect(() => {
     const allTableIds = tables.map((table) => table.id);
     const allExpanded = allTableIds.every((id) => expandedTableIds.has(id));
@@ -155,9 +137,7 @@ export const MerchantReservationsScreen = () => {
   return (
     <Container>
       <MainGrid>
-        {/* Table Headers */}
         <HeaderContainer>
-          {/* Fixed left column header with Expand/Collapse button */}
           <FixedLeftColumn style={{ height: "auto" }}>
             <TimeColumnHeader>
               <CustomText variant="caption">Time</CustomText>
@@ -172,7 +152,6 @@ export const MerchantReservationsScreen = () => {
             </TimeColumnHeader>
           </FixedLeftColumn>
 
-          {/* Scrollable header area with table headers */}
           <HeaderScrollView
             ref={headerScrollRef}
             horizontal
@@ -195,9 +174,7 @@ export const MerchantReservationsScreen = () => {
           </HeaderScrollView>
         </HeaderContainer>
 
-        {/* Time and Reservation Grid */}
         <ContentContainer>
-          {/* Fixed time column */}
           <TimeColumn
             timeSlots={timeSlots}
             scrollRef={leftColumnScrollRef}
@@ -207,7 +184,6 @@ export const MerchantReservationsScreen = () => {
             currentTimePosition={currentTimePosition}
           />
 
-          {/* Reservation grid */}
           <ReservationGrid
             timeSlots={timeSlots}
             tables={tables}
@@ -225,7 +201,6 @@ export const MerchantReservationsScreen = () => {
         </ContentContainer>
       </MainGrid>
 
-      {/* Reservation Details Panel */}
       <ReservationDetailsPanel
         reservation={selectedReservation}
         onClose={() => setSelectedReservation(null)}

@@ -65,10 +65,10 @@ export const FixedLeftColumn = styled.View`
 export const TimeColumnHeader = styled.View`
   width: 60px;
   padding: ${(props) => props.theme.space[2]};
+  padding-top: ${(props) => props.theme.space[5]};
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background-color: ${(props) => props.theme.colors.bg.primary};
-  border-bottom-width: 1px;
   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
 `;
 
