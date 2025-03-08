@@ -73,8 +73,10 @@ export const TimeColumnHeader = styled.View`
 `;
 
 export const ExpandAllButton = styled(TouchableOpacity)`
-  background-color: ${({ areAllExpanded, theme }) =>
-    areAllExpanded ? theme.colors.ui.secondary : theme.colors.ui.primary};
+  background-color: ${(props) =>
+    props.areAllExpanded
+      ? props.theme.colors.ui.secondary
+      : props.theme.colors.ui.primary};
   padding: 4px 8px;
   border-radius: 12px;
   margin-top: 4px;
@@ -184,14 +186,14 @@ export const GridCell = styled.View`
 
 export const ReservationBlock = styled(TouchableOpacity)`
   position: absolute;
-  left: ${({ left }) => left}px;
-  top: ${({ top }) => top}px;
-  width: ${({ width }) => width}px;
-  height: ${({ height }) => height}px;
-  background-color: ${({ status }) =>
-    status === "confirmed"
+  left: ${(props) => props.left}px;
+  top: ${(props) => props.top}px;
+  width: ${(props) => props.width}px;
+  height: ${(props) => props.height}px;
+  background-color: ${(props) =>
+    props.status === "confirmed"
       ? "#b3ffb3"
-      : status === "pending"
+      : props.status === "pending"
       ? "#ffd11a"
       : "#ff4d4d"};
   border-radius: 5px;
@@ -231,6 +233,13 @@ export const ActionButton = styled(TouchableOpacity)`
   border-radius: 5px;
   min-width: 100px;
   align-items: center;
-  background-color: ${({ variant }) =>
-    variant === "confirm" ? "#b3ffb3" : "#ff4d4d"};
+  background-color: ${(props) =>
+    props.variant === "confirm" ? "#b3ffb3" : "#ff4d4d"};
+`;
+
+// For the grid separation
+export const ColumnContainer = styled.View`
+  flex-direction: column;
+  border-left-width: 1px;
+  border-left-color: ${(props) => props.theme.colors.ui.tertiary};
 `;

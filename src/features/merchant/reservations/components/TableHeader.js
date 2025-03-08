@@ -18,17 +18,18 @@ const TableHeader = ({
   tableStatus,
   expandedTableIds,
   toggleExpandTable,
+  width = 100, // Default width parameter
 }) => {
   const isExpanded = expandedTableIds.has(table.id);
   const chairRows = getChairRows(table.chairs, 2);
   const rowsToDisplay = isExpanded ? chairRows : chairRows.slice(0, 1);
 
   return (
-    <TableColumn key={table.id}>
+    <TableColumn style={{ width }}>
       <TableItem>
         <SharedTableItem
           status={tableStatus || "empty"}
-          style={{ width: 60, height: 40 }}
+          style={{ width: width * 0.6, height: 40 }}
         >
           <CustomText variant="caption">Table {table.id}</CustomText>
         </SharedTableItem>

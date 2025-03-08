@@ -1,11 +1,4 @@
 // src/features/merchant/reservations/utils/reservationUtils.js
-
-/**
- * Organizes chairs into rows for display
- * @param {Array} chairs - Array of chair objects or IDs
- * @param {Number} perRow - Number of chairs per row
- * @returns {Array} Array of arrays, each representing a row of chairs
- */
 export const getChairRows = (chairs, perRow = 2) => {
   const rows = [];
   for (let i = 0; i < chairs.length; i += perRow) {
@@ -14,70 +7,80 @@ export const getChairRows = (chairs, perRow = 2) => {
   return rows;
 };
 
-/**
- * Calculates the position for a reservation block in the grid
- * @param {Object} reservation - Reservation object with time, duration and tableId
- * @param {Array} tables - Array of table objects
- * @param {Number} tableWidth - Width of a table column in pixels
- * @param {Number} timeSlotHeight - Height of a time slot in pixels
- * @returns {Object|null} Position object with left, top, width, height or null if table not found
- */
 export const getReservationPosition = (
   reservation,
   tables,
+  counterSeats,
   tableWidth,
-  timeSlotHeight
+  counterSeatWidth,
+  timeSlotHeight,
+  isCounterSeat = false
 ) => {
-  // Find the table index
-  const tableIndex = tables.findIndex(
-    (table) => table.id === reservation.tableId
-  );
-  if (tableIndex === -1) return null;
+  if (isCounterSeat) {
+    // For counter seats, calculate position based on the index of the counter seat
+    const counterSeatIndex = counterSeats.findIndex(
+      (seat) => seat.id === reservation.counterSeatId
+    );
 
-  // Calculate left position based on table index
-  const left = tableIndex * tableWidth + 2; // +2 for small margin
+    if (counterSeatIndex === -1) return null;
 
-  // Calculate top position based on time
-  const [hours, minutes] = reservation.time.split(":").map(Number);
-  const startMinutes = (hours - 9) * 60 + minutes;
-  const top = (startMinutes / 30) * timeSlotHeight + 1; // +1 for small margin
+    // Position within the counter seats section (counter seats come first)
+    const left = counterSeatIndex * counterSeatWidth + 2;
 
-  // Calculate height based on duration
-  const height = (reservation.duration / 30) * timeSlotHeight - 2; // -2 for small margin
+    // Parse time to calculate top position
+    const [hours, minutes] = reservation.time.split(":").map(Number);
+    const startMinutes = (hours - 9) * 60 + minutes;
+    const top = (startMinutes / 30) * timeSlotHeight + 1;
 
-  return {
-    left,
-    top,
-    width: tableWidth - 4, // -4 for small margin
-    height,
-  };
+    const height = (reservation.duration / 30) * timeSlotHeight - 2;
+
+    return {
+      left,
+      top,
+      width: counterSeatWidth - 4,
+      height,
+    };
+  } else {
+    // For regular tables
+    const tableIndex = tables.findIndex(
+      (table) => table.id === reservation.tableId
+    );
+
+    if (tableIndex === -1) return null;
+
+    // Position after the counter seats section
+    const counterSeatsWidth = counterSeats.length * counterSeatWidth;
+    const left = counterSeatsWidth + tableIndex * tableWidth + 2;
+
+    const [hours, minutes] = reservation.time.split(":").map(Number);
+    const startMinutes = (hours - 9) * 60 + minutes;
+    const top = (startMinutes / 30) * timeSlotHeight + 1;
+
+    const height = (reservation.duration / 30) * timeSlotHeight - 2;
+
+    return {
+      left,
+      top,
+      width: tableWidth - 4,
+      height,
+    };
+  }
 };
 
-/**
- * Calculates the current time position in the grid
- * @param {Number} timeSlotHeight - Height of a time slot in pixels
- * @returns {Number} Position in pixels from the top of the grid
- */
 export const calculateCurrentTimePosition = (timeSlotHeight) => {
   const now = new Date();
   const hours = now.getHours();
   const minutes = now.getMinutes();
 
-  // Only show the line during business hours (9AM to 10:30PM)
   if (hours < 9 || (hours === 22 && minutes > 30) || hours > 22) {
-    return -100; // Hide it off-screen
+    return -100;
   }
 
-  // Calculate minutes since 9AM
   const minutesSince9AM = (hours - 9) * 60 + minutes;
-  // Convert to pixel position (30min = timeSlotHeight)
+
   return (minutesSince9AM / 30) * timeSlotHeight;
 };
 
-/**
- * Generates time slots for the reservation grid
- * @returns {Array} Array of time strings in format "HH:MM"
- */
 export const generateTimeSlots = () => {
   const slots = [];
   for (let hour = 9; hour <= 22; hour++) {

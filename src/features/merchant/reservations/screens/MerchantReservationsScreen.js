@@ -1,6 +1,6 @@
 // src/features/merchant/reservations/screens/MerchantReservationsScreen.js
-import React, { useState, useRef, useEffect } from "react";
-import { ScrollView, View } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { ScrollView } from "react-native";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import {
@@ -10,11 +10,12 @@ import {
   timeSlots,
 } from "../../../../data/mockData";
 
+// Components
 import TimeColumn from "../components/TimeColumn";
-import TableHeader from "../components/TableHeader";
-import ReservationGrid from "../components/ReservationGrid";
 import ReservationDetailsPanel from "../components/ReservationDetailsPanel";
+import { GridContent, HeaderContent } from "../components/GridComponents";
 
+// Styles
 import {
   Container,
   MainGrid,
@@ -26,55 +27,55 @@ import {
   ContentContainer,
   ExpandAllButton,
   ExpandAllButtonText,
+  GridContainer,
 } from "../components/MerchantReservation.styles";
 
+// Utilities
 import { calculateCurrentTimePosition } from "../utils/reservationUtils";
+import {
+  GRID_CONSTANTS,
+  useExpansionState,
+  filterReservations,
+} from "../utils/reservationGridUtils";
 
 export const MerchantReservationsScreen = () => {
+  // State
   const [selectedReservation, setSelectedReservation] = useState(null);
-  const [expandedTableIds, setExpandedTableIds] = useState(new Set());
-  const [areAllExpanded, setAreAllExpanded] = useState(false);
   const [currentTimePosition, setCurrentTimePosition] = useState(0);
 
-  const [verticalScrollRef, setVerticalScrollRef] = useState(null);
+  // Data
+  const tables = seatingData.tables;
+  const counterSeats = seatingData.counterSeats;
+  const { tableReservations, counterSeatReservations } =
+    filterReservations(merchantReservations);
+
+  // Constants
+  const { TIME_COLUMN_WIDTH, TIME_SLOT_HEIGHT } = GRID_CONSTANTS;
+
+  // Expansion state management
+  const {
+    expandedTableIds,
+    expandedCounterSeatIds,
+    areAllExpanded,
+    toggleExpandTable,
+    toggleExpandCounterSeat,
+    toggleAllTables,
+  } = useExpansionState(tables, counterSeats);
+
+  // Scroll refs
+  const verticalScrollRef = useRef(null);
   const leftColumnScrollRef = useRef(null);
   const headerScrollRef = useRef(null);
   const gridScrollRef = useRef(null);
 
-  const tableWidth = 100;
-  const timeColumnWidth = 60;
-  const timeSlotHeight = 30;
-
-  const tables = seatingData.tables;
-
-  const toggleExpandTable = (tableId) => {
-    setExpandedTableIds((prevExpandedIds) => {
-      const newExpandedIds = new Set(prevExpandedIds);
-      if (newExpandedIds.has(tableId)) {
-        newExpandedIds.delete(tableId);
-      } else {
-        newExpandedIds.add(tableId);
-      }
-      return newExpandedIds;
-    });
-  };
-
-  const toggleAllTables = () => {
-    if (areAllExpanded) {
-      setExpandedTableIds(new Set());
-    } else {
-      const allTableIds = new Set(tables.map((table) => table.id));
-      setExpandedTableIds(allTableIds);
-    }
-    setAreAllExpanded(!areAllExpanded);
-  };
-
+  // Handle selecting a reservation
   const handleReservationPress = (reservation) => {
     setSelectedReservation(
       selectedReservation?.id === reservation.id ? null : reservation
     );
   };
 
+  // Synchronized scrolling handlers
   const handleHeaderScroll = (event) => {
     if (gridScrollRef.current) {
       gridScrollRef.current.scrollTo({
@@ -105,40 +106,30 @@ export const MerchantReservationsScreen = () => {
   };
 
   const handleLeftColumnScroll = (event) => {
-    if (verticalScrollRef) {
-      verticalScrollRef.scrollTo({
+    if (verticalScrollRef.current) {
+      verticalScrollRef.current.scrollTo({
         y: event.nativeEvent.contentOffset.y,
         animated: false,
       });
     }
   };
 
+  // Update time position
   useEffect(() => {
     const updateTimePosition = () => {
-      setCurrentTimePosition(calculateCurrentTimePosition(timeSlotHeight));
+      setCurrentTimePosition(calculateCurrentTimePosition(TIME_SLOT_HEIGHT));
     };
 
     updateTimePosition();
-
     const interval = setInterval(updateTimePosition, 60000);
-
     return () => clearInterval(interval);
-  }, [timeSlotHeight]);
-
-  useEffect(() => {
-    const allTableIds = tables.map((table) => table.id);
-    const allExpanded = allTableIds.every((id) => expandedTableIds.has(id));
-
-    if (allExpanded !== areAllExpanded) {
-      setAreAllExpanded(allExpanded);
-    }
-  }, [expandedTableIds, tables, areAllExpanded]);
+  }, [TIME_SLOT_HEIGHT]);
 
   return (
     <Container>
       <MainGrid>
         <HeaderContainer>
-          <FixedLeftColumn style={{ height: "auto" }}>
+          <FixedLeftColumn style={{ height: "auto", width: TIME_COLUMN_WIDTH }}>
             <TimeColumnHeader>
               <CustomText variant="caption">Time</CustomText>
               <ExpandAllButton
@@ -158,18 +149,18 @@ export const MerchantReservationsScreen = () => {
             showsHorizontalScrollIndicator={false}
             onScroll={handleHeaderScroll}
             scrollEventThrottle={16}
-            contentContainerStyle={{ paddingLeft: timeColumnWidth }}
+            contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
           >
             <HeaderRow>
-              {tables.map((table) => (
-                <TableHeader
-                  key={table.id}
-                  table={table}
-                  tableStatus={tableStatuses[`2-${table.id % 4}`]?.status}
-                  expandedTableIds={expandedTableIds}
-                  toggleExpandTable={toggleExpandTable}
-                />
-              ))}
+              <HeaderContent
+                tables={tables}
+                counterSeats={counterSeats}
+                tableStatuses={tableStatuses}
+                expandedTableIds={expandedTableIds}
+                expandedCounterSeatIds={expandedCounterSeatIds}
+                toggleExpandTable={toggleExpandTable}
+                toggleExpandCounterSeat={toggleExpandCounterSeat}
+              />
             </HeaderRow>
           </HeaderScrollView>
         </HeaderContainer>
@@ -182,22 +173,37 @@ export const MerchantReservationsScreen = () => {
             areAllExpanded={areAllExpanded}
             toggleAllTables={toggleAllTables}
             currentTimePosition={currentTimePosition}
+            width={TIME_COLUMN_WIDTH}
           />
 
-          <ReservationGrid
-            timeSlots={timeSlots}
-            tables={tables}
-            reservations={merchantReservations}
-            selectedReservation={selectedReservation}
-            tableWidth={tableWidth}
-            timeSlotHeight={timeSlotHeight}
-            onReservationPress={handleReservationPress}
-            horizontalScrollRef={gridScrollRef}
-            verticalScrollRef={setVerticalScrollRef}
-            onHorizontalScroll={handleGridScroll}
-            onVerticalScroll={handleVerticalScroll}
-            timeColumnWidth={timeColumnWidth}
-          />
+          <ScrollView
+            ref={gridScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleGridScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
+          >
+            <ScrollView
+              ref={verticalScrollRef}
+              onScroll={handleVerticalScroll}
+              scrollEventThrottle={16}
+              showsVerticalScrollIndicator={false}
+            >
+              <GridContainer>
+                <GridContent
+                  timeSlots={timeSlots}
+                  tables={tables}
+                  counterSeats={counterSeats}
+                  tableReservations={tableReservations}
+                  counterSeatReservations={counterSeatReservations}
+                  selectedReservation={selectedReservation}
+                  currentTimePosition={currentTimePosition}
+                  onReservationPress={handleReservationPress}
+                />
+              </GridContainer>
+            </ScrollView>
+          </ScrollView>
         </ContentContainer>
       </MainGrid>
 

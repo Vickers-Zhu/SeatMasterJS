@@ -6,21 +6,39 @@ import {
   ReservationDetails,
 } from "./MerchantReservation.styles";
 import { getReservationPosition } from "../utils/reservationUtils";
+import { GRID_CONSTANTS } from "../utils/reservationGridUtils";
 
 const ReservationBlock = ({
   reservation,
   tables,
-  tableWidth,
-  timeSlotHeight,
+  counterSeats,
   isSelected,
   onPress,
 }) => {
-  const position = getReservationPosition(
-    reservation,
-    tables,
-    tableWidth,
-    timeSlotHeight
-  );
+  const { TABLE_WIDTH, COUNTER_SEAT_WIDTH, TIME_SLOT_HEIGHT } = GRID_CONSTANTS;
+
+  let position;
+
+  if (reservation.isCounterSeat) {
+    position = getReservationPosition(
+      reservation,
+      tables,
+      counterSeats,
+      TABLE_WIDTH,
+      COUNTER_SEAT_WIDTH,
+      TIME_SLOT_HEIGHT,
+      true
+    );
+  } else {
+    position = getReservationPosition(
+      reservation,
+      tables,
+      counterSeats,
+      TABLE_WIDTH,
+      COUNTER_SEAT_WIDTH,
+      TIME_SLOT_HEIGHT
+    );
+  }
 
   if (!position) return null;
 

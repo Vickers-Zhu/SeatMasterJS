@@ -270,9 +270,6 @@ export const seatingData = {
   })),
 };
 
-// New Mock Data added for MerchantReservationsScreen
-
-// Mock merchant reservations data
 export const merchantReservations = [
   {
     id: 1,
@@ -328,6 +325,40 @@ export const merchantReservations = [
     chairs: ["5A", "5B"],
     status: "confirmed",
     note: "Birthday celebration",
+  },
+  // Counter seat reservations
+  {
+    id: 6,
+    customerName: "Alex Chen",
+    people: 1,
+    time: "10:00",
+    duration: 60,
+    counterSeatId: "C3",
+    isCounterSeat: true,
+    status: "confirmed",
+    note: "Business breakfast",
+  },
+  {
+    id: 7,
+    customerName: "Jessica Miller",
+    people: 1,
+    time: "14:00",
+    duration: 90,
+    counterSeatId: "C7",
+    isCounterSeat: true,
+    status: "confirmed",
+    note: "Solo diner",
+  },
+  {
+    id: 8,
+    customerName: "Robert Taylor",
+    people: 1,
+    time: "19:30",
+    duration: 60,
+    counterSeatId: "C15",
+    isCounterSeat: true,
+    status: "pending",
+    note: "Late dinner",
   },
 ];
 

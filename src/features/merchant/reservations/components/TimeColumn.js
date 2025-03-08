@@ -19,18 +19,19 @@ const TimeColumn = ({
   areAllExpanded,
   toggleAllTables,
   currentTimePosition,
+  width = 60, // Default width
 }) => {
   return (
-    <FixedLeftColumn>
+    <FixedLeftColumn style={{ width }}>
       <ScrollView
         ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
-        <StyledTimeColumn>
+        <StyledTimeColumn style={{ width }}>
           {timeSlots.map((time) => (
-            <TimeSlot key={time}>
+            <TimeSlot key={time} style={{ width }}>
               <TimeText>{time}</TimeText>
             </TimeSlot>
           ))}

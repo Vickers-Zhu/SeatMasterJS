@@ -22,9 +22,18 @@ const ReservationDetailsPanel = ({ reservation, onClose }) => {
         Party: {reservation.people}{" "}
         {reservation.people > 1 ? "people" : "person"}
       </CustomText>
-      <CustomText variant="body">
-        Table: {reservation.tableId} • Chairs: {reservation.chairs.join(", ")}
-      </CustomText>
+
+      {/* Show appropriate seating info based on reservation type */}
+      {reservation.isCounterSeat ? (
+        <CustomText variant="body">
+          Counter Seat: {reservation.counterSeatId}
+        </CustomText>
+      ) : (
+        <CustomText variant="body">
+          Table: {reservation.tableId} • Chairs: {reservation.chairs.join(", ")}
+        </CustomText>
+      )}
+
       {reservation.note && (
         <CustomText variant="body">Note: {reservation.note}</CustomText>
       )}
