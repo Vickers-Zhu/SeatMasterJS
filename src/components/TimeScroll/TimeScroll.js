@@ -1,4 +1,4 @@
-// File: src/features/merchant/components/TimeScroll.js
+// src/components/TimeScroll/TimeScroll.js
 import React, { useRef } from "react";
 import styled from "styled-components/native";
 import { Animated } from "react-native";
@@ -31,23 +31,32 @@ const TimeText = styled.Text`
   font-family: ${(props) => props.theme.fonts.body};
 `;
 
-export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
+export const TimeScroll = ({
+  times,
+  selectedTime,
+  onTimeChange,
+  containerHeight = CONTAINER_HEIGHT,
+  containerWidth = CONTAINER_WIDTH,
+  itemHeight = ITEM_HEIGHT,
+  visibleItems = VISIBLE_ITEMS,
+}) => {
   const scrollY = useRef(new Animated.Value(0)).current;
+  const paddingVertical = (containerHeight - itemHeight) / 2;
 
   const handleMomentumScrollEnd = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    const index = Math.round(offsetY / ITEM_HEIGHT);
+    const index = Math.round(offsetY / itemHeight);
     if (index >= 0 && index < times.length) {
       onTimeChange(times[index]);
     }
   };
 
   return (
-    <Container>
+    <Container style={{ height: containerHeight, width: containerWidth }}>
       <Animated.ScrollView
-        contentContainerStyle={{ paddingVertical: PADDING_VERTICAL }}
+        contentContainerStyle={{ paddingVertical: paddingVertical }}
         showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_HEIGHT}
+        snapToInterval={itemHeight}
         decelerationRate="fast"
         bounces={false}
         onMomentumScrollEnd={handleMomentumScrollEnd}
@@ -59,9 +68,9 @@ export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
       >
         {times.map((time, index) => {
           const inputRange = [
-            (index - 1) * ITEM_HEIGHT,
-            index * ITEM_HEIGHT,
-            (index + 1) * ITEM_HEIGHT,
+            (index - 1) * itemHeight,
+            index * itemHeight,
+            (index + 1) * itemHeight,
           ];
 
           const scale = scrollY.interpolate({
@@ -86,6 +95,7 @@ export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
             <StyledAnimatedItem
               key={index}
               style={{
+                height: itemHeight,
                 transform: [{ perspective: 1000 }, { rotateX }, { scale }],
                 opacity,
               }}
@@ -95,7 +105,7 @@ export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
           );
         })}
       </Animated.ScrollView>
-      {/* Top gradient overlay */}
+      {/* Top gradient */}
       <LinearGradient
         colors={["rgba(241,241,241,1)", "rgba(241,241,241,0)"]}
         style={{
@@ -107,7 +117,7 @@ export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
         }}
         pointerEvents="none"
       />
-      {/* Bottom gradient overlay */}
+      {/* Bottom gradient */}
       <LinearGradient
         colors={["rgba(241,241,241,0)", "rgba(241,241,241,1)"]}
         style={{
@@ -122,3 +132,5 @@ export const TimeScroll = ({ times, selectedTime, onTimeChange }) => {
     </Container>
   );
 };
+
+export default TimeScroll;

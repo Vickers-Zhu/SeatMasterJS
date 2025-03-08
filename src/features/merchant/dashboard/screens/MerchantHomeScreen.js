@@ -1,13 +1,14 @@
+// src/features/merchant/dashboard/screens/MerchantHomeScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import { Animated, ScrollView, View } from "react-native";
 import styled from "styled-components/native";
 import SwitchContainer from "../../../../components/Switch/Switch";
 import { Separator } from "../../../../components/Separator/Separator";
+import { TimeScroll } from "../../../../components/TimeScroll/TimeScroll"; // Updated import
 
 import { tableStatuses, seatingData } from "../../../../data/mockData";
 
 import { TableMatrix } from "../components/TableMatrix";
-import { TimeScroll } from "../components/TimeScroll";
 import { SeatView } from "../components/SeatView";
 import CounterSeats from "../components/CounterSeats";
 
