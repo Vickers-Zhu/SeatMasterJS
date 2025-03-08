@@ -200,6 +200,10 @@ export const ReservationBlock = styled(TouchableOpacity)`
   padding: ${(props) => props.theme.space[1]};
   justify-content: space-between;
   z-index: 1;
+  /* Remove any margin that might be causing the gap */
+  margin: 0;
+  /* Ensure the block extends to cover any potential gaps */
+  box-sizing: border-box;
 `;
 
 export const ReservationName = styled(CustomText)`

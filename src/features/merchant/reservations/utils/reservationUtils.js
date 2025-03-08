@@ -17,51 +17,46 @@ export const getReservationPosition = (
   isCounterSeat = false
 ) => {
   if (isCounterSeat) {
-    // For counter seats, calculate position based on the index of the counter seat
     const counterSeatIndex = counterSeats.findIndex(
       (seat) => seat.id === reservation.counterSeatId
     );
 
     if (counterSeatIndex === -1) return null;
 
-    // Position within the counter seats section (counter seats come first)
-    const left = counterSeatIndex * counterSeatWidth + 2;
+    const left = counterSeatIndex * counterSeatWidth;
 
-    // Parse time to calculate top position
     const [hours, minutes] = reservation.time.split(":").map(Number);
     const startMinutes = (hours - 9) * 60 + minutes;
-    const top = (startMinutes / 30) * timeSlotHeight + 1;
+    const top = (startMinutes / 30) * timeSlotHeight;
 
-    const height = (reservation.duration / 30) * timeSlotHeight - 2;
+    const height = (reservation.duration / 30) * timeSlotHeight;
 
     return {
       left,
       top,
-      width: counterSeatWidth - 4,
+      width: counterSeatWidth, // Remove -4 to fully cover the width
       height,
     };
   } else {
-    // For regular tables
     const tableIndex = tables.findIndex(
       (table) => table.id === reservation.tableId
     );
 
     if (tableIndex === -1) return null;
 
-    // Position after the counter seats section
     const counterSeatsWidth = counterSeats.length * counterSeatWidth;
-    const left = counterSeatsWidth + tableIndex * tableWidth + 2;
+    const left = counterSeatsWidth + tableIndex * tableWidth;
 
     const [hours, minutes] = reservation.time.split(":").map(Number);
     const startMinutes = (hours - 9) * 60 + minutes;
-    const top = (startMinutes / 30) * timeSlotHeight + 1;
+    const top = (startMinutes / 30) * timeSlotHeight;
 
-    const height = (reservation.duration / 30) * timeSlotHeight - 2;
+    const height = (reservation.duration / 30) * timeSlotHeight;
 
     return {
       left,
       top,
-      width: tableWidth - 4,
+      width: tableWidth, // Remove -4 to fully cover the width
       height,
     };
   }
