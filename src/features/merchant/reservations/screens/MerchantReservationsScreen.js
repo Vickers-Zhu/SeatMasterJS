@@ -1,8 +1,6 @@
 // src/features/merchant/reservations/screens/MerchantReservationsScreen.js
-import React, { useState, useEffect, useRef } from "react";
-import { ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
-import { CustomText } from "../../../../components/CustomText/CustomText";
 import {
   seatingData,
   tableStatuses,
@@ -10,12 +8,10 @@ import {
   timeSlots,
 } from "../../../../data/mockData";
 
-// Components
 import TimeColumn from "../components/TimeColumn";
 import ReservationDetailsPanel from "../components/ReservationDetailsPanel";
 import { GridContent, HeaderContent } from "../components/GridComponents";
 
-// Styles
 import {
   Container,
   MainGrid,
@@ -30,29 +26,25 @@ import {
   GridContainer,
 } from "../components/MerchantReservation.styles";
 
-// Utilities
 import { calculateCurrentTimePosition } from "../utils/reservationUtils";
 import {
   GRID_CONSTANTS,
   useExpansionState,
   filterReservations,
+  useSynchronizedScrolling,
 } from "../utils/reservationGridUtils";
 
 export const MerchantReservationsScreen = () => {
-  // State
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [currentTimePosition, setCurrentTimePosition] = useState(0);
 
-  // Data
   const tables = seatingData.tables;
   const counterSeats = seatingData.counterSeats;
   const { tableReservations, counterSeatReservations } =
     filterReservations(merchantReservations);
 
-  // Constants
   const { TIME_COLUMN_WIDTH, TIME_SLOT_HEIGHT } = GRID_CONSTANTS;
 
-  // Expansion state management
   const {
     expandedTableIds,
     expandedCounterSeatIds,
@@ -62,59 +54,27 @@ export const MerchantReservationsScreen = () => {
     toggleAllTables,
   } = useExpansionState(tables, counterSeats);
 
-  // Scroll refs
-  const verticalScrollRef = useRef(null);
-  const leftColumnScrollRef = useRef(null);
-  const headerScrollRef = useRef(null);
-  const gridScrollRef = useRef(null);
+  const {
+    refs: {
+      verticalScrollRef,
+      leftColumnScrollRef,
+      headerScrollRef,
+      gridScrollRef,
+    },
+    handlers: {
+      handleHeaderScroll,
+      handleGridScroll,
+      handleVerticalScroll,
+      handleLeftColumnScroll,
+    },
+  } = useSynchronizedScrolling();
 
-  // Handle selecting a reservation
   const handleReservationPress = (reservation) => {
     setSelectedReservation(
       selectedReservation?.id === reservation.id ? null : reservation
     );
   };
 
-  // Synchronized scrolling handlers
-  const handleHeaderScroll = (event) => {
-    if (gridScrollRef.current) {
-      gridScrollRef.current.scrollTo({
-        x: event.nativeEvent.contentOffset.x,
-        y: 0,
-        animated: false,
-      });
-    }
-  };
-
-  const handleGridScroll = (event) => {
-    if (headerScrollRef.current) {
-      headerScrollRef.current.scrollTo({
-        x: event.nativeEvent.contentOffset.x,
-        y: 0,
-        animated: false,
-      });
-    }
-  };
-
-  const handleVerticalScroll = (event) => {
-    if (leftColumnScrollRef.current) {
-      leftColumnScrollRef.current.scrollTo({
-        y: event.nativeEvent.contentOffset.y,
-        animated: false,
-      });
-    }
-  };
-
-  const handleLeftColumnScroll = (event) => {
-    if (verticalScrollRef.current) {
-      verticalScrollRef.current.scrollTo({
-        y: event.nativeEvent.contentOffset.y,
-        animated: false,
-      });
-    }
-  };
-
-  // Update time position
   useEffect(() => {
     const updateTimePosition = () => {
       setCurrentTimePosition(calculateCurrentTimePosition(TIME_SLOT_HEIGHT));
@@ -131,7 +91,6 @@ export const MerchantReservationsScreen = () => {
         <HeaderContainer>
           <FixedLeftColumn style={{ height: "auto", width: TIME_COLUMN_WIDTH }}>
             <TimeColumnHeader>
-              <CustomText variant="caption">Time</CustomText>
               <ExpandAllButton
                 onPress={toggleAllTables}
                 areAllExpanded={areAllExpanded}
@@ -176,7 +135,7 @@ export const MerchantReservationsScreen = () => {
             width={TIME_COLUMN_WIDTH}
           />
 
-          <ScrollView
+          <HeaderScrollView
             ref={gridScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -184,7 +143,7 @@ export const MerchantReservationsScreen = () => {
             scrollEventThrottle={16}
             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
           >
-            <ScrollView
+            <HeaderScrollView
               ref={verticalScrollRef}
               onScroll={handleVerticalScroll}
               scrollEventThrottle={16}
@@ -202,8 +161,8 @@ export const MerchantReservationsScreen = () => {
                   onReservationPress={handleReservationPress}
                 />
               </GridContainer>
-            </ScrollView>
-          </ScrollView>
+            </HeaderScrollView>
+          </HeaderScrollView>
         </ContentContainer>
       </MainGrid>
 
