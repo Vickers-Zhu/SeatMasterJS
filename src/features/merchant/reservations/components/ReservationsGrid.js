@@ -11,7 +11,7 @@ import {
   ReservationDetailsPanel,
 } from "./ReservationComponents";
 
-// Constants
+// Define grid constants for consistent sizing
 const GRID_CONSTANTS = {
   TABLE_WIDTH: 100,
   COUNTER_SEAT_WIDTH: 60,
@@ -19,7 +19,7 @@ const GRID_CONSTANTS = {
   TIME_SLOT_HEIGHT: 30,
 };
 
-// Styled components
+// Styled components for layout
 const Container = styled.View`
   flex: 1;
   background-color: ${(props) => props.theme.colors.bg.primary};
@@ -73,8 +73,7 @@ const ExpandAllButton = styled.TouchableOpacity`
       : props.theme.colors.ui.primary};
   padding: 4px 8px;
   border-radius: 12px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-vertical: 8px;
   align-items: center;
   justify-content: center;
   shadow-color: #000;
@@ -154,12 +153,138 @@ const calculateCurrentTimePosition = (timeSlotHeight) => {
   return (minutesSince9AM / 30) * timeSlotHeight;
 };
 
-const filterReservations = (reservations) => {
-  const tableReservations = reservations.filter((res) => !res.isCounterSeat);
-  const counterSeatReservations = reservations.filter(
-    (res) => res.isCounterSeat
-  );
-  return { tableReservations, counterSeatReservations };
+// Parse time strings into minutes since midnight
+const parseTimeToMinutes = (timeStr) => {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+// Calculate end time in minutes
+const calculateEndTime = (startTimeStr, durationMinutes) => {
+  return parseTimeToMinutes(startTimeStr) + durationMinutes;
+};
+
+// Get ID from item consistently
+const getItemId = (item) => {
+  return typeof item === "object" ? item.id : item;
+};
+
+// Sort all seating items (tables and counter seats)
+const sortSeatingItems = (tables, counterSeats, reservations) => {
+  if (!tables || !counterSeats || !reservations) {
+    return [];
+  }
+
+  // Create a unified array with type information
+  const allItems = [
+    ...tables.map((table) => ({
+      item: table,
+      type: "table",
+      id: getItemId(table),
+    })),
+    ...counterSeats.map((seat) => ({
+      item: seat,
+      type: "counterSeat",
+      id: getItemId(seat),
+    })),
+  ];
+
+  const now = new Date();
+  const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+
+  // Create a reservation map for quick lookups
+  const reservationMap = new Map();
+
+  // Process all reservations and organize by table/seat ID
+  reservations.forEach((res) => {
+    const itemKey = res.isCounterSeat
+      ? `counter-${res.counterSeatId}`
+      : `table-${res.tableId}`;
+
+    if (!reservationMap.has(itemKey)) {
+      reservationMap.set(itemKey, []);
+    }
+
+    const startTime = parseTimeToMinutes(res.time);
+    const endTime = startTime + res.duration;
+
+    reservationMap.get(itemKey).push({
+      reservation: res,
+      startTime,
+      endTime,
+      timeUntilStart: startTime - currentTimeInMinutes,
+      timeUntilEnd: endTime - currentTimeInMinutes,
+    });
+  });
+
+  // Process each seating item
+  allItems.forEach((seatingItem) => {
+    const itemKey = `${seatingItem.type === "table" ? "table" : "counter"}-${
+      seatingItem.id
+    }`;
+    const itemReservations = reservationMap.get(itemKey) || [];
+
+    if (itemReservations.length === 0) {
+      // No reservations for this item
+      seatingItem.status = "empty";
+      seatingItem.priority = Number.MAX_SAFE_INTEGER;
+      return;
+    }
+
+    // Find upcoming, current, and past reservations
+    const upcomingReservations = itemReservations.filter(
+      (r) => r.timeUntilStart > 0
+    );
+    const currentReservations = itemReservations.filter(
+      (r) => r.timeUntilStart <= 0 && r.timeUntilEnd > 0
+    );
+    const pastReservations = itemReservations.filter(
+      (r) => r.timeUntilEnd <= 0
+    );
+
+    // Determine status and priority
+    if (upcomingReservations.length > 0) {
+      // Sort by closest upcoming start time
+      upcomingReservations.sort((a, b) => a.timeUntilStart - b.timeUntilStart);
+      seatingItem.status = "upcoming";
+      seatingItem.priority = upcomingReservations[0].timeUntilStart;
+      seatingItem.reservation = upcomingReservations[0].reservation;
+    } else if (currentReservations.length > 0) {
+      // Sort by start time (earliest first)
+      currentReservations.sort((a, b) => a.startTime - b.startTime);
+      seatingItem.status = "current";
+      seatingItem.priority = 1000000 + currentReservations[0].startTime;
+      seatingItem.reservation = currentReservations[0].reservation;
+    } else if (pastReservations.length > 0) {
+      // Sort by most recent end time
+      pastReservations.sort((a, b) => b.endTime - a.endTime);
+      seatingItem.status = "past";
+      seatingItem.priority = 2000000 + (1440 - pastReservations[0].endTime);
+      seatingItem.reservation = pastReservations[0].reservation;
+    }
+  });
+
+  // Sort the items
+  allItems.sort((a, b) => {
+    // First sort by reservation status
+    const statusOrder = { upcoming: 0, current: 1, past: 2, empty: 3 };
+    const aStatus = a.status || "empty";
+    const bStatus = b.status || "empty";
+
+    if (statusOrder[aStatus] !== statusOrder[bStatus]) {
+      return statusOrder[aStatus] - statusOrder[bStatus];
+    }
+
+    // Then sort by priority within the same status
+    if (a.priority !== b.priority) {
+      return a.priority - b.priority;
+    }
+
+    // As a last resort, sort by ID
+    return a.id.toString().localeCompare(b.id.toString());
+  });
+
+  return allItems;
 };
 
 // Main component
@@ -184,6 +309,7 @@ const ReservationsGrid = ({
     new Set()
   );
   const [areAllExpanded, setAreAllExpanded] = useState(false);
+  const [sortedItems, setSortedItems] = useState([]);
 
   // Refs for synchronized scrolling
   const verticalScrollRef = useRef(null);
@@ -191,12 +317,13 @@ const ReservationsGrid = ({
   const headerScrollRef = useRef(null);
   const gridScrollRef = useRef(null);
 
-  // Filter reservations
-  const { tableReservations, counterSeatReservations } =
-    filterReservations(reservations);
-
   // Calculate content height
   const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
+
+  // Sort items
+  useEffect(() => {
+    setSortedItems(sortSeatingItems(tables, counterSeats, reservations));
+  }, [tables, counterSeats, reservations]);
 
   useEffect(() => {
     const updateTimePosition = () => {
@@ -209,28 +336,28 @@ const ReservationsGrid = ({
   }, [TIME_SLOT_HEIGHT]);
 
   // Toggle expansion functions
-  const toggleExpandTable = (tableId) => {
-    setExpandedTableIds((prevExpanded) => {
-      const newExpanded = new Set(prevExpanded);
-      if (newExpanded.has(tableId)) {
-        newExpanded.delete(tableId);
-      } else {
-        newExpanded.add(tableId);
-      }
-      return newExpanded;
-    });
-  };
-
-  const toggleExpandCounterSeat = (seatId) => {
-    setExpandedCounterSeatIds((prevExpanded) => {
-      const newExpanded = new Set(prevExpanded);
-      if (newExpanded.has(seatId)) {
-        newExpanded.delete(seatId);
-      } else {
-        newExpanded.add(seatId);
-      }
-      return newExpanded;
-    });
+  const toggleExpand = (id, isTable) => {
+    if (isTable) {
+      setExpandedTableIds((prevExpanded) => {
+        const newExpanded = new Set(prevExpanded);
+        if (newExpanded.has(id)) {
+          newExpanded.delete(id);
+        } else {
+          newExpanded.add(id);
+        }
+        return newExpanded;
+      });
+    } else {
+      setExpandedCounterSeatIds((prevExpanded) => {
+        const newExpanded = new Set(prevExpanded);
+        if (newExpanded.has(id)) {
+          newExpanded.delete(id);
+        } else {
+          newExpanded.add(id);
+        }
+        return newExpanded;
+      });
+    }
   };
 
   const toggleAllTables = () => {
@@ -238,8 +365,10 @@ const ReservationsGrid = ({
       setExpandedTableIds(new Set());
       setExpandedCounterSeatIds(new Set());
     } else {
-      setExpandedTableIds(new Set(tables.map((table) => table.id)));
-      setExpandedCounterSeatIds(new Set(counterSeats.map((seat) => seat.id)));
+      setExpandedTableIds(new Set(tables.map((table) => getItemId(table))));
+      setExpandedCounterSeatIds(
+        new Set(counterSeats.map((seat) => getItemId(seat)))
+      );
     }
     setAreAllExpanded(!areAllExpanded);
   };
@@ -290,69 +419,131 @@ const ReservationsGrid = ({
     );
   };
 
-  // Render table and counter seat headers
-  const renderTableHeader = (table) => {
-    const isExpanded = expandedTableIds.has(table.id);
+  // Render header for an item (either table or counter seat)
+  const renderItemHeader = (seatingItem) => {
+    const { item, type, id } = seatingItem;
 
-    return (
-      <TableHeader
-        key={`table-${table.id}`}
-        table={table}
-        isExpanded={isExpanded}
-        toggleExpand={() => toggleExpandTable(table.id)}
-        width={TABLE_WIDTH}
-      />
-    );
+    if (type === "table") {
+      const isExpanded = expandedTableIds.has(id);
+      return (
+        <TableHeader
+          key={`table-${id}`}
+          table={item}
+          isExpanded={isExpanded}
+          toggleExpand={() => toggleExpand(id, true)}
+          width={TABLE_WIDTH}
+        />
+      );
+    } else {
+      // counter seat
+      const isExpanded = expandedCounterSeatIds.has(id);
+      return (
+        <CounterSeatHeader
+          key={`counter-${id}`}
+          seat={item}
+          isExpanded={isExpanded}
+          toggleExpand={() => toggleExpand(id, false)}
+          width={COUNTER_SEAT_WIDTH}
+        />
+      );
+    }
   };
 
-  const renderCounterSeatHeader = (seat) => {
-    const isExpanded = expandedCounterSeatIds.has(seat.id);
-
-    return (
-      <CounterSeatHeader
-        key={`counter-${seat.id}`}
-        seat={seat}
-        isExpanded={isExpanded}
-        toggleExpand={() => toggleExpandCounterSeat(seat.id)}
-        width={COUNTER_SEAT_WIDTH}
-      />
-    );
+  // Get width for an item based on its type
+  const getItemWidth = (type) => {
+    return type === "table" ? TABLE_WIDTH : COUNTER_SEAT_WIDTH;
   };
 
   // Render reservation blocks
   const renderReservationBlocks = () => {
+    // Create a map of the sorted item positions
+    const itemPositionMap = {};
+    let currentPosition = 0;
+
+    sortedItems.forEach((item) => {
+      const key = `${item.type === "table" ? "table" : "counter"}-${item.id}`;
+      itemPositionMap[key] = currentPosition;
+      currentPosition += getItemWidth(item.type);
+    });
+
     return (
       <>
-        {tableReservations.map((reservation) => (
-          <ReservationBlock
-            key={`table-res-${reservation.id}`}
-            reservation={reservation}
-            tables={tables}
-            counterSeats={counterSeats}
-            isSelected={selectedReservation?.id === reservation.id}
-            onPress={handleReservationPress}
-            tableWidth={TABLE_WIDTH}
-            counterSeatWidth={COUNTER_SEAT_WIDTH}
-            timeSlotHeight={TIME_SLOT_HEIGHT}
-          />
-        ))}
-        {counterSeatReservations.map((reservation) => (
-          <ReservationBlock
-            key={`counter-res-${reservation.id}`}
-            reservation={reservation}
-            tables={tables}
-            counterSeats={counterSeats}
-            isSelected={selectedReservation?.id === reservation.id}
-            onPress={handleReservationPress}
-            tableWidth={TABLE_WIDTH}
-            counterSeatWidth={COUNTER_SEAT_WIDTH}
-            timeSlotHeight={TIME_SLOT_HEIGHT}
-            isCounterSeat
-          />
-        ))}
+        {reservations.map((reservation) => {
+          const isCounterSeat = !!reservation.isCounterSeat;
+          const itemKey = isCounterSeat
+            ? `counter-${reservation.counterSeatId}`
+            : `table-${reservation.tableId}`;
+
+          // Skip if we don't have this item in our sorted grid
+          if (!(itemKey in itemPositionMap)) {
+            return null;
+          }
+
+          // Calculate position based on the sortedItems layout
+          const position = itemPositionMap[itemKey];
+          const width = isCounterSeat ? COUNTER_SEAT_WIDTH : TABLE_WIDTH;
+
+          return (
+            <ReservationBlockStyled
+              key={`res-${reservation.id}`}
+              left={position}
+              top={
+                ((parseTimeToMinutes(reservation.time) - 9 * 60) / 30) *
+                TIME_SLOT_HEIGHT
+              }
+              width={width}
+              height={(reservation.duration / 30) * TIME_SLOT_HEIGHT}
+              status={reservation.status}
+              onPress={() => handleReservationPress(reservation)}
+              isSelected={selectedReservation?.id === reservation.id}
+            >
+              <ReservationName>{reservation.customerName}</ReservationName>
+              <ReservationDetails>
+                {reservation.time} • {reservation.people}{" "}
+                {reservation.people > 1 ? "people" : "person"}
+              </ReservationDetails>
+            </ReservationBlockStyled>
+          );
+        })}
       </>
     );
   };
+
+  // Define the reservation block styled component directly here
+  // This ensures we have access to the component for use in the render method
+  const ReservationBlockStyled = styled.TouchableOpacity`
+    position: absolute;
+    left: ${(props) => props.left}px;
+    top: ${(props) => props.top}px;
+    width: ${(props) => props.width}px;
+    height: ${(props) => props.height}px;
+    background-color: ${(props) =>
+      props.status === "confirmed"
+        ? "#b3ffb3"
+        : props.status === "pending"
+        ? "#ffd11a"
+        : "#ff4d4d"};
+    border-radius: 5px;
+    padding: ${(props) => props.theme.space[1]};
+    justify-content: space-between;
+    z-index: 1;
+    box-sizing: border-box;
+    ${(props) =>
+      props.isSelected &&
+      `
+      border-width: 2px;
+      border-color: blue;
+    `}
+  `;
+
+  const ReservationName = styled(CustomText)`
+    font-size: ${(props) => props.theme.fontSizes.caption};
+    font-weight: ${(props) => props.theme.fontWeights.bold};
+  `;
+
+  const ReservationDetails = styled(CustomText)`
+    font-size: ${(props) => props.theme.fontSizes.caption};
+  `;
 
   return (
     <Container>
@@ -380,11 +571,8 @@ const ReservationsGrid = ({
             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
           >
             <HeaderRow>
-              {/* Render counter seat headers */}
-              {counterSeats.map(renderCounterSeatHeader)}
-
-              {/* Render table headers */}
-              {tables.map(renderTableHeader)}
+              {/* Render all items headers in sorted order */}
+              {sortedItems.map(renderItemHeader)}
             </HeaderRow>
           </HeaderScrollView>
         </HeaderContainer>
@@ -428,39 +616,17 @@ const ReservationsGrid = ({
               <GridContainer style={{ height: contentHeight }}>
                 {/* Render grid cells */}
                 <View style={{ flexDirection: "row" }}>
-                  {/* Counter seat columns */}
-                  {counterSeats.map((seat, seatIndex) => (
+                  {/* All item columns */}
+                  {sortedItems.map((seatingItem, index) => (
                     <View
-                      key={`counter-col-${seat.id}`}
-                      style={{ width: COUNTER_SEAT_WIDTH }}
+                      key={`item-col-${seatingItem.id}`}
+                      style={{ width: getItemWidth(seatingItem.type) }}
                     >
                       {timeSlots.map((time, timeIndex) => (
                         <View
-                          key={`counter-cell-${seatIndex}-${timeIndex}`}
+                          key={`item-cell-${index}-${timeIndex}`}
                           style={{
-                            width: COUNTER_SEAT_WIDTH,
-                            height: TIME_SLOT_HEIGHT,
-                            borderLeftWidth: 1,
-                            borderBottomWidth: 1,
-                            borderLeftColor: "#e1e1e1",
-                            borderBottomColor: "#e1e1e1",
-                          }}
-                        />
-                      ))}
-                    </View>
-                  ))}
-
-                  {/* Table columns */}
-                  {tables.map((table, tableIndex) => (
-                    <View
-                      key={`table-col-${table.id}`}
-                      style={{ width: TABLE_WIDTH }}
-                    >
-                      {timeSlots.map((time, timeIndex) => (
-                        <View
-                          key={`table-cell-${tableIndex}-${timeIndex}`}
-                          style={{
-                            width: TABLE_WIDTH,
+                            width: getItemWidth(seatingItem.type),
                             height: TIME_SLOT_HEIGHT,
                             borderLeftWidth: 1,
                             borderBottomWidth: 1,
