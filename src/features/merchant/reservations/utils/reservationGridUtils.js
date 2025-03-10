@@ -1,7 +1,6 @@
 // src/features/merchant/reservations/utils/reservationGridUtils.js
 import { useState, useEffect, useRef } from "react";
 
-// All grid-related constants
 export const GRID_CONSTANTS = {
   TABLE_WIDTH: 100,
   COUNTER_SEAT_WIDTH: 60,
@@ -9,7 +8,6 @@ export const GRID_CONSTANTS = {
   TIME_SLOT_HEIGHT: 30,
 };
 
-// Custom hook for handling table and counter seat expansion state
 export const useExpansionState = (tables, counterSeats) => {
   const [expandedTableIds, setExpandedTableIds] = useState(new Set());
   const [expandedCounterSeatIds, setExpandedCounterSeatIds] = useState(
@@ -54,7 +52,6 @@ export const useExpansionState = (tables, counterSeats) => {
     setAreAllExpanded(!areAllExpanded);
   };
 
-  // Monitor expansion state
   useEffect(() => {
     const allTableIds = tables.map((table) => table.id);
     const allCounterSeatIds = counterSeats.map((seat) => seat.id);
@@ -89,7 +86,6 @@ export const useExpansionState = (tables, counterSeats) => {
   };
 };
 
-// Custom hook for synchronized scrolling between components
 export const useSynchronizedScrolling = () => {
   const verticalScrollRef = useRef(null);
   const leftColumnScrollRef = useRef(null);
@@ -150,7 +146,6 @@ export const useSynchronizedScrolling = () => {
   };
 };
 
-// Filter reservations by type
 export const filterReservations = (reservations) => {
   const tableReservations = reservations.filter((res) => !res.isCounterSeat);
   const counterSeatReservations = reservations.filter(

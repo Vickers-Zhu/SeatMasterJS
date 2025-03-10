@@ -1,5 +1,5 @@
 // src/features/merchant/reservations/screens/MerchantReservationsScreen.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import {
   seatingData,
@@ -44,6 +44,9 @@ export const MerchantReservationsScreen = () => {
     filterReservations(merchantReservations);
 
   const { TIME_COLUMN_WIDTH, TIME_SLOT_HEIGHT } = GRID_CONSTANTS;
+
+  // Calculate content height to ensure full scrolling
+  const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
 
   const {
     expandedTableIds,
@@ -133,6 +136,7 @@ export const MerchantReservationsScreen = () => {
             toggleAllTables={toggleAllTables}
             currentTimePosition={currentTimePosition}
             width={TIME_COLUMN_WIDTH}
+            contentHeight={contentHeight}
           />
 
           <HeaderScrollView
@@ -148,8 +152,9 @@ export const MerchantReservationsScreen = () => {
               onScroll={handleVerticalScroll}
               scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ height: contentHeight }}
             >
-              <GridContainer>
+              <GridContainer style={{ height: contentHeight }}>
                 <GridContent
                   timeSlots={timeSlots}
                   tables={tables}

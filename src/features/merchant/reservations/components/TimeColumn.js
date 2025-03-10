@@ -8,18 +8,14 @@ import {
   TimeColumn as StyledTimeColumn,
   TimeSlot,
   TimeText,
-  ExpandAllButton,
-  ExpandAllButtonText,
 } from "./MerchantReservation.styles";
 
 const TimeColumn = ({
   timeSlots,
   scrollRef,
   onScroll,
-  areAllExpanded,
-  toggleAllTables,
   currentTimePosition,
-  width = 60, // Default width
+  width = 60,
 }) => {
   return (
     <FixedLeftColumn style={{ width }}>
@@ -27,7 +23,7 @@ const TimeColumn = ({
         ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
       >
         <StyledTimeColumn style={{ width }}>
           {timeSlots.map((time) => (

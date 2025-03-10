@@ -7,7 +7,6 @@ import TableHeader from "./TableHeader";
 import CounterSeatHeader from "./CounterSeatHeader";
 import { GRID_CONSTANTS } from "../utils/reservationGridUtils";
 
-// Main grid content including columns, cells, and reservations
 export const GridContent = ({
   timeSlots,
   tables,
@@ -22,9 +21,9 @@ export const GridContent = ({
 
   return (
     <View style={{ position: "relative" }}>
-      {/* Grid columns structure */}
+      {/* Grid cells background */}
       <View style={{ flexDirection: "row" }}>
-        {/* Counter Seat Columns - Placed first */}
+        {/* Counter seat columns */}
         {counterSeats.map((seat) => (
           <ColumnContainer
             key={`counter-column-${seat.id}`}
@@ -39,7 +38,7 @@ export const GridContent = ({
           </ColumnContainer>
         ))}
 
-        {/* Table Columns */}
+        {/* Table columns */}
         {tables.map((table) => (
           <ColumnContainer
             key={`table-column-${table.id}`}
@@ -55,7 +54,7 @@ export const GridContent = ({
         ))}
       </View>
 
-      {/* Current Time Indicator */}
+      {/* Current time indicator line */}
       <View
         style={{
           position: "absolute",
@@ -68,7 +67,7 @@ export const GridContent = ({
         }}
       />
 
-      {/* Counter Seat Reservations - Placed first */}
+      {/* Counter seat reservations */}
       {counterSeatReservations.map((reservation) => (
         <ReservationBlock
           key={`counter-${reservation.id}`}
@@ -80,7 +79,7 @@ export const GridContent = ({
         />
       ))}
 
-      {/* Table Reservations */}
+      {/* Table reservations */}
       {tableReservations.map((reservation) => (
         <ReservationBlock
           key={reservation.id}
@@ -95,7 +94,6 @@ export const GridContent = ({
   );
 };
 
-// Header row with both counter seats and tables
 export const HeaderContent = ({
   tables,
   counterSeats,
@@ -109,7 +107,7 @@ export const HeaderContent = ({
 
   return (
     <View style={{ flexDirection: "row" }}>
-      {/* Counter Seats Headers - Placed first */}
+      {/* Counter seat headers */}
       {counterSeats.map((seat) => (
         <CounterSeatHeader
           key={seat.id}
@@ -120,7 +118,7 @@ export const HeaderContent = ({
         />
       ))}
 
-      {/* Tables Headers */}
+      {/* Table headers */}
       {tables.map((table) => (
         <TableHeader
           key={table.id}
