@@ -1,6 +1,18 @@
-// src/features/merchant/reservations/components/ReservationsGrid.js
+const PendingBorder = styled(Animated.View)`
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-width: 3px;
+  border-color: #ff6b6b;
+  border-radius: 7px;
+  z-index: 2;
+  pointer-events: none;
+`; // src/features/merchant/reservations/components/ReservationsGrid.js
 import React, { useState, useRef, useEffect } from "react";
-import { View, ScrollView, Animated } from "react-native";
+import { View, ScrollView, Animated, TouchableOpacity } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import styled from "styled-components/native";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 
@@ -11,7 +23,6 @@ import {
   ReservationDetailsPanel,
 } from "./ReservationComponents";
 
-// Define grid constants for consistent sizing
 const GRID_CONSTANTS = {
   TABLE_WIDTH: 100,
   COUNTER_SEAT_WIDTH: 60,
@@ -19,10 +30,47 @@ const GRID_CONSTANTS = {
   TIME_SLOT_HEIGHT: 30,
 };
 
-// Styled components for layout
 const Container = styled.View`
   flex: 1;
   background-color: ${(props) => props.theme.colors.bg.primary};
+`;
+
+// Simple tab bar
+const TabBar = styled.View`
+  flex-direction: row;
+  padding: 8px;
+  background-color: ${(props) => props.theme.colors.bg.primary};
+`;
+
+const Tab = styled.TouchableOpacity`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding-vertical: 10px;
+  background-color: ${(props) => props.theme.colors.bg.primary};
+  border-width: ${(props) => (props.active ? "2px" : "1px")};
+  border-color: ${(props) =>
+    props.active
+      ? props.theme.colors.ui.primary
+      : props.theme.colors.ui.tertiary};
+  border-radius: 6px;
+  margin-horizontal: 4px;
+  elevation: ${(props) => (props.active ? 2 : 0)};
+  shadow-opacity: ${(props) => (props.active ? 0.2 : 0)};
+  shadow-radius: 4px;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+`;
+
+const TabText = styled(CustomText)`
+  margin-left: 8px;
+  font-size: ${(props) => props.theme.fontSizes.body};
+  color: ${(props) =>
+    props.active
+      ? props.theme.colors.ui.primary
+      : props.theme.colors.text.secondary};
+  font-weight: ${(props) => (props.active ? "bold" : "normal")};
 `;
 
 const MainGrid = styled.View`
@@ -67,10 +115,7 @@ const TimeText = styled(CustomText)`
 `;
 
 const ExpandAllButton = styled.TouchableOpacity`
-  background-color: ${(props) =>
-    props.areAllExpanded
-      ? props.theme.colors.ui.secondary
-      : props.theme.colors.ui.primary};
+  background-color: ${(props) => props.theme.colors.ui.disabled};
   padding: 4px 8px;
   border-radius: 12px;
   margin-vertical: 8px;
@@ -87,7 +132,7 @@ const ExpandAllButton = styled.TouchableOpacity`
 
 const ExpandAllButtonText = styled(CustomText)`
   font-size: ${(props) => props.theme.fontSizes.caption};
-  color: ${(props) => props.theme.colors.text.inverse};
+  color: ${(props) => props.theme.colors.text.primary};
   font-weight: ${(props) => props.theme.fontWeights.bold};
 `;
 
@@ -159,18 +204,13 @@ const parseTimeToMinutes = (timeStr) => {
   return hours * 60 + minutes;
 };
 
-// Calculate end time in minutes
-const calculateEndTime = (startTimeStr, durationMinutes) => {
-  return parseTimeToMinutes(startTimeStr) + durationMinutes;
-};
-
 // Get ID from item consistently
 const getItemId = (item) => {
   return typeof item === "object" ? item.id : item;
 };
 
-// Sort all seating items (tables and counter seats)
-const sortSeatingItems = (tables, counterSeats, reservations) => {
+// Sort all seating items (tables and counter seats) using smart sorting
+const smartSortSeatingItems = (tables, counterSeats, reservations) => {
   if (!tables || !counterSeats || !reservations) {
     return [];
   }
@@ -287,6 +327,43 @@ const sortSeatingItems = (tables, counterSeats, reservations) => {
   return allItems;
 };
 
+// Traditional sorting: Tables first, then counter seats, both sorted by ID
+const traditionalSortSeatingItems = (tables, counterSeats) => {
+  if (!tables || !counterSeats) {
+    return [];
+  }
+
+  // Create a unified array with type information, sort by ID numerically
+  const tableItems = tables
+    .map((table) => ({
+      item: table,
+      type: "table",
+      id: getItemId(table),
+    }))
+    .sort((a, b) => {
+      // Extract numeric part for sorting
+      const aNum = parseInt(a.id.toString().replace(/\D/g, "")) || 0;
+      const bNum = parseInt(b.id.toString().replace(/\D/g, "")) || 0;
+      return aNum - bNum;
+    });
+
+  const counterItems = counterSeats
+    .map((seat) => ({
+      item: seat,
+      type: "counterSeat",
+      id: getItemId(seat),
+    }))
+    .sort((a, b) => {
+      // Extract numeric part for sorting
+      const aNum = parseInt(a.id.toString().replace(/\D/g, "")) || 0;
+      const bNum = parseInt(b.id.toString().replace(/\D/g, "")) || 0;
+      return aNum - bNum;
+    });
+
+  // Tables first, then counter seats
+  return [...tableItems, ...counterItems];
+};
+
 // Main component
 const ReservationsGrid = ({
   timeSlots,
@@ -310,20 +387,56 @@ const ReservationsGrid = ({
   );
   const [areAllExpanded, setAreAllExpanded] = useState(false);
   const [sortedItems, setSortedItems] = useState([]);
+  const [isSmartSorting, setIsSmartSorting] = useState(true);
 
-  // Refs for synchronized scrolling
-  const verticalScrollRef = useRef(null);
-  const leftColumnScrollRef = useRef(null);
-  const headerScrollRef = useRef(null);
-  const gridScrollRef = useRef(null);
+  // Pre-compute sorted items for both sorting methods to eliminate waiting when switching
+  const [traditionalSorted, setTraditionalSorted] = useState([]);
+  const [smartSorted, setSmartSorted] = useState([]);
 
-  // Calculate content height
-  const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
+  // Animation for breathing effect on pending reservations
+  const [breathingAnim] = useState(new Animated.Value(0.4));
 
-  // Sort items
+  // Set up breathing animation
   useEffect(() => {
-    setSortedItems(sortSeatingItems(tables, counterSeats, reservations));
+    // Create the breathing animation sequence
+    const breathe = () => {
+      Animated.sequence([
+        Animated.timing(breathingAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: false, // Changed to false for border animation
+        }),
+        Animated.timing(breathingAnim, {
+          toValue: 0.4,
+          duration: 1000,
+          useNativeDriver: false, // Changed to false for border animation
+        }),
+      ]).start(() => breathe()); // Restart animation when complete
+    };
+
+    // Start the animation
+    breathe();
+
+    // Clean up
+    return () => breathingAnim.stopAnimation();
+  }, []);
+
+  // Pre-compute all sorting options when data changes
+  useEffect(() => {
+    const traditional = traditionalSortSeatingItems(tables, counterSeats);
+    const smart = smartSortSeatingItems(tables, counterSeats, reservations);
+
+    setTraditionalSorted(traditional);
+    setSmartSorted(smart);
+
+    // Set the current sorted items based on selected mode
+    setSortedItems(isSmartSorting ? smart : traditional);
   }, [tables, counterSeats, reservations]);
+
+  // Update sorted items immediately when sorting method changes
+  useEffect(() => {
+    setSortedItems(isSmartSorting ? smartSorted : traditionalSorted);
+  }, [isSmartSorting, smartSorted, traditionalSorted]);
 
   useEffect(() => {
     const updateTimePosition = () => {
@@ -419,6 +532,15 @@ const ReservationsGrid = ({
     );
   };
 
+  // Refs for synchronized scrolling
+  const verticalScrollRef = useRef(null);
+  const leftColumnScrollRef = useRef(null);
+  const headerScrollRef = useRef(null);
+  const gridScrollRef = useRef(null);
+
+  // Calculate content height
+  const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
+
   // Render header for an item (either table or counter seat)
   const renderItemHeader = (seatingItem) => {
     const { item, type, id } = seatingItem;
@@ -496,7 +618,11 @@ const ReservationsGrid = ({
               status={reservation.status}
               onPress={() => handleReservationPress(reservation)}
               isSelected={selectedReservation?.id === reservation.id}
+              isPending={reservation.status === "pending"}
             >
+              {reservation.status === "pending" && (
+                <PendingBorder style={{ opacity: breathingAnim }} />
+              )}
               <ReservationName>{reservation.customerName}</ReservationName>
               <ReservationDetails>
                 {reservation.time} • {reservation.people}{" "}
@@ -530,6 +656,7 @@ const ReservationsGrid = ({
     box-sizing: border-box;
     ${(props) =>
       props.isSelected &&
+      !props.isPending &&
       `
       border-width: 2px;
       border-color: blue;
@@ -547,6 +674,34 @@ const ReservationsGrid = ({
 
   return (
     <Container>
+      {/* Simple Tab Bar */}
+      <TabBar>
+        <Tab
+          active={!isSmartSorting}
+          onPress={() => setIsSmartSorting(false)}
+          activeOpacity={0.6}
+        >
+          <MaterialIcons
+            name="format-list-numbered"
+            size={20}
+            color={!isSmartSorting ? "#262626" : "#757575"}
+          />
+          <TabText active={!isSmartSorting}>Traditional</TabText>
+        </Tab>
+        <Tab
+          active={isSmartSorting}
+          onPress={() => setIsSmartSorting(true)}
+          activeOpacity={0.6}
+        >
+          <MaterialIcons
+            name="auto-awesome"
+            size={20}
+            color={isSmartSorting ? "#262626" : "#757575"}
+          />
+          <TabText active={isSmartSorting}>Smart</TabText>
+        </Tab>
+      </TabBar>
+
       <MainGrid>
         <HeaderContainer>
           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
@@ -639,12 +794,12 @@ const ReservationsGrid = ({
                   ))}
                 </View>
 
-                {/* Current time indicator */}
+                {}
                 <CurrentTimeLine style={{ top: currentTimePosition }}>
                   <CurrentTimeIndicator />
                 </CurrentTimeLine>
 
-                {/* Reservation blocks */}
+                {}
                 {renderReservationBlocks()}
               </GridContainer>
             </ScrollView>
@@ -652,7 +807,7 @@ const ReservationsGrid = ({
         </ContentContainer>
       </MainGrid>
 
-      {/* Reservation details panel */}
+      {}
       {selectedReservation && (
         <ReservationDetailsPanel
           reservation={selectedReservation}

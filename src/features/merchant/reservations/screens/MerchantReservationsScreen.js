@@ -6,7 +6,6 @@ import { generateTimeSlots } from "../utils/timeUtils";
 import ReservationsGrid from "../components/ReservationsGrid";
 
 export const MerchantReservationsScreen = () => {
-  // Generate time slots from 9:00 to 22:30
   const timeSlots = generateTimeSlots();
 
   return (

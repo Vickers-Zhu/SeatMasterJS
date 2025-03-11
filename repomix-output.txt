@@ -1422,73 +1422,139 @@ File: src/data/mockData.js
 323:     status: "confirmed",
 324:     note: "Birthday celebration",
 325:   },
-326: 
-327:   {
-328:     id: 6,
-329:     customerName: "Alex Chen",
-330:     people: 1,
-331:     time: "10:00",
-332:     duration: 60,
-333:     counterSeatId: "C3",
-334:     isCounterSeat: true,
-335:     status: "confirmed",
-336:     note: "Business breakfast",
-337:   },
-338:   {
-339:     id: 7,
-340:     customerName: "Jessica Miller",
-341:     people: 1,
-342:     time: "14:00",
-343:     duration: 90,
-344:     counterSeatId: "C7",
-345:     isCounterSeat: true,
-346:     status: "confirmed",
-347:     note: "Solo diner",
-348:   },
-349:   {
-350:     id: 8,
-351:     customerName: "Robert Taylor",
-352:     people: 1,
-353:     time: "19:30",
-354:     duration: 60,
-355:     counterSeatId: "C15",
-356:     isCounterSeat: true,
-357:     status: "pending",
-358:     note: "Late dinner",
-359:   },
-360: ];
-361: 
-362: 
-363: export const timeSlots = [
-364:   "09:00",
-365:   "09:30",
-366:   "10:00",
-367:   "10:30",
-368:   "11:00",
-369:   "11:30",
-370:   "12:00",
-371:   "12:30",
-372:   "13:00",
-373:   "13:30",
-374:   "14:00",
-375:   "14:30",
-376:   "15:00",
-377:   "15:30",
-378:   "16:00",
-379:   "16:30",
-380:   "17:00",
-381:   "17:30",
-382:   "18:00",
-383:   "18:30",
-384:   "19:00",
-385:   "19:30",
-386:   "20:00",
-387:   "20:30",
-388:   "21:00",
-389:   "21:30",
-390:   "22:00",
-391:   "22:30",
-392: ];
+326:   {
+327:     id: 9,
+328:     customerName: "Lisa Wong",
+329:     people: 3,
+330:     time: "17:00",
+331:     duration: 90,
+332:     tableId: 7,
+333:     chairs: ["7A", "7D", "7G"],
+334:     status: "confirmed",
+335:     note: "Family dinner",
+336:   },
+337:   {
+338:     id: 10,
+339:     customerName: "Tom Garcia",
+340:     people: 2,
+341:     time: "19:00",
+342:     duration: 60,
+343:     tableId: 10,
+344:     chairs: ["10E"],
+345:     status: "confirmed",
+346:     note: "Quick business dinner",
+347:   },
+348:   {
+349:     id: 11,
+350:     customerName: "Rachel Kim",
+351:     people: 2,
+352:     time: "16:30",
+353:     duration: 90,
+354:     tableId: 12,
+355:     chairs: ["12A"],
+356:     status: "confirmed",
+357:     note: "Late lunch",
+358:   },
+359:   {
+360:     id: 12,
+361:     customerName: "Mark Rodriguez",
+362:     people: 1,
+363:     time: "20:00",
+364:     duration: 60,
+365:     tableId: 8,
+366:     chairs: ["8B"],
+367:     status: "confirmed",
+368:     note: "Solo dinner",
+369:   },
+370: 
+371:   {
+372:     id: 6,
+373:     customerName: "Alex Chen",
+374:     people: 1,
+375:     time: "10:00",
+376:     duration: 60,
+377:     counterSeatId: "C3",
+378:     isCounterSeat: true,
+379:     status: "confirmed",
+380:     note: "Business breakfast",
+381:   },
+382:   {
+383:     id: 7,
+384:     customerName: "Jessica Miller",
+385:     people: 1,
+386:     time: "14:00",
+387:     duration: 90,
+388:     counterSeatId: "C7",
+389:     isCounterSeat: true,
+390:     status: "confirmed",
+391:     note: "Solo diner",
+392:   },
+393:   {
+394:     id: 8,
+395:     customerName: "Robert Taylor",
+396:     people: 1,
+397:     time: "19:30",
+398:     duration: 60,
+399:     counterSeatId: "C15",
+400:     isCounterSeat: true,
+401:     status: "pending",
+402:     note: "Late dinner",
+403:   },
+404:   {
+405:     id: 13,
+406:     customerName: "Emily Chen",
+407:     people: 1,
+408:     time: "11:30",
+409:     duration: 45,
+410:     counterSeatId: "C10",
+411:     isCounterSeat: true,
+412:     status: "confirmed",
+413:     note: "Quick lunch",
+414:   },
+415:   {
+416:     id: 14,
+417:     customerName: "Alex Johnson",
+418:     people: 1,
+419:     time: "17:45",
+420:     duration: 75,
+421:     counterSeatId: "C20",
+422:     isCounterSeat: true,
+423:     status: "confirmed",
+424:     note: "After-work drink",
+425:   },
+426: ];
+427: 
+428: 
+429: export const timeSlots = [
+430:   "09:00",
+431:   "09:30",
+432:   "10:00",
+433:   "10:30",
+434:   "11:00",
+435:   "11:30",
+436:   "12:00",
+437:   "12:30",
+438:   "13:00",
+439:   "13:30",
+440:   "14:00",
+441:   "14:30",
+442:   "15:00",
+443:   "15:30",
+444:   "16:00",
+445:   "16:30",
+446:   "17:00",
+447:   "17:30",
+448:   "18:00",
+449:   "18:30",
+450:   "19:00",
+451:   "19:30",
+452:   "20:00",
+453:   "20:30",
+454:   "21:00",
+455:   "21:30",
+456:   "22:00",
+457:   "22:30",
+458: ];
 
 ================
 File: src/features/auth/components/CountryListItem.js
@@ -4041,431 +4107,597 @@ File: src/features/merchant/reservations/components/ReservationsGrid.js
  72:       : props.theme.colors.ui.primary};
  73:   padding: 4px 8px;
  74:   border-radius: 12px;
- 75:   margin-top: 8px;
- 76:   margin-bottom: 8px;
- 77:   align-items: center;
- 78:   justify-content: center;
- 79:   shadow-color: #000;
- 80:   shadow-offset: 0px 2px;
- 81:   shadow-opacity: 0.1;
- 82:   shadow-radius: 3px;
- 83:   elevation: 2;
- 84:   width: 80%;
- 85:   align-self: center;
- 86: `;
- 87: 
- 88: const ExpandAllButtonText = styled(CustomText)`
- 89:   font-size: ${(props) => props.theme.fontSizes.caption};
- 90:   color: ${(props) => props.theme.colors.text.inverse};
- 91:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 92: `;
- 93: 
- 94: const ContentContainer = styled.View`
- 95:   flex: 1;
- 96:   flex-direction: row;
- 97:   position: relative;
- 98: `;
- 99: 
-100: const GridContainer = styled.View`
-101:   flex: 1;
-102:   position: relative;
-103: `;
-104: 
-105: const TimeColumnHeader = styled.View`
-106:   width: ${({ width }) => width}px;
-107:   padding: ${(props) => props.theme.space[2]};
-108:   padding-top: 40px;
-109:   align-items: center;
-110:   justify-content: center;
-111:   background-color: ${(props) => props.theme.colors.bg.primary};
-112: `;
-113: 
-114: const HeaderScrollView = styled.ScrollView`
-115:   flex-direction: row;
-116: `;
-117: 
-118: const HeaderRow = styled.View`
-119:   flex-direction: row;
-120:   padding-vertical: ${(props) => props.theme.space[2]};
-121: `;
-122: 
-123: const CurrentTimeLine = styled(Animated.View)`
-124:   position: absolute;
-125:   left: 0;
-126:   right: 0;
-127:   height: 2px;
-128:   background-color: #ff3b30;
-129:   z-index: 5;
-130: `;
-131: 
-132: const CurrentTimeIndicator = styled.View`
-133:   position: absolute;
-134:   left: -5px;
-135:   width: 10px;
-136:   height: 10px;
-137:   border-radius: 5px;
-138:   background-color: #ff3b30;
-139:   top: -4px;
-140: `;
-141: 
-142: // Utility functions
-143: const calculateCurrentTimePosition = (timeSlotHeight) => {
-144:   const now = new Date();
-145:   const hours = now.getHours();
-146:   const minutes = now.getMinutes();
-147: 
-148:   if (hours < 9 || (hours === 22 && minutes > 30) || hours > 22) {
-149:     return -100;
-150:   }
-151: 
-152:   const minutesSince9AM = (hours - 9) * 60 + minutes;
-153:   return (minutesSince9AM / 30) * timeSlotHeight;
-154: };
-155: 
-156: const filterReservations = (reservations) => {
-157:   const tableReservations = reservations.filter((res) => !res.isCounterSeat);
-158:   const counterSeatReservations = reservations.filter(
-159:     (res) => res.isCounterSeat
-160:   );
-161:   return { tableReservations, counterSeatReservations };
-162: };
-163: 
-164: // Main component
-165: const ReservationsGrid = ({
-166:   timeSlots,
-167:   tables,
-168:   counterSeats,
-169:   reservations,
-170: }) => {
-171:   const {
-172:     TABLE_WIDTH,
-173:     COUNTER_SEAT_WIDTH,
-174:     TIME_COLUMN_WIDTH,
-175:     TIME_SLOT_HEIGHT,
-176:   } = GRID_CONSTANTS;
-177: 
-178:   // State variables
-179:   const [selectedReservation, setSelectedReservation] = useState(null);
-180:   const [currentTimePosition, setCurrentTimePosition] = useState(0);
-181:   const [expandedTableIds, setExpandedTableIds] = useState(new Set());
-182:   const [expandedCounterSeatIds, setExpandedCounterSeatIds] = useState(
-183:     new Set()
-184:   );
-185:   const [areAllExpanded, setAreAllExpanded] = useState(false);
-186: 
-187:   // Refs for synchronized scrolling
-188:   const verticalScrollRef = useRef(null);
-189:   const leftColumnScrollRef = useRef(null);
-190:   const headerScrollRef = useRef(null);
-191:   const gridScrollRef = useRef(null);
-192: 
-193:   // Filter reservations
-194:   const { tableReservations, counterSeatReservations } =
-195:     filterReservations(reservations);
+ 75:   margin-vertical: 8px;
+ 76:   align-items: center;
+ 77:   justify-content: center;
+ 78:   shadow-color: #000;
+ 79:   shadow-offset: 0px 2px;
+ 80:   shadow-opacity: 0.1;
+ 81:   shadow-radius: 3px;
+ 82:   elevation: 2;
+ 83:   width: 80%;
+ 84:   align-self: center;
+ 85: `;
+ 86: 
+ 87: const ExpandAllButtonText = styled(CustomText)`
+ 88:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 89:   color: ${(props) => props.theme.colors.text.inverse};
+ 90:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 91: `;
+ 92: 
+ 93: const ContentContainer = styled.View`
+ 94:   flex: 1;
+ 95:   flex-direction: row;
+ 96:   position: relative;
+ 97: `;
+ 98: 
+ 99: const GridContainer = styled.View`
+100:   flex: 1;
+101:   position: relative;
+102: `;
+103: 
+104: const TimeColumnHeader = styled.View`
+105:   width: ${({ width }) => width}px;
+106:   padding: ${(props) => props.theme.space[2]};
+107:   padding-top: 40px;
+108:   align-items: center;
+109:   justify-content: center;
+110:   background-color: ${(props) => props.theme.colors.bg.primary};
+111: `;
+112: 
+113: const HeaderScrollView = styled.ScrollView`
+114:   flex-direction: row;
+115: `;
+116: 
+117: const HeaderRow = styled.View`
+118:   flex-direction: row;
+119:   padding-vertical: ${(props) => props.theme.space[2]};
+120: `;
+121: 
+122: const CurrentTimeLine = styled(Animated.View)`
+123:   position: absolute;
+124:   left: 0;
+125:   right: 0;
+126:   height: 2px;
+127:   background-color: #ff3b30;
+128:   z-index: 5;
+129: `;
+130: 
+131: const CurrentTimeIndicator = styled.View`
+132:   position: absolute;
+133:   left: -5px;
+134:   width: 10px;
+135:   height: 10px;
+136:   border-radius: 5px;
+137:   background-color: #ff3b30;
+138:   top: -4px;
+139: `;
+140: 
+141: // Utility functions
+142: const calculateCurrentTimePosition = (timeSlotHeight) => {
+143:   const now = new Date();
+144:   const hours = now.getHours();
+145:   const minutes = now.getMinutes();
+146: 
+147:   if (hours < 9 || (hours === 22 && minutes > 30) || hours > 22) {
+148:     return -100;
+149:   }
+150: 
+151:   const minutesSince9AM = (hours - 9) * 60 + minutes;
+152:   return (minutesSince9AM / 30) * timeSlotHeight;
+153: };
+154: 
+155: // Parse time strings into minutes since midnight
+156: const parseTimeToMinutes = (timeStr) => {
+157:   const [hours, minutes] = timeStr.split(":").map(Number);
+158:   return hours * 60 + minutes;
+159: };
+160: 
+161: // Calculate end time in minutes
+162: const calculateEndTime = (startTimeStr, durationMinutes) => {
+163:   return parseTimeToMinutes(startTimeStr) + durationMinutes;
+164: };
+165: 
+166: // Get ID from item consistently
+167: const getItemId = (item) => {
+168:   return typeof item === "object" ? item.id : item;
+169: };
+170: 
+171: // Sort all seating items (tables and counter seats)
+172: const sortSeatingItems = (tables, counterSeats, reservations) => {
+173:   if (!tables || !counterSeats || !reservations) {
+174:     return [];
+175:   }
+176: 
+177:   // Create a unified array with type information
+178:   const allItems = [
+179:     ...tables.map((table) => ({
+180:       item: table,
+181:       type: "table",
+182:       id: getItemId(table),
+183:     })),
+184:     ...counterSeats.map((seat) => ({
+185:       item: seat,
+186:       type: "counterSeat",
+187:       id: getItemId(seat),
+188:     })),
+189:   ];
+190: 
+191:   const now = new Date();
+192:   const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+193: 
+194:   // Create a reservation map for quick lookups
+195:   const reservationMap = new Map();
 196: 
-197:   // Calculate content height
-198:   const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
-199: 
-200:   useEffect(() => {
-201:     const updateTimePosition = () => {
-202:       setCurrentTimePosition(calculateCurrentTimePosition(TIME_SLOT_HEIGHT));
-203:     };
-204: 
-205:     updateTimePosition();
-206:     const interval = setInterval(updateTimePosition, 60000);
-207:     return () => clearInterval(interval);
-208:   }, [TIME_SLOT_HEIGHT]);
+197:   // Process all reservations and organize by table/seat ID
+198:   reservations.forEach((res) => {
+199:     const itemKey = res.isCounterSeat
+200:       ? `counter-${res.counterSeatId}`
+201:       : `table-${res.tableId}`;
+202: 
+203:     if (!reservationMap.has(itemKey)) {
+204:       reservationMap.set(itemKey, []);
+205:     }
+206: 
+207:     const startTime = parseTimeToMinutes(res.time);
+208:     const endTime = startTime + res.duration;
 209: 
-210:   // Toggle expansion functions
-211:   const toggleExpandTable = (tableId) => {
-212:     setExpandedTableIds((prevExpanded) => {
-213:       const newExpanded = new Set(prevExpanded);
-214:       if (newExpanded.has(tableId)) {
-215:         newExpanded.delete(tableId);
-216:       } else {
-217:         newExpanded.add(tableId);
-218:       }
-219:       return newExpanded;
-220:     });
-221:   };
-222: 
-223:   const toggleExpandCounterSeat = (seatId) => {
-224:     setExpandedCounterSeatIds((prevExpanded) => {
-225:       const newExpanded = new Set(prevExpanded);
-226:       if (newExpanded.has(seatId)) {
-227:         newExpanded.delete(seatId);
-228:       } else {
-229:         newExpanded.add(seatId);
-230:       }
-231:       return newExpanded;
-232:     });
-233:   };
-234: 
-235:   const toggleAllTables = () => {
-236:     if (areAllExpanded) {
-237:       setExpandedTableIds(new Set());
-238:       setExpandedCounterSeatIds(new Set());
-239:     } else {
-240:       setExpandedTableIds(new Set(tables.map((table) => table.id)));
-241:       setExpandedCounterSeatIds(new Set(counterSeats.map((seat) => seat.id)));
-242:     }
-243:     setAreAllExpanded(!areAllExpanded);
-244:   };
-245: 
-246:   // Scroll sync handlers
-247:   const handleHeaderScroll = (event) => {
-248:     if (gridScrollRef.current) {
-249:       gridScrollRef.current.scrollTo({
-250:         x: event.nativeEvent.contentOffset.x,
-251:         y: 0,
-252:         animated: false,
-253:       });
-254:     }
-255:   };
-256: 
-257:   const handleGridScroll = (event) => {
-258:     if (headerScrollRef.current) {
-259:       headerScrollRef.current.scrollTo({
-260:         x: event.nativeEvent.contentOffset.x,
-261:         y: 0,
-262:         animated: false,
-263:       });
-264:     }
-265:   };
-266: 
-267:   const handleVerticalScroll = (event) => {
-268:     if (leftColumnScrollRef.current) {
-269:       leftColumnScrollRef.current.scrollTo({
-270:         y: event.nativeEvent.contentOffset.y,
-271:         animated: false,
-272:       });
-273:     }
-274:   };
-275: 
-276:   const handleLeftColumnScroll = (event) => {
-277:     if (verticalScrollRef.current) {
-278:       verticalScrollRef.current.scrollTo({
-279:         y: event.nativeEvent.contentOffset.y,
-280:         animated: false,
-281:       });
-282:     }
-283:   };
-284: 
-285:   // Handle reservation click
-286:   const handleReservationPress = (reservation) => {
-287:     setSelectedReservation(
-288:       selectedReservation?.id === reservation.id ? null : reservation
-289:     );
-290:   };
-291: 
-292:   // Render table and counter seat headers
-293:   const renderTableHeader = (table) => {
-294:     const isExpanded = expandedTableIds.has(table.id);
-295: 
-296:     return (
-297:       <TableHeader
-298:         key={`table-${table.id}`}
-299:         table={table}
-300:         isExpanded={isExpanded}
-301:         toggleExpand={() => toggleExpandTable(table.id)}
-302:         width={TABLE_WIDTH}
-303:       />
-304:     );
-305:   };
-306: 
-307:   const renderCounterSeatHeader = (seat) => {
-308:     const isExpanded = expandedCounterSeatIds.has(seat.id);
-309: 
-310:     return (
-311:       <CounterSeatHeader
-312:         key={`counter-${seat.id}`}
-313:         seat={seat}
-314:         isExpanded={isExpanded}
-315:         toggleExpand={() => toggleExpandCounterSeat(seat.id)}
-316:         width={COUNTER_SEAT_WIDTH}
-317:       />
-318:     );
-319:   };
-320: 
-321:   // Render reservation blocks
-322:   const renderReservationBlocks = () => {
-323:     return (
-324:       <>
-325:         {tableReservations.map((reservation) => (
-326:           <ReservationBlock
-327:             key={`table-res-${reservation.id}`}
-328:             reservation={reservation}
-329:             tables={tables}
-330:             counterSeats={counterSeats}
-331:             isSelected={selectedReservation?.id === reservation.id}
-332:             onPress={handleReservationPress}
-333:             tableWidth={TABLE_WIDTH}
-334:             counterSeatWidth={COUNTER_SEAT_WIDTH}
-335:             timeSlotHeight={TIME_SLOT_HEIGHT}
-336:           />
-337:         ))}
-338:         {counterSeatReservations.map((reservation) => (
-339:           <ReservationBlock
-340:             key={`counter-res-${reservation.id}`}
-341:             reservation={reservation}
-342:             tables={tables}
-343:             counterSeats={counterSeats}
-344:             isSelected={selectedReservation?.id === reservation.id}
-345:             onPress={handleReservationPress}
-346:             tableWidth={TABLE_WIDTH}
-347:             counterSeatWidth={COUNTER_SEAT_WIDTH}
-348:             timeSlotHeight={TIME_SLOT_HEIGHT}
-349:             isCounterSeat
-350:           />
-351:         ))}
-352:       </>
-353:     );
-354:   };
-355: 
-356:   return (
-357:     <Container>
-358:       <MainGrid>
-359:         <HeaderContainer>
-360:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
-361:             <TimeColumnHeader width={TIME_COLUMN_WIDTH}>
-362:               <ExpandAllButton
-363:                 onPress={toggleAllTables}
-364:                 areAllExpanded={areAllExpanded}
-365:               >
-366:                 <ExpandAllButtonText>
-367:                   {areAllExpanded ? "Collapse All" : "Expand All"}
-368:                 </ExpandAllButtonText>
-369:               </ExpandAllButton>
-370:             </TimeColumnHeader>
-371:           </LeftColumnContainer>
-372: 
-373:           <HeaderScrollView
-374:             ref={headerScrollRef}
-375:             horizontal
-376:             showsHorizontalScrollIndicator={false}
-377:             onScroll={handleHeaderScroll}
-378:             scrollEventThrottle={16}
-379:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
-380:           >
-381:             <HeaderRow>
-382:               {/* Render counter seat headers */}
-383:               {counterSeats.map(renderCounterSeatHeader)}
-384: 
-385:               {/* Render table headers */}
-386:               {tables.map(renderTableHeader)}
-387:             </HeaderRow>
-388:           </HeaderScrollView>
-389:         </HeaderContainer>
-390: 
-391:         <ContentContainer>
-392:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
-393:             <ScrollView
-394:               ref={leftColumnScrollRef}
-395:               onScroll={handleLeftColumnScroll}
-396:               scrollEventThrottle={16}
-397:               showsVerticalScrollIndicator={true}
-398:             >
-399:               <TimeColumn width={TIME_COLUMN_WIDTH}>
-400:                 {timeSlots.map((time) => (
-401:                   <TimeSlot
-402:                     key={time}
-403:                     height={TIME_SLOT_HEIGHT}
-404:                     width={TIME_COLUMN_WIDTH}
-405:                   >
-406:                     <TimeText>{time}</TimeText>
-407:                   </TimeSlot>
-408:                 ))}
-409:               </TimeColumn>
-410:             </ScrollView>
-411:           </LeftColumnContainer>
-412: 
-413:           <HeaderScrollView
-414:             ref={gridScrollRef}
-415:             horizontal
-416:             showsHorizontalScrollIndicator={false}
-417:             onScroll={handleGridScroll}
-418:             scrollEventThrottle={16}
-419:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
-420:           >
-421:             <ScrollView
-422:               ref={verticalScrollRef}
-423:               onScroll={handleVerticalScroll}
-424:               scrollEventThrottle={16}
-425:               showsVerticalScrollIndicator={false}
-426:             >
-427:               <GridContainer style={{ height: contentHeight }}>
-428:                 {/* Render grid cells */}
-429:                 <View style={{ flexDirection: "row" }}>
-430:                   {/* Counter seat columns */}
-431:                   {counterSeats.map((seat, seatIndex) => (
-432:                     <View
-433:                       key={`counter-col-${seat.id}`}
-434:                       style={{ width: COUNTER_SEAT_WIDTH }}
-435:                     >
-436:                       {timeSlots.map((time, timeIndex) => (
-437:                         <View
-438:                           key={`counter-cell-${seatIndex}-${timeIndex}`}
-439:                           style={{
-440:                             width: COUNTER_SEAT_WIDTH,
-441:                             height: TIME_SLOT_HEIGHT,
-442:                             borderLeftWidth: 1,
-443:                             borderBottomWidth: 1,
-444:                             borderLeftColor: "#e1e1e1",
-445:                             borderBottomColor: "#e1e1e1",
-446:                           }}
-447:                         />
-448:                       ))}
-449:                     </View>
-450:                   ))}
-451: 
-452:                   {/* Table columns */}
-453:                   {tables.map((table, tableIndex) => (
-454:                     <View
-455:                       key={`table-col-${table.id}`}
-456:                       style={{ width: TABLE_WIDTH }}
-457:                     >
-458:                       {timeSlots.map((time, timeIndex) => (
-459:                         <View
-460:                           key={`table-cell-${tableIndex}-${timeIndex}`}
-461:                           style={{
-462:                             width: TABLE_WIDTH,
-463:                             height: TIME_SLOT_HEIGHT,
-464:                             borderLeftWidth: 1,
-465:                             borderBottomWidth: 1,
-466:                             borderLeftColor: "#e1e1e1",
-467:                             borderBottomColor: "#e1e1e1",
-468:                           }}
-469:                         />
-470:                       ))}
-471:                     </View>
-472:                   ))}
-473:                 </View>
-474: 
-475:                 {}
-476:                 <CurrentTimeLine style={{ top: currentTimePosition }}>
-477:                   <CurrentTimeIndicator />
-478:                 </CurrentTimeLine>
-479: 
-480:                 {}
-481:                 {renderReservationBlocks()}
-482:               </GridContainer>
-483:             </ScrollView>
-484:           </HeaderScrollView>
-485:         </ContentContainer>
-486:       </MainGrid>
-487: 
-488:       {}
-489:       {selectedReservation && (
-490:         <ReservationDetailsPanel
-491:           reservation={selectedReservation}
-492:           onClose={() => setSelectedReservation(null)}
-493:         />
-494:       )}
-495:     </Container>
-496:   );
-497: };
-498: 
-499: export default ReservationsGrid;
+210:     reservationMap.get(itemKey).push({
+211:       reservation: res,
+212:       startTime,
+213:       endTime,
+214:       timeUntilStart: startTime - currentTimeInMinutes,
+215:       timeUntilEnd: endTime - currentTimeInMinutes,
+216:     });
+217:   });
+218: 
+219:   // Process each seating item
+220:   allItems.forEach((seatingItem) => {
+221:     const itemKey = `${seatingItem.type === "table" ? "table" : "counter"}-${
+222:       seatingItem.id
+223:     }`;
+224:     const itemReservations = reservationMap.get(itemKey) || [];
+225: 
+226:     if (itemReservations.length === 0) {
+227:       // No reservations for this item
+228:       seatingItem.status = "empty";
+229:       seatingItem.priority = Number.MAX_SAFE_INTEGER;
+230:       return;
+231:     }
+232: 
+233:     // Find upcoming, current, and past reservations
+234:     const upcomingReservations = itemReservations.filter(
+235:       (r) => r.timeUntilStart > 0
+236:     );
+237:     const currentReservations = itemReservations.filter(
+238:       (r) => r.timeUntilStart <= 0 && r.timeUntilEnd > 0
+239:     );
+240:     const pastReservations = itemReservations.filter(
+241:       (r) => r.timeUntilEnd <= 0
+242:     );
+243: 
+244:     // Determine status and priority
+245:     if (upcomingReservations.length > 0) {
+246:       // Sort by closest upcoming start time
+247:       upcomingReservations.sort((a, b) => a.timeUntilStart - b.timeUntilStart);
+248:       seatingItem.status = "upcoming";
+249:       seatingItem.priority = upcomingReservations[0].timeUntilStart;
+250:       seatingItem.reservation = upcomingReservations[0].reservation;
+251:     } else if (currentReservations.length > 0) {
+252:       // Sort by start time (earliest first)
+253:       currentReservations.sort((a, b) => a.startTime - b.startTime);
+254:       seatingItem.status = "current";
+255:       seatingItem.priority = 1000000 + currentReservations[0].startTime;
+256:       seatingItem.reservation = currentReservations[0].reservation;
+257:     } else if (pastReservations.length > 0) {
+258:       // Sort by most recent end time
+259:       pastReservations.sort((a, b) => b.endTime - a.endTime);
+260:       seatingItem.status = "past";
+261:       seatingItem.priority = 2000000 + (1440 - pastReservations[0].endTime);
+262:       seatingItem.reservation = pastReservations[0].reservation;
+263:     }
+264:   });
+265: 
+266:   // Sort the items
+267:   allItems.sort((a, b) => {
+268:     // First sort by reservation status
+269:     const statusOrder = { upcoming: 0, current: 1, past: 2, empty: 3 };
+270:     const aStatus = a.status || "empty";
+271:     const bStatus = b.status || "empty";
+272: 
+273:     if (statusOrder[aStatus] !== statusOrder[bStatus]) {
+274:       return statusOrder[aStatus] - statusOrder[bStatus];
+275:     }
+276: 
+277:     // Then sort by priority within the same status
+278:     if (a.priority !== b.priority) {
+279:       return a.priority - b.priority;
+280:     }
+281: 
+282:     // As a last resort, sort by ID
+283:     return a.id.toString().localeCompare(b.id.toString());
+284:   });
+285: 
+286:   return allItems;
+287: };
+288: 
+289: // Main component
+290: const ReservationsGrid = ({
+291:   timeSlots,
+292:   tables,
+293:   counterSeats,
+294:   reservations,
+295: }) => {
+296:   const {
+297:     TABLE_WIDTH,
+298:     COUNTER_SEAT_WIDTH,
+299:     TIME_COLUMN_WIDTH,
+300:     TIME_SLOT_HEIGHT,
+301:   } = GRID_CONSTANTS;
+302: 
+303:   // State variables
+304:   const [selectedReservation, setSelectedReservation] = useState(null);
+305:   const [currentTimePosition, setCurrentTimePosition] = useState(0);
+306:   const [expandedTableIds, setExpandedTableIds] = useState(new Set());
+307:   const [expandedCounterSeatIds, setExpandedCounterSeatIds] = useState(
+308:     new Set()
+309:   );
+310:   const [areAllExpanded, setAreAllExpanded] = useState(false);
+311:   const [sortedItems, setSortedItems] = useState([]);
+312: 
+313:   // Refs for synchronized scrolling
+314:   const verticalScrollRef = useRef(null);
+315:   const leftColumnScrollRef = useRef(null);
+316:   const headerScrollRef = useRef(null);
+317:   const gridScrollRef = useRef(null);
+318: 
+319:   // Calculate content height
+320:   const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
+321: 
+322:   // Sort items
+323:   useEffect(() => {
+324:     setSortedItems(sortSeatingItems(tables, counterSeats, reservations));
+325:   }, [tables, counterSeats, reservations]);
+326: 
+327:   useEffect(() => {
+328:     const updateTimePosition = () => {
+329:       setCurrentTimePosition(calculateCurrentTimePosition(TIME_SLOT_HEIGHT));
+330:     };
+331: 
+332:     updateTimePosition();
+333:     const interval = setInterval(updateTimePosition, 60000);
+334:     return () => clearInterval(interval);
+335:   }, [TIME_SLOT_HEIGHT]);
+336: 
+337:   // Toggle expansion functions
+338:   const toggleExpand = (id, isTable) => {
+339:     if (isTable) {
+340:       setExpandedTableIds((prevExpanded) => {
+341:         const newExpanded = new Set(prevExpanded);
+342:         if (newExpanded.has(id)) {
+343:           newExpanded.delete(id);
+344:         } else {
+345:           newExpanded.add(id);
+346:         }
+347:         return newExpanded;
+348:       });
+349:     } else {
+350:       setExpandedCounterSeatIds((prevExpanded) => {
+351:         const newExpanded = new Set(prevExpanded);
+352:         if (newExpanded.has(id)) {
+353:           newExpanded.delete(id);
+354:         } else {
+355:           newExpanded.add(id);
+356:         }
+357:         return newExpanded;
+358:       });
+359:     }
+360:   };
+361: 
+362:   const toggleAllTables = () => {
+363:     if (areAllExpanded) {
+364:       setExpandedTableIds(new Set());
+365:       setExpandedCounterSeatIds(new Set());
+366:     } else {
+367:       setExpandedTableIds(new Set(tables.map((table) => getItemId(table))));
+368:       setExpandedCounterSeatIds(
+369:         new Set(counterSeats.map((seat) => getItemId(seat)))
+370:       );
+371:     }
+372:     setAreAllExpanded(!areAllExpanded);
+373:   };
+374: 
+375:   // Scroll sync handlers
+376:   const handleHeaderScroll = (event) => {
+377:     if (gridScrollRef.current) {
+378:       gridScrollRef.current.scrollTo({
+379:         x: event.nativeEvent.contentOffset.x,
+380:         y: 0,
+381:         animated: false,
+382:       });
+383:     }
+384:   };
+385: 
+386:   const handleGridScroll = (event) => {
+387:     if (headerScrollRef.current) {
+388:       headerScrollRef.current.scrollTo({
+389:         x: event.nativeEvent.contentOffset.x,
+390:         y: 0,
+391:         animated: false,
+392:       });
+393:     }
+394:   };
+395: 
+396:   const handleVerticalScroll = (event) => {
+397:     if (leftColumnScrollRef.current) {
+398:       leftColumnScrollRef.current.scrollTo({
+399:         y: event.nativeEvent.contentOffset.y,
+400:         animated: false,
+401:       });
+402:     }
+403:   };
+404: 
+405:   const handleLeftColumnScroll = (event) => {
+406:     if (verticalScrollRef.current) {
+407:       verticalScrollRef.current.scrollTo({
+408:         y: event.nativeEvent.contentOffset.y,
+409:         animated: false,
+410:       });
+411:     }
+412:   };
+413: 
+414:   // Handle reservation click
+415:   const handleReservationPress = (reservation) => {
+416:     setSelectedReservation(
+417:       selectedReservation?.id === reservation.id ? null : reservation
+418:     );
+419:   };
+420: 
+421:   // Render header for an item (either table or counter seat)
+422:   const renderItemHeader = (seatingItem) => {
+423:     const { item, type, id } = seatingItem;
+424: 
+425:     if (type === "table") {
+426:       const isExpanded = expandedTableIds.has(id);
+427:       return (
+428:         <TableHeader
+429:           key={`table-${id}`}
+430:           table={item}
+431:           isExpanded={isExpanded}
+432:           toggleExpand={() => toggleExpand(id, true)}
+433:           width={TABLE_WIDTH}
+434:         />
+435:       );
+436:     } else {
+437:       // counter seat
+438:       const isExpanded = expandedCounterSeatIds.has(id);
+439:       return (
+440:         <CounterSeatHeader
+441:           key={`counter-${id}`}
+442:           seat={item}
+443:           isExpanded={isExpanded}
+444:           toggleExpand={() => toggleExpand(id, false)}
+445:           width={COUNTER_SEAT_WIDTH}
+446:         />
+447:       );
+448:     }
+449:   };
+450: 
+451:   // Get width for an item based on its type
+452:   const getItemWidth = (type) => {
+453:     return type === "table" ? TABLE_WIDTH : COUNTER_SEAT_WIDTH;
+454:   };
+455: 
+456:   // Render reservation blocks
+457:   const renderReservationBlocks = () => {
+458:     // Create a map of the sorted item positions
+459:     const itemPositionMap = {};
+460:     let currentPosition = 0;
+461: 
+462:     sortedItems.forEach((item) => {
+463:       const key = `${item.type === "table" ? "table" : "counter"}-${item.id}`;
+464:       itemPositionMap[key] = currentPosition;
+465:       currentPosition += getItemWidth(item.type);
+466:     });
+467: 
+468:     return (
+469:       <>
+470:         {reservations.map((reservation) => {
+471:           const isCounterSeat = !!reservation.isCounterSeat;
+472:           const itemKey = isCounterSeat
+473:             ? `counter-${reservation.counterSeatId}`
+474:             : `table-${reservation.tableId}`;
+475: 
+476:           // Skip if we don't have this item in our sorted grid
+477:           if (!(itemKey in itemPositionMap)) {
+478:             return null;
+479:           }
+480: 
+481:           // Calculate position based on the sortedItems layout
+482:           const position = itemPositionMap[itemKey];
+483:           const width = isCounterSeat ? COUNTER_SEAT_WIDTH : TABLE_WIDTH;
+484: 
+485:           return (
+486:             <ReservationBlockStyled
+487:               key={`res-${reservation.id}`}
+488:               left={position}
+489:               top={
+490:                 ((parseTimeToMinutes(reservation.time) - 9 * 60) / 30) *
+491:                 TIME_SLOT_HEIGHT
+492:               }
+493:               width={width}
+494:               height={(reservation.duration / 30) * TIME_SLOT_HEIGHT}
+495:               status={reservation.status}
+496:               onPress={() => handleReservationPress(reservation)}
+497:               isSelected={selectedReservation?.id === reservation.id}
+498:             >
+499:               <ReservationName>{reservation.customerName}</ReservationName>
+500:               <ReservationDetails>
+501:                 {reservation.time} • {reservation.people}{" "}
+502:                 {reservation.people > 1 ? "people" : "person"}
+503:               </ReservationDetails>
+504:             </ReservationBlockStyled>
+505:           );
+506:         })}
+507:       </>
+508:     );
+509:   };
+510: 
+511:   // Define the reservation block styled component directly here
+512:   // This ensures we have access to the component for use in the render method
+513:   const ReservationBlockStyled = styled.TouchableOpacity`
+514:     position: absolute;
+515:     left: ${(props) => props.left}px;
+516:     top: ${(props) => props.top}px;
+517:     width: ${(props) => props.width}px;
+518:     height: ${(props) => props.height}px;
+519:     background-color: ${(props) =>
+520:       props.status === "confirmed"
+521:         ? "#b3ffb3"
+522:         : props.status === "pending"
+523:         ? "#ffd11a"
+524:         : "#ff4d4d"};
+525:     border-radius: 5px;
+526:     padding: ${(props) => props.theme.space[1]};
+527:     justify-content: space-between;
+528:     z-index: 1;
+529:     box-sizing: border-box;
+530:     ${(props) =>
+531:       props.isSelected &&
+532:       `
+533:       border-width: 2px;
+534:       border-color: blue;
+535:     `}
+536:   `;
+537: 
+538:   const ReservationName = styled(CustomText)`
+539:     font-size: ${(props) => props.theme.fontSizes.caption};
+540:     font-weight: ${(props) => props.theme.fontWeights.bold};
+541:   `;
+542: 
+543:   const ReservationDetails = styled(CustomText)`
+544:     font-size: ${(props) => props.theme.fontSizes.caption};
+545:   `;
+546: 
+547:   return (
+548:     <Container>
+549:       <MainGrid>
+550:         <HeaderContainer>
+551:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
+552:             <TimeColumnHeader width={TIME_COLUMN_WIDTH}>
+553:               <ExpandAllButton
+554:                 onPress={toggleAllTables}
+555:                 areAllExpanded={areAllExpanded}
+556:               >
+557:                 <ExpandAllButtonText>
+558:                   {areAllExpanded ? "Collapse All" : "Expand All"}
+559:                 </ExpandAllButtonText>
+560:               </ExpandAllButton>
+561:             </TimeColumnHeader>
+562:           </LeftColumnContainer>
+563: 
+564:           <HeaderScrollView
+565:             ref={headerScrollRef}
+566:             horizontal
+567:             showsHorizontalScrollIndicator={false}
+568:             onScroll={handleHeaderScroll}
+569:             scrollEventThrottle={16}
+570:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
+571:           >
+572:             <HeaderRow>
+573:               {/* Render all items headers in sorted order */}
+574:               {sortedItems.map(renderItemHeader)}
+575:             </HeaderRow>
+576:           </HeaderScrollView>
+577:         </HeaderContainer>
+578: 
+579:         <ContentContainer>
+580:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
+581:             <ScrollView
+582:               ref={leftColumnScrollRef}
+583:               onScroll={handleLeftColumnScroll}
+584:               scrollEventThrottle={16}
+585:               showsVerticalScrollIndicator={true}
+586:             >
+587:               <TimeColumn width={TIME_COLUMN_WIDTH}>
+588:                 {timeSlots.map((time) => (
+589:                   <TimeSlot
+590:                     key={time}
+591:                     height={TIME_SLOT_HEIGHT}
+592:                     width={TIME_COLUMN_WIDTH}
+593:                   >
+594:                     <TimeText>{time}</TimeText>
+595:                   </TimeSlot>
+596:                 ))}
+597:               </TimeColumn>
+598:             </ScrollView>
+599:           </LeftColumnContainer>
+600: 
+601:           <HeaderScrollView
+602:             ref={gridScrollRef}
+603:             horizontal
+604:             showsHorizontalScrollIndicator={false}
+605:             onScroll={handleGridScroll}
+606:             scrollEventThrottle={16}
+607:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
+608:           >
+609:             <ScrollView
+610:               ref={verticalScrollRef}
+611:               onScroll={handleVerticalScroll}
+612:               scrollEventThrottle={16}
+613:               showsVerticalScrollIndicator={false}
+614:             >
+615:               <GridContainer style={{ height: contentHeight }}>
+616:                 {/* Render grid cells */}
+617:                 <View style={{ flexDirection: "row" }}>
+618:                   {/* All item columns */}
+619:                   {sortedItems.map((seatingItem, index) => (
+620:                     <View
+621:                       key={`item-col-${seatingItem.id}`}
+622:                       style={{ width: getItemWidth(seatingItem.type) }}
+623:                     >
+624:                       {timeSlots.map((time, timeIndex) => (
+625:                         <View
+626:                           key={`item-cell-${index}-${timeIndex}`}
+627:                           style={{
+628:                             width: getItemWidth(seatingItem.type),
+629:                             height: TIME_SLOT_HEIGHT,
+630:                             borderLeftWidth: 1,
+631:                             borderBottomWidth: 1,
+632:                             borderLeftColor: "#e1e1e1",
+633:                             borderBottomColor: "#e1e1e1",
+634:                           }}
+635:                         />
+636:                       ))}
+637:                     </View>
+638:                   ))}
+639:                 </View>
+640: 
+641:                 {}
+642:                 <CurrentTimeLine style={{ top: currentTimePosition }}>
+643:                   <CurrentTimeIndicator />
+644:                 </CurrentTimeLine>
+645: 
+646:                 {}
+647:                 {renderReservationBlocks()}
+648:               </GridContainer>
+649:             </ScrollView>
+650:           </HeaderScrollView>
+651:         </ContentContainer>
+652:       </MainGrid>
+653: 
+654:       {}
+655:       {selectedReservation && (
+656:         <ReservationDetailsPanel
+657:           reservation={selectedReservation}
+658:           onClose={() => setSelectedReservation(null)}
+659:         />
+660:       )}
+661:     </Container>
+662:   );
+663: };
+664: 
+665: export default ReservationsGrid;
 
 ================
 File: src/features/merchant/reservations/screens/MerchantReservationsScreen.js
