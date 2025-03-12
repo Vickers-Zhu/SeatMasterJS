@@ -1,27 +1,21 @@
-const PendingBorder = styled(Animated.View)`
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-width: 3px;
-  border-color: #ff6b6b;
-  border-radius: 7px;
-  z-index: 2;
-  pointer-events: none;
-`; // src/features/merchant/reservations/components/ReservationsGrid.js
+// src/features/merchant/reservations/components/ReservationsGrid.js
 import React, { useState, useRef, useEffect } from "react";
 import { View, ScrollView, Animated, TouchableOpacity } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 import styled from "styled-components/native";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 
 import {
   TableHeader,
   CounterSeatHeader,
-  ReservationBlock,
   ReservationDetailsPanel,
 } from "./ReservationComponents";
+
+import {
+  PendingBorder,
+  ReservationBlockStyled,
+  ReservationName,
+  ReservationDetails,
+} from "./ReservationComponents.styles";
 
 const GRID_CONSTANTS = {
   TABLE_WIDTH: 100,
@@ -33,44 +27,6 @@ const GRID_CONSTANTS = {
 const Container = styled.View`
   flex: 1;
   background-color: ${(props) => props.theme.colors.bg.primary};
-`;
-
-// Simple tab bar
-const TabBar = styled.View`
-  flex-direction: row;
-  padding: 8px;
-  background-color: ${(props) => props.theme.colors.bg.primary};
-`;
-
-const Tab = styled.TouchableOpacity`
-  flex: 1;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  padding-vertical: 10px;
-  background-color: ${(props) => props.theme.colors.bg.primary};
-  border-width: ${(props) => (props.active ? "2px" : "1px")};
-  border-color: ${(props) =>
-    props.active
-      ? props.theme.colors.ui.primary
-      : props.theme.colors.ui.tertiary};
-  border-radius: 6px;
-  margin-horizontal: 4px;
-  elevation: ${(props) => (props.active ? 2 : 0)};
-  shadow-opacity: ${(props) => (props.active ? 0.2 : 0)};
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const TabText = styled(CustomText)`
-  margin-left: 8px;
-  font-size: ${(props) => props.theme.fontSizes.body};
-  color: ${(props) =>
-    props.active
-      ? props.theme.colors.ui.primary
-      : props.theme.colors.text.secondary};
-  font-weight: ${(props) => (props.active ? "bold" : "normal")};
 `;
 
 const MainGrid = styled.View`
@@ -370,6 +326,7 @@ const ReservationsGrid = ({
   tables,
   counterSeats,
   reservations,
+  isSmartSorting = false,
 }) => {
   const {
     TABLE_WIDTH,
@@ -387,7 +344,6 @@ const ReservationsGrid = ({
   );
   const [areAllExpanded, setAreAllExpanded] = useState(false);
   const [sortedItems, setSortedItems] = useState([]);
-  const [isSmartSorting, setIsSmartSorting] = useState(true);
 
   // Pre-compute sorted items for both sorting methods to eliminate waiting when switching
   const [traditionalSorted, setTraditionalSorted] = useState([]);
@@ -605,16 +561,18 @@ const ReservationsGrid = ({
           const position = itemPositionMap[itemKey];
           const width = isCounterSeat ? COUNTER_SEAT_WIDTH : TABLE_WIDTH;
 
+          const top =
+            ((parseTimeToMinutes(reservation.time) - 9 * 60) / 30) *
+            TIME_SLOT_HEIGHT;
+          const height = (reservation.duration / 30) * TIME_SLOT_HEIGHT;
+
           return (
             <ReservationBlockStyled
               key={`res-${reservation.id}`}
               left={position}
-              top={
-                ((parseTimeToMinutes(reservation.time) - 9 * 60) / 30) *
-                TIME_SLOT_HEIGHT
-              }
+              top={top}
               width={width}
-              height={(reservation.duration / 30) * TIME_SLOT_HEIGHT}
+              height={height}
               status={reservation.status}
               onPress={() => handleReservationPress(reservation)}
               isSelected={selectedReservation?.id === reservation.id}
@@ -635,73 +593,8 @@ const ReservationsGrid = ({
     );
   };
 
-  // Define the reservation block styled component directly here
-  // This ensures we have access to the component for use in the render method
-  const ReservationBlockStyled = styled.TouchableOpacity`
-    position: absolute;
-    left: ${(props) => props.left}px;
-    top: ${(props) => props.top}px;
-    width: ${(props) => props.width}px;
-    height: ${(props) => props.height}px;
-    background-color: ${(props) =>
-      props.status === "confirmed"
-        ? "#b3ffb3"
-        : props.status === "pending"
-        ? "#ffd11a"
-        : "#ff4d4d"};
-    border-radius: 5px;
-    padding: ${(props) => props.theme.space[1]};
-    justify-content: space-between;
-    z-index: 1;
-    box-sizing: border-box;
-    ${(props) =>
-      props.isSelected &&
-      !props.isPending &&
-      `
-      border-width: 2px;
-      border-color: blue;
-    `}
-  `;
-
-  const ReservationName = styled(CustomText)`
-    font-size: ${(props) => props.theme.fontSizes.caption};
-    font-weight: ${(props) => props.theme.fontWeights.bold};
-  `;
-
-  const ReservationDetails = styled(CustomText)`
-    font-size: ${(props) => props.theme.fontSizes.caption};
-  `;
-
   return (
     <Container>
-      {/* Simple Tab Bar */}
-      <TabBar>
-        <Tab
-          active={!isSmartSorting}
-          onPress={() => setIsSmartSorting(false)}
-          activeOpacity={0.6}
-        >
-          <MaterialIcons
-            name="format-list-numbered"
-            size={20}
-            color={!isSmartSorting ? "#262626" : "#757575"}
-          />
-          <TabText active={!isSmartSorting}>Traditional</TabText>
-        </Tab>
-        <Tab
-          active={isSmartSorting}
-          onPress={() => setIsSmartSorting(true)}
-          activeOpacity={0.6}
-        >
-          <MaterialIcons
-            name="auto-awesome"
-            size={20}
-            color={isSmartSorting ? "#262626" : "#757575"}
-          />
-          <TabText active={isSmartSorting}>Smart</TabText>
-        </Tab>
-      </TabBar>
-
       <MainGrid>
         <HeaderContainer>
           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
