@@ -134,7 +134,9 @@ src/
       reservations/
         components/
           ReservationComponents.js
+          ReservationComponents.styles.js
           ReservationsGrid.js
+          ReservationsMailbox.js
         screens/
           MerchantReservationsScreen.js
         utils/
@@ -3676,1208 +3678,1629 @@ File: src/features/merchant/reservations/components/ReservationComponents.js
   6:   SharedTableItem,
   7:   SharedChairItem,
   8: } from "../../dashboard/components/SharedTableStyles.styles";
-  9: 
- 10: 
- 11: const ReservationBlockStyled = styled(TouchableOpacity)`
- 12:   position: absolute;
- 13:   left: ${(props) => props.left}px;
- 14:   top: ${(props) => props.top}px;
- 15:   width: ${(props) => props.width}px;
- 16:   height: ${(props) => props.height}px;
- 17:   background-color: ${(props) =>
- 18:     props.status === "confirmed"
- 19:       ? "#b3ffb3"
- 20:       : props.status === "pending"
- 21:       ? "#ffd11a"
- 22:       : "#ff4d4d"};
- 23:   border-radius: 5px;
- 24:   padding: ${(props) => props.theme.space[1]};
- 25:   justify-content: space-between;
- 26:   z-index: 1;
- 27:   box-sizing: border-box;
- 28:   ${(props) =>
- 29:     props.isSelected &&
- 30:     `
- 31:     border-width: 2px;
- 32:     border-color: blue;
- 33:   `}
- 34: `;
- 35: 
- 36: const ReservationName = styled(CustomText)`
- 37:   font-size: ${(props) => props.theme.fontSizes.caption};
- 38:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 39: `;
- 40: 
- 41: const ReservationDetails = styled(CustomText)`
- 42:   font-size: ${(props) => props.theme.fontSizes.caption};
+  9: import {
+ 10:   ReservationBlockStyled,
+ 11:   ReservationName,
+ 12:   ReservationDetails,
+ 13:   ReservationPanelStyled,
+ 14:   ButtonsRow,
+ 15:   ActionButton,
+ 16: } from "./ReservationComponents.styles";
+ 17: 
+ 18: 
+ 19: const TableColumn = styled.View`
+ 20:   width: ${(props) => props.width}px;
+ 21:   align-items: center;
+ 22:   border-left-width: 1px;
+ 23:   border-left-color: ${(props) => props.theme.colors.ui.tertiary};
+ 24:   padding-horizontal: ${(props) => props.theme.space[2]};
+ 25:   padding-vertical: ${(props) => props.theme.space[2]};
+ 26: `;
+ 27: 
+ 28: const TableItem = styled.View`
+ 29:   align-items: center;
+ 30: `;
+ 31: 
+ 32: const ChairsGrid = styled.View`
+ 33:   flex-direction: column;
+ 34:   justify-content: center;
+ 35:   width: 58px;
+ 36:   margin-top: ${(props) => props.theme.space[1]};
+ 37: `;
+ 38: 
+ 39: const ChairRow = styled.View`
+ 40:   flex-direction: row;
+ 41:   justify-content: center;
+ 42:   margin-top: 1px;
  43: `;
  44: 
- 45: const TableColumn = styled.View`
- 46:   width: ${(props) => props.width}px;
- 47:   align-items: center;
- 48:   border-left-width: 1px;
- 49:   border-left-color: ${(props) => props.theme.colors.ui.tertiary};
- 50:   padding-horizontal: ${(props) => props.theme.space[2]};
- 51:   padding-vertical: ${(props) => props.theme.space[2]};
- 52: `;
- 53: 
- 54: const TableItem = styled.View`
- 55:   align-items: center;
- 56: `;
- 57: 
- 58: const ChairsGrid = styled.View`
- 59:   flex-direction: column;
- 60:   justify-content: center;
- 61:   width: 58px;
- 62:   margin-top: ${(props) => props.theme.space[1]};
- 63: `;
- 64: 
- 65: const ChairRow = styled.View`
- 66:   flex-direction: row;
- 67:   justify-content: center;
- 68:   margin-top: 1px;
+ 45: const ChairItem = styled(SharedChairItem)`
+ 46:   width: 22px;
+ 47:   height: 22px;
+ 48:   margin: 2px;
+ 49:   justify-content: center;
+ 50:   align-items: center;
+ 51: `;
+ 52: 
+ 53: const ShowMoreButton = styled(TouchableOpacity)`
+ 54:   background-color: ${(props) => props.theme.colors.ui.tertiary};
+ 55:   padding-horizontal: ${(props) => props.theme.space[1]};
+ 56:   padding-vertical: 2px;
+ 57:   border-radius: 4px;
+ 58:   margin-top: 4px;
+ 59:   align-items: center;
+ 60: `;
+ 61: 
+ 62: const ButtonText = styled(CustomText)`
+ 63:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 64: `;
+ 65: 
+ 66: const CounterSeatHeaderContainer = styled.View`
+ 67:   align-items: center;
+ 68:   justify-content: center;
+ 69:   margin-top: 40px;
+ 70: `;
+ 71: 
+ 72: const CounterSeatTitle = styled(CustomText)`
+ 73:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 74:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 75:   margin-bottom: ${(props) => props.theme.space[1]};
+ 76: `;
+ 77: 
+ 78: // Helper function for arranging chairs in rows
+ 79: const getChairRows = (chairs, perRow = 2) => {
+ 80:   const rows = [];
+ 81:   for (let i = 0; i < chairs.length; i += perRow) {
+ 82:     rows.push(chairs.slice(i, i + perRow));
+ 83:   }
+ 84:   return rows;
+ 85: };
+ 86: 
+ 87: // Calculate the position of a reservation block
+ 88: const getReservationPosition = (
+ 89:   reservation,
+ 90:   tables,
+ 91:   counterSeats,
+ 92:   tableWidth,
+ 93:   counterSeatWidth,
+ 94:   timeSlotHeight,
+ 95:   isCounterSeat = false
+ 96: ) => {
+ 97:   if (isCounterSeat) {
+ 98:     const counterSeatIndex = counterSeats.findIndex(
+ 99:       (seat) => seat.id === reservation.counterSeatId
+100:     );
+101: 
+102:     if (counterSeatIndex === -1) return null;
+103: 
+104:     const left = counterSeatIndex * counterSeatWidth;
+105: 
+106:     const [hours, minutes] = reservation.time.split(":").map(Number);
+107:     const startMinutes = (hours - 9) * 60 + minutes;
+108:     const top = (startMinutes / 30) * timeSlotHeight;
+109: 
+110:     const height = (reservation.duration / 30) * timeSlotHeight;
+111: 
+112:     return {
+113:       left,
+114:       top,
+115:       width: counterSeatWidth,
+116:       height,
+117:     };
+118:   } else {
+119:     const tableIndex = tables.findIndex(
+120:       (table) => table.id === reservation.tableId
+121:     );
+122: 
+123:     if (tableIndex === -1) return null;
+124: 
+125:     const counterSeatsWidth = counterSeats.length * counterSeatWidth;
+126:     const left = counterSeatsWidth + tableIndex * tableWidth;
+127: 
+128:     const [hours, minutes] = reservation.time.split(":").map(Number);
+129:     const startMinutes = (hours - 9) * 60 + minutes;
+130:     const top = (startMinutes / 30) * timeSlotHeight;
+131: 
+132:     const height = (reservation.duration / 30) * timeSlotHeight;
+133: 
+134:     return {
+135:       left,
+136:       top,
+137:       width: tableWidth,
+138:       height,
+139:     };
+140:   }
+141: };
+142: 
+143: // Table header component
+144: export const TableHeader = ({
+145:   table,
+146:   isExpanded,
+147:   toggleExpand,
+148:   width = 100,
+149: }) => {
+150:   const chairRows = getChairRows(table.chairs, 2);
+151:   const rowsToDisplay = isExpanded ? chairRows : chairRows.slice(0, 1);
+152: 
+153:   return (
+154:     <TableColumn style={{ width }}>
+155:       <TableItem>
+156:         <SharedTableItem
+157:           status={table.status || "empty"}
+158:           style={{ width: width * 0.6, height: 40 }}
+159:         >
+160:           <CustomText variant="caption">Table {table.id}</CustomText>
+161:         </SharedTableItem>
+162: 
+163:         <ChairsGrid>
+164:           {rowsToDisplay.map((row, rowIndex) => (
+165:             <ChairRow key={`row-${rowIndex}`}>
+166:               {row.map((chair) => {
+167:                 const chairData =
+168:                   typeof chair === "object"
+169:                     ? chair
+170:                     : { id: chair, status: "empty" };
+171:                 return (
+172:                   <ChairItem key={chairData.id} status={chairData.status}>
+173:                     <CustomText
+174:                       variant="caption"
+175:                       style={{ fontSize: 10, fontWeight: "bold" }}
+176:                     >
+177:                       {chairData.id.toString().slice(-1)}
+178:                     </CustomText>
+179:                   </ChairItem>
+180:                 );
+181:               })}
+182:             </ChairRow>
+183:           ))}
+184:         </ChairsGrid>
+185: 
+186:         {table.chairs.length > 2 && (
+187:           <ShowMoreButton onPress={toggleExpand}>
+188:             <ButtonText>
+189:               {isExpanded ? "Hide" : `+${table.chairs.length - 2}`}
+190:             </ButtonText>
+191:           </ShowMoreButton>
+192:         )}
+193:       </TableItem>
+194:     </TableColumn>
+195:   );
+196: };
+197: 
+198: export const CounterSeatHeader = ({
+199:   seat,
+200:   isExpanded,
+201:   toggleExpand,
+202:   width = 60,
+203: }) => {
+204:   const seatData =
+205:     typeof seat === "object" ? seat : { id: seat, status: "empty" };
+206: 
+207:   return (
+208:     <TableColumn style={{ width }}>
+209:       <CounterSeatHeaderContainer>
+210:         <CounterSeatTitle></CounterSeatTitle>
+211:         <ChairItem status={seatData.status || "empty"} onPress={toggleExpand}>
+212:           <CustomText
+213:             variant="caption"
+214:             style={{ fontSize: 10, fontWeight: "bold" }}
+215:           >
+216:             {seatData.id}
+217:           </CustomText>
+218:         </ChairItem>
+219:       </CounterSeatHeaderContainer>
+220:     </TableColumn>
+221:   );
+222: };
+223: 
+224: export const ReservationBlock = ({
+225:   reservation,
+226:   tables,
+227:   counterSeats,
+228:   isSelected,
+229:   onPress,
+230:   tableWidth,
+231:   counterSeatWidth,
+232:   timeSlotHeight,
+233:   isCounterSeat = false,
+234: }) => {
+235:   const position = getReservationPosition(
+236:     reservation,
+237:     tables,
+238:     counterSeats,
+239:     tableWidth,
+240:     counterSeatWidth,
+241:     timeSlotHeight,
+242:     isCounterSeat
+243:   );
+244: 
+245:   if (!position) return null;
+246: 
+247:   return (
+248:     <ReservationBlockStyled
+249:       {...position}
+250:       status={reservation.status}
+251:       onPress={() => onPress(reservation)}
+252:       isSelected={isSelected}
+253:     >
+254:       <ReservationName>{reservation.customerName}</ReservationName>
+255:       <ReservationDetails>
+256:         {reservation.time} • {reservation.people}{" "}
+257:         {reservation.people > 1 ? "people" : "person"}
+258:       </ReservationDetails>
+259:     </ReservationBlockStyled>
+260:   );
+261: };
+262: 
+263: export const ReservationDetailsPanel = ({ reservation, onClose }) => {
+264:   if (!reservation) return null;
+265: 
+266:   return (
+267:     <ReservationPanelStyled>
+268:       <CustomText variant="title">{reservation.customerName}</CustomText>
+269:       <View style={{ marginTop: 8 }}>
+270:         <CustomText variant="body">
+271:           Time: {reservation.time} ({reservation.duration} min)
+272:         </CustomText>
+273:         <CustomText variant="body">
+274:           Party: {reservation.people}{" "}
+275:           {reservation.people > 1 ? "people" : "person"}
+276:         </CustomText>
+277: 
+278:         {reservation.isCounterSeat ? (
+279:           <CustomText variant="body">
+280:             Counter Seat: {reservation.counterSeatId}
+281:           </CustomText>
+282:         ) : (
+283:           <CustomText variant="body">
+284:             Table: {reservation.tableId} • Chairs:{" "}
+285:             {reservation.chairs ? reservation.chairs.join(", ") : ""}
+286:           </CustomText>
+287:         )}
+288: 
+289:         {reservation.note && (
+290:           <CustomText variant="body">Note: {reservation.note}</CustomText>
+291:         )}
+292:       </View>
+293: 
+294:       <View style={{ marginTop: 16 }}>
+295:         <ButtonsRow>
+296:           <ActionButton variant="confirm" onPress={onClose}>
+297:             <CustomText>Confirm</CustomText>
+298:           </ActionButton>
+299:           <ActionButton onPress={onClose}>
+300:             <CustomText>Cancel</CustomText>
+301:           </ActionButton>
+302:         </ButtonsRow>
+303:       </View>
+304:     </ReservationPanelStyled>
+305:   );
+306: };
+
+================
+File: src/features/merchant/reservations/components/ReservationComponents.styles.js
+================
+  1: import styled from "styled-components/native";
+  2: import { TouchableOpacity, View } from "react-native";
+  3: import { Animated } from "react-native";
+  4: import { CustomText } from "../../../../components/CustomText/CustomText";
+  5: 
+  6: 
+  7: export const TabBar = styled.View`
+  8:   flex-direction: row;
+  9:   padding: 8px;
+ 10:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 11: `;
+ 12: 
+ 13: export const Tab = styled.TouchableOpacity`
+ 14:   flex: 1;
+ 15:   flex-direction: row;
+ 16:   align-items: center;
+ 17:   justify-content: center;
+ 18:   padding-vertical: 10px;
+ 19:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 20:   border-width: ${(props) => (props.active ? "2px" : "1px")};
+ 21:   border-color: ${(props) =>
+ 22:     props.active
+ 23:       ? props.theme.colors.ui.primary
+ 24:       : props.theme.colors.ui.tertiary};
+ 25:   border-radius: 6px;
+ 26:   margin-horizontal: 4px;
+ 27:   elevation: ${(props) => (props.active ? 2 : 0)};
+ 28:   shadow-opacity: ${(props) => (props.active ? 0.2 : 0)};
+ 29:   shadow-radius: 4px;
+ 30:   shadow-color: #000;
+ 31:   shadow-offset: 0px 2px;
+ 32: `;
+ 33: 
+ 34: export const TabText = styled(CustomText)`
+ 35:   margin-left: 8px;
+ 36:   font-size: ${(props) => props.theme.fontSizes.body};
+ 37:   color: ${(props) =>
+ 38:     props.active
+ 39:       ? props.theme.colors.ui.primary
+ 40:       : props.theme.colors.text.secondary};
+ 41:   font-weight: ${(props) => (props.active ? "bold" : "normal")};
+ 42: `;
+ 43: 
+ 44: // Reservation visual elements
+ 45: export const ReservationBlockStyled = styled(TouchableOpacity)`
+ 46:   position: absolute;
+ 47:   left: ${(props) => props.left}px;
+ 48:   top: ${(props) => props.top}px;
+ 49:   width: ${(props) => props.width}px;
+ 50:   height: ${(props) => props.height}px;
+ 51:   background-color: ${(props) =>
+ 52:     props.status === "confirmed"
+ 53:       ? "#b3ffb3"
+ 54:       : props.status === "pending"
+ 55:       ? "#ffd11a"
+ 56:       : "#ff4d4d"};
+ 57:   border-radius: 5px;
+ 58:   padding: ${(props) => props.theme.space[1]};
+ 59:   justify-content: space-between;
+ 60:   z-index: 1;
+ 61:   box-sizing: border-box;
+ 62:   ${(props) =>
+ 63:     props.isSelected &&
+ 64:     !props.isPending &&
+ 65:     `
+ 66:     border-width: 2px;
+ 67:     border-color: blue;
+ 68:   `}
  69: `;
  70: 
- 71: const ChairItem = styled(SharedChairItem)`
- 72:   width: 22px;
- 73:   height: 22px;
- 74:   margin: 2px;
- 75:   justify-content: center;
- 76:   align-items: center;
- 77: `;
- 78: 
- 79: const ShowMoreButton = styled(TouchableOpacity)`
- 80:   background-color: ${(props) => props.theme.colors.ui.tertiary};
- 81:   padding-horizontal: ${(props) => props.theme.space[1]};
- 82:   padding-vertical: 2px;
- 83:   border-radius: 4px;
- 84:   margin-top: 4px;
- 85:   align-items: center;
- 86: `;
- 87: 
- 88: const ButtonText = styled(CustomText)`
- 89:   font-size: ${(props) => props.theme.fontSizes.caption};
- 90: `;
- 91: 
- 92: const CounterSeatHeaderContainer = styled.View`
- 93:   align-items: center;
- 94:   justify-content: center;
- 95:   margin-top: 40px;
- 96: `;
- 97: 
- 98: const CounterSeatTitle = styled(CustomText)`
- 99:   font-size: ${(props) => props.theme.fontSizes.caption};
-100:   font-weight: ${(props) => props.theme.fontWeights.bold};
-101:   margin-bottom: ${(props) => props.theme.space[1]};
-102: `;
-103: 
-104: const ReservationPanelStyled = styled.View`
-105:   background-color: ${(props) => props.theme.colors.bg.primary};
-106:   padding: ${(props) => props.theme.space[3]};
-107:   border-top-width: 1px;
-108:   border-top-color: ${(props) => props.theme.colors.ui.tertiary};
-109:   elevation: 5;
-110:   shadow-color: #000;
-111:   shadow-offset: 0px -2px;
-112:   shadow-opacity: 0.1;
-113:   shadow-radius: 4px;
-114: `;
-115: 
-116: const ButtonsRow = styled.View`
-117:   flex-direction: row;
-118:   justify-content: space-between;
-119: `;
-120: 
-121: const ActionButton = styled(TouchableOpacity)`
-122:   padding: ${(props) => props.theme.space[2]};
-123:   border-radius: 5px;
-124:   min-width: 100px;
-125:   align-items: center;
-126:   background-color: ${(props) =>
-127:     props.variant === "confirm" ? "#b3ffb3" : "#ff4d4d"};
-128: `;
-129: 
-130: // Helper function for arranging chairs in rows
-131: const getChairRows = (chairs, perRow = 2) => {
-132:   const rows = [];
-133:   for (let i = 0; i < chairs.length; i += perRow) {
-134:     rows.push(chairs.slice(i, i + perRow));
-135:   }
-136:   return rows;
-137: };
-138: 
-139: // Calculate the position of a reservation block
-140: const getReservationPosition = (
-141:   reservation,
-142:   tables,
-143:   counterSeats,
-144:   tableWidth,
-145:   counterSeatWidth,
-146:   timeSlotHeight,
-147:   isCounterSeat = false
-148: ) => {
-149:   if (isCounterSeat) {
-150:     const counterSeatIndex = counterSeats.findIndex(
-151:       (seat) => seat.id === reservation.counterSeatId
-152:     );
-153: 
-154:     if (counterSeatIndex === -1) return null;
-155: 
-156:     const left = counterSeatIndex * counterSeatWidth;
-157: 
-158:     const [hours, minutes] = reservation.time.split(":").map(Number);
-159:     const startMinutes = (hours - 9) * 60 + minutes;
-160:     const top = (startMinutes / 30) * timeSlotHeight;
-161: 
-162:     const height = (reservation.duration / 30) * timeSlotHeight;
-163: 
-164:     return {
-165:       left,
-166:       top,
-167:       width: counterSeatWidth,
-168:       height,
-169:     };
-170:   } else {
-171:     const tableIndex = tables.findIndex(
-172:       (table) => table.id === reservation.tableId
-173:     );
-174: 
-175:     if (tableIndex === -1) return null;
-176: 
-177:     const counterSeatsWidth = counterSeats.length * counterSeatWidth;
-178:     const left = counterSeatsWidth + tableIndex * tableWidth;
-179: 
-180:     const [hours, minutes] = reservation.time.split(":").map(Number);
-181:     const startMinutes = (hours - 9) * 60 + minutes;
-182:     const top = (startMinutes / 30) * timeSlotHeight;
-183: 
-184:     const height = (reservation.duration / 30) * timeSlotHeight;
-185: 
-186:     return {
-187:       left,
-188:       top,
-189:       width: tableWidth,
-190:       height,
-191:     };
-192:   }
-193: };
-194: 
-195: // Table header component
-196: export const TableHeader = ({
-197:   table,
-198:   isExpanded,
-199:   toggleExpand,
-200:   width = 100,
-201: }) => {
-202:   const chairRows = getChairRows(table.chairs, 2);
-203:   const rowsToDisplay = isExpanded ? chairRows : chairRows.slice(0, 1);
-204: 
-205:   return (
-206:     <TableColumn style={{ width }}>
-207:       <TableItem>
-208:         <SharedTableItem
-209:           status={table.status || "empty"}
-210:           style={{ width: width * 0.6, height: 40 }}
-211:         >
-212:           <CustomText variant="caption">Table {table.id}</CustomText>
-213:         </SharedTableItem>
-214: 
-215:         <ChairsGrid>
-216:           {rowsToDisplay.map((row, rowIndex) => (
-217:             <ChairRow key={`row-${rowIndex}`}>
-218:               {row.map((chair) => {
-219:                 const chairData =
-220:                   typeof chair === "object"
-221:                     ? chair
-222:                     : { id: chair, status: "empty" };
-223:                 return (
-224:                   <ChairItem key={chairData.id} status={chairData.status}>
-225:                     <CustomText
-226:                       variant="caption"
-227:                       style={{ fontSize: 10, fontWeight: "bold" }}
-228:                     >
-229:                       {chairData.id.toString().slice(-1)}
-230:                     </CustomText>
-231:                   </ChairItem>
-232:                 );
-233:               })}
-234:             </ChairRow>
-235:           ))}
-236:         </ChairsGrid>
-237: 
-238:         {table.chairs.length > 2 && (
-239:           <ShowMoreButton onPress={toggleExpand}>
-240:             <ButtonText>
-241:               {isExpanded ? "Hide" : `+${table.chairs.length - 2}`}
-242:             </ButtonText>
-243:           </ShowMoreButton>
-244:         )}
-245:       </TableItem>
-246:     </TableColumn>
-247:   );
-248: };
-249: 
-250: 
-251: export const CounterSeatHeader = ({
-252:   seat,
-253:   isExpanded,
-254:   toggleExpand,
-255:   width = 60,
-256: }) => {
-257:   const seatData =
-258:     typeof seat === "object" ? seat : { id: seat, status: "empty" };
-259: 
-260:   return (
-261:     <TableColumn style={{ width }}>
-262:       <CounterSeatHeaderContainer>
-263:         <CounterSeatTitle></CounterSeatTitle>
-264:         <ChairItem status={seatData.status || "empty"} onPress={toggleExpand}>
-265:           <CustomText
-266:             variant="caption"
-267:             style={{ fontSize: 10, fontWeight: "bold" }}
-268:           >
-269:             {seatData.id}
-270:           </CustomText>
-271:         </ChairItem>
-272:       </CounterSeatHeaderContainer>
-273:     </TableColumn>
-274:   );
-275: };
-276: 
-277: 
-278: export const ReservationBlock = ({
-279:   reservation,
-280:   tables,
-281:   counterSeats,
-282:   isSelected,
-283:   onPress,
-284:   tableWidth,
-285:   counterSeatWidth,
-286:   timeSlotHeight,
-287:   isCounterSeat = false,
-288: }) => {
-289:   const position = getReservationPosition(
-290:     reservation,
-291:     tables,
-292:     counterSeats,
-293:     tableWidth,
-294:     counterSeatWidth,
-295:     timeSlotHeight,
-296:     isCounterSeat
-297:   );
-298: 
-299:   if (!position) return null;
-300: 
-301:   return (
-302:     <ReservationBlockStyled
-303:       {...position}
-304:       status={reservation.status}
-305:       onPress={() => onPress(reservation)}
-306:       isSelected={isSelected}
-307:     >
-308:       <ReservationName>{reservation.customerName}</ReservationName>
-309:       <ReservationDetails>
-310:         {reservation.time} • {reservation.people}{" "}
-311:         {reservation.people > 1 ? "people" : "person"}
-312:       </ReservationDetails>
-313:     </ReservationBlockStyled>
-314:   );
-315: };
-316: 
-317: 
-318: export const ReservationDetailsPanel = ({ reservation, onClose }) => {
-319:   if (!reservation) return null;
-320: 
-321:   return (
-322:     <ReservationPanelStyled>
-323:       <CustomText variant="title">{reservation.customerName}</CustomText>
-324:       <View style={{ marginTop: 8 }}>
-325:         <CustomText variant="body">
-326:           Time: {reservation.time} ({reservation.duration} min)
-327:         </CustomText>
-328:         <CustomText variant="body">
-329:           Party: {reservation.people}{" "}
-330:           {reservation.people > 1 ? "people" : "person"}
-331:         </CustomText>
-332: 
-333:         {reservation.isCounterSeat ? (
-334:           <CustomText variant="body">
-335:             Counter Seat: {reservation.counterSeatId}
-336:           </CustomText>
-337:         ) : (
-338:           <CustomText variant="body">
-339:             Table: {reservation.tableId} • Chairs:{" "}
-340:             {reservation.chairs.join(", ")}
-341:           </CustomText>
-342:         )}
-343: 
-344:         {reservation.note && (
-345:           <CustomText variant="body">Note: {reservation.note}</CustomText>
-346:         )}
-347:       </View>
-348: 
-349:       <View style={{ marginTop: 16 }}>
-350:         <ButtonsRow>
-351:           <ActionButton variant="confirm" onPress={onClose}>
-352:             <CustomText>Confirm</CustomText>
-353:           </ActionButton>
-354:           <ActionButton onPress={onClose}>
-355:             <CustomText>Cancel</CustomText>
-356:           </ActionButton>
-357:         </ButtonsRow>
-358:       </View>
-359:     </ReservationPanelStyled>
-360:   );
-361: };
+ 71: export const PendingBorder = styled(Animated.View)`
+ 72:   position: absolute;
+ 73:   top: -2px;
+ 74:   left: -2px;
+ 75:   right: -2px;
+ 76:   bottom: -2px;
+ 77:   border-width: 3px;
+ 78:   border-color: #ff6b6b;
+ 79:   border-radius: 7px;
+ 80:   z-index: 2;
+ 81:   pointer-events: none;
+ 82: `;
+ 83: 
+ 84: export const ReservationName = styled(CustomText)`
+ 85:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 86:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 87: `;
+ 88: 
+ 89: export const ReservationDetails = styled(CustomText)`
+ 90:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 91: `;
+ 92: 
+ 93: // Panel styles for details display
+ 94: export const ReservationPanelStyled = styled.View`
+ 95:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 96:   padding: ${(props) => props.theme.space[3]};
+ 97:   border-top-width: 1px;
+ 98:   border-top-color: ${(props) => props.theme.colors.ui.tertiary};
+ 99:   elevation: 5;
+100:   shadow-color: #000;
+101:   shadow-offset: 0px -2px;
+102:   shadow-opacity: 0.1;
+103:   shadow-radius: 4px;
+104: `;
+105: 
+106: export const ButtonsRow = styled.View`
+107:   flex-direction: row;
+108:   justify-content: space-between;
+109: `;
+110: 
+111: export const ActionButton = styled(TouchableOpacity)`
+112:   padding: ${(props) => props.theme.space[2]};
+113:   border-radius: 5px;
+114:   min-width: 100px;
+115:   align-items: center;
+116:   background-color: ${(props) =>
+117:     props.variant === "confirm" ? "#b3ffb3" : "#ff4d4d"};
+118: `;
 
 ================
 File: src/features/merchant/reservations/components/ReservationsGrid.js
 ================
-  1: const PendingBorder = styled(Animated.View)`
-  2:   position: absolute;
-  3:   top: -2px;
-  4:   left: -2px;
-  5:   right: -2px;
-  6:   bottom: -2px;
-  7:   border-width: 3px;
-  8:   border-color: #ff6b6b;
-  9:   border-radius: 7px;
- 10:   z-index: 2;
- 11:   pointer-events: none;
- 12: `;
- 13: import React, { useState, useRef, useEffect } from "react";
- 14: import { View, ScrollView, Animated, TouchableOpacity } from "react-native";
- 15: import { MaterialIcons } from "@expo/vector-icons";
- 16: import styled from "styled-components/native";
- 17: import { CustomText } from "../../../../components/CustomText/CustomText";
+  1: import React, { useState, useRef, useEffect } from "react";
+  2: import { View, ScrollView, Animated, TouchableOpacity } from "react-native";
+  3: import styled from "styled-components/native";
+  4: import { CustomText } from "../../../../components/CustomText/CustomText";
+  5: 
+  6: import {
+  7:   TableHeader,
+  8:   CounterSeatHeader,
+  9:   ReservationDetailsPanel,
+ 10: } from "./ReservationComponents";
+ 11: 
+ 12: import {
+ 13:   PendingBorder,
+ 14:   ReservationBlockStyled,
+ 15:   ReservationName,
+ 16:   ReservationDetails,
+ 17: } from "./ReservationComponents.styles";
  18: 
- 19: import {
- 20:   TableHeader,
- 21:   CounterSeatHeader,
- 22:   ReservationBlock,
- 23:   ReservationDetailsPanel,
- 24: } from "./ReservationComponents";
+ 19: const GRID_CONSTANTS = {
+ 20:   TABLE_WIDTH: 100,
+ 21:   COUNTER_SEAT_WIDTH: 60,
+ 22:   TIME_COLUMN_WIDTH: 60,
+ 23:   TIME_SLOT_HEIGHT: 30,
+ 24: };
  25: 
- 26: const GRID_CONSTANTS = {
- 27:   TABLE_WIDTH: 100,
- 28:   COUNTER_SEAT_WIDTH: 60,
- 29:   TIME_COLUMN_WIDTH: 60,
- 30:   TIME_SLOT_HEIGHT: 30,
- 31: };
- 32: 
- 33: const Container = styled.View`
- 34:   flex: 1;
- 35:   background-color: ${(props) => props.theme.colors.bg.primary};
- 36: `;
- 37: 
- 38: // Simple tab bar
- 39: const TabBar = styled.View`
- 40:   flex-direction: row;
- 41:   padding: 8px;
- 42:   background-color: ${(props) => props.theme.colors.bg.primary};
- 43: `;
- 44: 
- 45: const Tab = styled.TouchableOpacity`
- 46:   flex: 1;
- 47:   flex-direction: row;
- 48:   align-items: center;
- 49:   justify-content: center;
- 50:   padding-vertical: 10px;
- 51:   background-color: ${(props) => props.theme.colors.bg.primary};
- 52:   border-width: ${(props) => (props.active ? "2px" : "1px")};
- 53:   border-color: ${(props) =>
- 54:     props.active
- 55:       ? props.theme.colors.ui.primary
- 56:       : props.theme.colors.ui.tertiary};
- 57:   border-radius: 6px;
- 58:   margin-horizontal: 4px;
- 59:   elevation: ${(props) => (props.active ? 2 : 0)};
- 60:   shadow-opacity: ${(props) => (props.active ? 0.2 : 0)};
- 61:   shadow-radius: 4px;
- 62:   shadow-color: #000;
- 63:   shadow-offset: 0px 2px;
- 64: `;
- 65: 
- 66: const TabText = styled(CustomText)`
- 67:   margin-left: 8px;
- 68:   font-size: ${(props) => props.theme.fontSizes.body};
- 69:   color: ${(props) =>
- 70:     props.active
- 71:       ? props.theme.colors.ui.primary
- 72:       : props.theme.colors.text.secondary};
- 73:   font-weight: ${(props) => (props.active ? "bold" : "normal")};
- 74: `;
- 75: 
- 76: const MainGrid = styled.View`
- 77:   flex: 1;
- 78:   flex-direction: column;
- 79: `;
- 80: 
- 81: const HeaderContainer = styled.View`
- 82:   background-color: ${(props) => props.theme.colors.bg.primary};
- 83:   border-bottom-width: 1px;
- 84:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
- 85:   position: relative;
- 86:   z-index: 2;
- 87: `;
- 88: 
- 89: const LeftColumnContainer = styled.View`
- 90:   position: absolute;
- 91:   left: 0;
- 92:   top: 0;
- 93:   bottom: 0;
- 94:   width: ${({ width }) => width}px;
- 95:   background-color: ${(props) => props.theme.colors.bg.primary};
- 96:   z-index: 10;
- 97:   border-right-width: 1px;
- 98:   border-right-color: ${(props) => props.theme.colors.ui.tertiary};
- 99: `;
-100: 
-101: const TimeColumn = styled.View`
-102:   width: ${({ width }) => width}px;
+ 26: const Container = styled.View`
+ 27:   flex: 1;
+ 28:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 29: `;
+ 30: 
+ 31: const MainGrid = styled.View`
+ 32:   flex: 1;
+ 33:   flex-direction: column;
+ 34: `;
+ 35: 
+ 36: const HeaderContainer = styled.View`
+ 37:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 38:   border-bottom-width: 1px;
+ 39:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
+ 40:   position: relative;
+ 41:   z-index: 2;
+ 42: `;
+ 43: 
+ 44: const LeftColumnContainer = styled.View`
+ 45:   position: absolute;
+ 46:   left: 0;
+ 47:   top: 0;
+ 48:   bottom: 0;
+ 49:   width: ${({ width }) => width}px;
+ 50:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 51:   z-index: 10;
+ 52:   border-right-width: 1px;
+ 53:   border-right-color: ${(props) => props.theme.colors.ui.tertiary};
+ 54: `;
+ 55: 
+ 56: const TimeColumn = styled.View`
+ 57:   width: ${({ width }) => width}px;
+ 58: `;
+ 59: 
+ 60: const TimeSlot = styled.View`
+ 61:   height: ${({ height }) => height}px;
+ 62:   border-bottom-width: 1px;
+ 63:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
+ 64:   justify-content: center;
+ 65:   align-items: center;
+ 66: `;
+ 67: 
+ 68: const TimeText = styled(CustomText)`
+ 69:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 70: `;
+ 71: 
+ 72: const ExpandAllButton = styled.TouchableOpacity`
+ 73:   background-color: ${(props) => props.theme.colors.ui.disabled};
+ 74:   padding: 4px 8px;
+ 75:   border-radius: 12px;
+ 76:   margin-vertical: 8px;
+ 77:   align-items: center;
+ 78:   justify-content: center;
+ 79:   shadow-color: #000;
+ 80:   shadow-offset: 0px 2px;
+ 81:   shadow-opacity: 0.1;
+ 82:   shadow-radius: 3px;
+ 83:   elevation: 2;
+ 84:   width: 80%;
+ 85:   align-self: center;
+ 86: `;
+ 87: 
+ 88: const ExpandAllButtonText = styled(CustomText)`
+ 89:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 90:   color: ${(props) => props.theme.colors.text.primary};
+ 91:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 92: `;
+ 93: 
+ 94: const ContentContainer = styled.View`
+ 95:   flex: 1;
+ 96:   flex-direction: row;
+ 97:   position: relative;
+ 98: `;
+ 99: 
+100: const GridContainer = styled.View`
+101:   flex: 1;
+102:   position: relative;
 103: `;
 104: 
-105: const TimeSlot = styled.View`
-106:   height: ${({ height }) => height}px;
-107:   border-bottom-width: 1px;
-108:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
-109:   justify-content: center;
-110:   align-items: center;
+105: const TimeColumnHeader = styled.View`
+106:   width: ${({ width }) => width}px;
+107:   padding: ${(props) => props.theme.space[2]};
+108:   padding-top: 40px;
+109:   align-items: center;
+110:   justify-content: center;
+111:   background-color: ${(props) => props.theme.colors.bg.primary};
+112: `;
+113: 
+114: const HeaderScrollView = styled.ScrollView`
+115:   flex-direction: row;
+116: `;
+117: 
+118: const HeaderRow = styled.View`
+119:   flex-direction: row;
+120:   padding-vertical: ${(props) => props.theme.space[2]};
+121: `;
+122: 
+123: const CurrentTimeLine = styled(Animated.View)`
+124:   position: absolute;
+125:   left: 0;
+126:   right: 0;
+127:   height: 2px;
+128:   background-color: #ff3b30;
+129:   z-index: 5;
+130: `;
+131: 
+132: const CurrentTimeIndicator = styled.View`
+133:   position: absolute;
+134:   left: -5px;
+135:   width: 10px;
+136:   height: 10px;
+137:   border-radius: 5px;
+138:   background-color: #ff3b30;
+139:   top: -4px;
+140: `;
+141: 
+142: // Utility functions
+143: const calculateCurrentTimePosition = (timeSlotHeight) => {
+144:   const now = new Date();
+145:   const hours = now.getHours();
+146:   const minutes = now.getMinutes();
+147: 
+148:   if (hours < 9 || (hours === 22 && minutes > 30) || hours > 22) {
+149:     return -100;
+150:   }
+151: 
+152:   const minutesSince9AM = (hours - 9) * 60 + minutes;
+153:   return (minutesSince9AM / 30) * timeSlotHeight;
+154: };
+155: 
+156: // Parse time strings into minutes since midnight
+157: const parseTimeToMinutes = (timeStr) => {
+158:   const [hours, minutes] = timeStr.split(":").map(Number);
+159:   return hours * 60 + minutes;
+160: };
+161: 
+162: // Get ID from item consistently
+163: const getItemId = (item) => {
+164:   return typeof item === "object" ? item.id : item;
+165: };
+166: 
+167: // Sort all seating items (tables and counter seats) using smart sorting
+168: const smartSortSeatingItems = (tables, counterSeats, reservations) => {
+169:   if (!tables || !counterSeats || !reservations) {
+170:     return [];
+171:   }
+172: 
+173:   // Create a unified array with type information
+174:   const allItems = [
+175:     ...tables.map((table) => ({
+176:       item: table,
+177:       type: "table",
+178:       id: getItemId(table),
+179:     })),
+180:     ...counterSeats.map((seat) => ({
+181:       item: seat,
+182:       type: "counterSeat",
+183:       id: getItemId(seat),
+184:     })),
+185:   ];
+186: 
+187:   const now = new Date();
+188:   const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+189: 
+190:   // Create a reservation map for quick lookups
+191:   const reservationMap = new Map();
+192: 
+193:   // Process all reservations and organize by table/seat ID
+194:   reservations.forEach((res) => {
+195:     const itemKey = res.isCounterSeat
+196:       ? `counter-${res.counterSeatId}`
+197:       : `table-${res.tableId}`;
+198: 
+199:     if (!reservationMap.has(itemKey)) {
+200:       reservationMap.set(itemKey, []);
+201:     }
+202: 
+203:     const startTime = parseTimeToMinutes(res.time);
+204:     const endTime = startTime + res.duration;
+205: 
+206:     reservationMap.get(itemKey).push({
+207:       reservation: res,
+208:       startTime,
+209:       endTime,
+210:       timeUntilStart: startTime - currentTimeInMinutes,
+211:       timeUntilEnd: endTime - currentTimeInMinutes,
+212:     });
+213:   });
+214: 
+215:   // Process each seating item
+216:   allItems.forEach((seatingItem) => {
+217:     const itemKey = `${seatingItem.type === "table" ? "table" : "counter"}-${
+218:       seatingItem.id
+219:     }`;
+220:     const itemReservations = reservationMap.get(itemKey) || [];
+221: 
+222:     if (itemReservations.length === 0) {
+223:       // No reservations for this item
+224:       seatingItem.status = "empty";
+225:       seatingItem.priority = Number.MAX_SAFE_INTEGER;
+226:       return;
+227:     }
+228: 
+229:     // Find upcoming, current, and past reservations
+230:     const upcomingReservations = itemReservations.filter(
+231:       (r) => r.timeUntilStart > 0
+232:     );
+233:     const currentReservations = itemReservations.filter(
+234:       (r) => r.timeUntilStart <= 0 && r.timeUntilEnd > 0
+235:     );
+236:     const pastReservations = itemReservations.filter(
+237:       (r) => r.timeUntilEnd <= 0
+238:     );
+239: 
+240:     // Determine status and priority
+241:     if (upcomingReservations.length > 0) {
+242:       // Sort by closest upcoming start time
+243:       upcomingReservations.sort((a, b) => a.timeUntilStart - b.timeUntilStart);
+244:       seatingItem.status = "upcoming";
+245:       seatingItem.priority = upcomingReservations[0].timeUntilStart;
+246:       seatingItem.reservation = upcomingReservations[0].reservation;
+247:     } else if (currentReservations.length > 0) {
+248:       // Sort by start time (earliest first)
+249:       currentReservations.sort((a, b) => a.startTime - b.startTime);
+250:       seatingItem.status = "current";
+251:       seatingItem.priority = 1000000 + currentReservations[0].startTime;
+252:       seatingItem.reservation = currentReservations[0].reservation;
+253:     } else if (pastReservations.length > 0) {
+254:       // Sort by most recent end time
+255:       pastReservations.sort((a, b) => b.endTime - a.endTime);
+256:       seatingItem.status = "past";
+257:       seatingItem.priority = 2000000 + (1440 - pastReservations[0].endTime);
+258:       seatingItem.reservation = pastReservations[0].reservation;
+259:     }
+260:   });
+261: 
+262:   // Sort the items
+263:   allItems.sort((a, b) => {
+264:     // First sort by reservation status
+265:     const statusOrder = { upcoming: 0, current: 1, past: 2, empty: 3 };
+266:     const aStatus = a.status || "empty";
+267:     const bStatus = b.status || "empty";
+268: 
+269:     if (statusOrder[aStatus] !== statusOrder[bStatus]) {
+270:       return statusOrder[aStatus] - statusOrder[bStatus];
+271:     }
+272: 
+273:     // Then sort by priority within the same status
+274:     if (a.priority !== b.priority) {
+275:       return a.priority - b.priority;
+276:     }
+277: 
+278:     // As a last resort, sort by ID
+279:     return a.id.toString().localeCompare(b.id.toString());
+280:   });
+281: 
+282:   return allItems;
+283: };
+284: 
+285: // Traditional sorting: Tables first, then counter seats, both sorted by ID
+286: const traditionalSortSeatingItems = (tables, counterSeats) => {
+287:   if (!tables || !counterSeats) {
+288:     return [];
+289:   }
+290: 
+291:   // Create a unified array with type information, sort by ID numerically
+292:   const tableItems = tables
+293:     .map((table) => ({
+294:       item: table,
+295:       type: "table",
+296:       id: getItemId(table),
+297:     }))
+298:     .sort((a, b) => {
+299:       // Extract numeric part for sorting
+300:       const aNum = parseInt(a.id.toString().replace(/\D/g, "")) || 0;
+301:       const bNum = parseInt(b.id.toString().replace(/\D/g, "")) || 0;
+302:       return aNum - bNum;
+303:     });
+304: 
+305:   const counterItems = counterSeats
+306:     .map((seat) => ({
+307:       item: seat,
+308:       type: "counterSeat",
+309:       id: getItemId(seat),
+310:     }))
+311:     .sort((a, b) => {
+312:       // Extract numeric part for sorting
+313:       const aNum = parseInt(a.id.toString().replace(/\D/g, "")) || 0;
+314:       const bNum = parseInt(b.id.toString().replace(/\D/g, "")) || 0;
+315:       return aNum - bNum;
+316:     });
+317: 
+318:   // Tables first, then counter seats
+319:   return [...tableItems, ...counterItems];
+320: };
+321: 
+322: // Main component
+323: const ReservationsGrid = ({
+324:   timeSlots,
+325:   tables,
+326:   counterSeats,
+327:   reservations,
+328:   isSmartSorting = false,
+329: }) => {
+330:   const {
+331:     TABLE_WIDTH,
+332:     COUNTER_SEAT_WIDTH,
+333:     TIME_COLUMN_WIDTH,
+334:     TIME_SLOT_HEIGHT,
+335:   } = GRID_CONSTANTS;
+336: 
+337:   // State variables
+338:   const [selectedReservation, setSelectedReservation] = useState(null);
+339:   const [currentTimePosition, setCurrentTimePosition] = useState(0);
+340:   const [expandedTableIds, setExpandedTableIds] = useState(new Set());
+341:   const [expandedCounterSeatIds, setExpandedCounterSeatIds] = useState(
+342:     new Set()
+343:   );
+344:   const [areAllExpanded, setAreAllExpanded] = useState(false);
+345:   const [sortedItems, setSortedItems] = useState([]);
+346: 
+347:   // Pre-compute sorted items for both sorting methods to eliminate waiting when switching
+348:   const [traditionalSorted, setTraditionalSorted] = useState([]);
+349:   const [smartSorted, setSmartSorted] = useState([]);
+350: 
+351:   // Animation for breathing effect on pending reservations
+352:   const [breathingAnim] = useState(new Animated.Value(0.4));
+353: 
+354:   // Set up breathing animation
+355:   useEffect(() => {
+356:     // Create the breathing animation sequence
+357:     const breathe = () => {
+358:       Animated.sequence([
+359:         Animated.timing(breathingAnim, {
+360:           toValue: 1,
+361:           duration: 1000,
+362:           useNativeDriver: false, // Changed to false for border animation
+363:         }),
+364:         Animated.timing(breathingAnim, {
+365:           toValue: 0.4,
+366:           duration: 1000,
+367:           useNativeDriver: false, // Changed to false for border animation
+368:         }),
+369:       ]).start(() => breathe()); // Restart animation when complete
+370:     };
+371: 
+372:     // Start the animation
+373:     breathe();
+374: 
+375:     // Clean up
+376:     return () => breathingAnim.stopAnimation();
+377:   }, []);
+378: 
+379:   // Pre-compute all sorting options when data changes
+380:   useEffect(() => {
+381:     const traditional = traditionalSortSeatingItems(tables, counterSeats);
+382:     const smart = smartSortSeatingItems(tables, counterSeats, reservations);
+383: 
+384:     setTraditionalSorted(traditional);
+385:     setSmartSorted(smart);
+386: 
+387:     // Set the current sorted items based on selected mode
+388:     setSortedItems(isSmartSorting ? smart : traditional);
+389:   }, [tables, counterSeats, reservations]);
+390: 
+391:   // Update sorted items immediately when sorting method changes
+392:   useEffect(() => {
+393:     setSortedItems(isSmartSorting ? smartSorted : traditionalSorted);
+394:   }, [isSmartSorting, smartSorted, traditionalSorted]);
+395: 
+396:   useEffect(() => {
+397:     const updateTimePosition = () => {
+398:       setCurrentTimePosition(calculateCurrentTimePosition(TIME_SLOT_HEIGHT));
+399:     };
+400: 
+401:     updateTimePosition();
+402:     const interval = setInterval(updateTimePosition, 60000);
+403:     return () => clearInterval(interval);
+404:   }, [TIME_SLOT_HEIGHT]);
+405: 
+406:   // Toggle expansion functions
+407:   const toggleExpand = (id, isTable) => {
+408:     if (isTable) {
+409:       setExpandedTableIds((prevExpanded) => {
+410:         const newExpanded = new Set(prevExpanded);
+411:         if (newExpanded.has(id)) {
+412:           newExpanded.delete(id);
+413:         } else {
+414:           newExpanded.add(id);
+415:         }
+416:         return newExpanded;
+417:       });
+418:     } else {
+419:       setExpandedCounterSeatIds((prevExpanded) => {
+420:         const newExpanded = new Set(prevExpanded);
+421:         if (newExpanded.has(id)) {
+422:           newExpanded.delete(id);
+423:         } else {
+424:           newExpanded.add(id);
+425:         }
+426:         return newExpanded;
+427:       });
+428:     }
+429:   };
+430: 
+431:   const toggleAllTables = () => {
+432:     if (areAllExpanded) {
+433:       setExpandedTableIds(new Set());
+434:       setExpandedCounterSeatIds(new Set());
+435:     } else {
+436:       setExpandedTableIds(new Set(tables.map((table) => getItemId(table))));
+437:       setExpandedCounterSeatIds(
+438:         new Set(counterSeats.map((seat) => getItemId(seat)))
+439:       );
+440:     }
+441:     setAreAllExpanded(!areAllExpanded);
+442:   };
+443: 
+444:   // Scroll sync handlers
+445:   const handleHeaderScroll = (event) => {
+446:     if (gridScrollRef.current) {
+447:       gridScrollRef.current.scrollTo({
+448:         x: event.nativeEvent.contentOffset.x,
+449:         y: 0,
+450:         animated: false,
+451:       });
+452:     }
+453:   };
+454: 
+455:   const handleGridScroll = (event) => {
+456:     if (headerScrollRef.current) {
+457:       headerScrollRef.current.scrollTo({
+458:         x: event.nativeEvent.contentOffset.x,
+459:         y: 0,
+460:         animated: false,
+461:       });
+462:     }
+463:   };
+464: 
+465:   const handleVerticalScroll = (event) => {
+466:     if (leftColumnScrollRef.current) {
+467:       leftColumnScrollRef.current.scrollTo({
+468:         y: event.nativeEvent.contentOffset.y,
+469:         animated: false,
+470:       });
+471:     }
+472:   };
+473: 
+474:   const handleLeftColumnScroll = (event) => {
+475:     if (verticalScrollRef.current) {
+476:       verticalScrollRef.current.scrollTo({
+477:         y: event.nativeEvent.contentOffset.y,
+478:         animated: false,
+479:       });
+480:     }
+481:   };
+482: 
+483:   // Handle reservation click
+484:   const handleReservationPress = (reservation) => {
+485:     setSelectedReservation(
+486:       selectedReservation?.id === reservation.id ? null : reservation
+487:     );
+488:   };
+489: 
+490:   // Refs for synchronized scrolling
+491:   const verticalScrollRef = useRef(null);
+492:   const leftColumnScrollRef = useRef(null);
+493:   const headerScrollRef = useRef(null);
+494:   const gridScrollRef = useRef(null);
+495: 
+496:   // Calculate content height
+497:   const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
+498: 
+499:   // Render header for an item (either table or counter seat)
+500:   const renderItemHeader = (seatingItem) => {
+501:     const { item, type, id } = seatingItem;
+502: 
+503:     if (type === "table") {
+504:       const isExpanded = expandedTableIds.has(id);
+505:       return (
+506:         <TableHeader
+507:           key={`table-${id}`}
+508:           table={item}
+509:           isExpanded={isExpanded}
+510:           toggleExpand={() => toggleExpand(id, true)}
+511:           width={TABLE_WIDTH}
+512:         />
+513:       );
+514:     } else {
+515:       // counter seat
+516:       const isExpanded = expandedCounterSeatIds.has(id);
+517:       return (
+518:         <CounterSeatHeader
+519:           key={`counter-${id}`}
+520:           seat={item}
+521:           isExpanded={isExpanded}
+522:           toggleExpand={() => toggleExpand(id, false)}
+523:           width={COUNTER_SEAT_WIDTH}
+524:         />
+525:       );
+526:     }
+527:   };
+528: 
+529:   // Get width for an item based on its type
+530:   const getItemWidth = (type) => {
+531:     return type === "table" ? TABLE_WIDTH : COUNTER_SEAT_WIDTH;
+532:   };
+533: 
+534:   // Render reservation blocks
+535:   const renderReservationBlocks = () => {
+536:     // Create a map of the sorted item positions
+537:     const itemPositionMap = {};
+538:     let currentPosition = 0;
+539: 
+540:     sortedItems.forEach((item) => {
+541:       const key = `${item.type === "table" ? "table" : "counter"}-${item.id}`;
+542:       itemPositionMap[key] = currentPosition;
+543:       currentPosition += getItemWidth(item.type);
+544:     });
+545: 
+546:     return (
+547:       <>
+548:         {reservations.map((reservation) => {
+549:           const isCounterSeat = !!reservation.isCounterSeat;
+550:           const itemKey = isCounterSeat
+551:             ? `counter-${reservation.counterSeatId}`
+552:             : `table-${reservation.tableId}`;
+553: 
+554:           // Skip if we don't have this item in our sorted grid
+555:           if (!(itemKey in itemPositionMap)) {
+556:             return null;
+557:           }
+558: 
+559:           // Calculate position based on the sortedItems layout
+560:           const position = itemPositionMap[itemKey];
+561:           const width = isCounterSeat ? COUNTER_SEAT_WIDTH : TABLE_WIDTH;
+562: 
+563:           const top =
+564:             ((parseTimeToMinutes(reservation.time) - 9 * 60) / 30) *
+565:             TIME_SLOT_HEIGHT;
+566:           const height = (reservation.duration / 30) * TIME_SLOT_HEIGHT;
+567: 
+568:           return (
+569:             <ReservationBlockStyled
+570:               key={`res-${reservation.id}`}
+571:               left={position}
+572:               top={top}
+573:               width={width}
+574:               height={height}
+575:               status={reservation.status}
+576:               onPress={() => handleReservationPress(reservation)}
+577:               isSelected={selectedReservation?.id === reservation.id}
+578:               isPending={reservation.status === "pending"}
+579:             >
+580:               {reservation.status === "pending" && (
+581:                 <PendingBorder style={{ opacity: breathingAnim }} />
+582:               )}
+583:               <ReservationName>{reservation.customerName}</ReservationName>
+584:               <ReservationDetails>
+585:                 {reservation.time} • {reservation.people}{" "}
+586:                 {reservation.people > 1 ? "people" : "person"}
+587:               </ReservationDetails>
+588:             </ReservationBlockStyled>
+589:           );
+590:         })}
+591:       </>
+592:     );
+593:   };
+594: 
+595:   return (
+596:     <Container>
+597:       <MainGrid>
+598:         <HeaderContainer>
+599:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
+600:             <TimeColumnHeader width={TIME_COLUMN_WIDTH}>
+601:               <ExpandAllButton
+602:                 onPress={toggleAllTables}
+603:                 areAllExpanded={areAllExpanded}
+604:               >
+605:                 <ExpandAllButtonText>
+606:                   {areAllExpanded ? "Collapse All" : "Expand All"}
+607:                 </ExpandAllButtonText>
+608:               </ExpandAllButton>
+609:             </TimeColumnHeader>
+610:           </LeftColumnContainer>
+611: 
+612:           <HeaderScrollView
+613:             ref={headerScrollRef}
+614:             horizontal
+615:             showsHorizontalScrollIndicator={false}
+616:             onScroll={handleHeaderScroll}
+617:             scrollEventThrottle={16}
+618:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
+619:           >
+620:             <HeaderRow>
+621:               {/* Render all items headers in sorted order */}
+622:               {sortedItems.map(renderItemHeader)}
+623:             </HeaderRow>
+624:           </HeaderScrollView>
+625:         </HeaderContainer>
+626: 
+627:         <ContentContainer>
+628:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
+629:             <ScrollView
+630:               ref={leftColumnScrollRef}
+631:               onScroll={handleLeftColumnScroll}
+632:               scrollEventThrottle={16}
+633:               showsVerticalScrollIndicator={true}
+634:             >
+635:               <TimeColumn width={TIME_COLUMN_WIDTH}>
+636:                 {timeSlots.map((time) => (
+637:                   <TimeSlot
+638:                     key={time}
+639:                     height={TIME_SLOT_HEIGHT}
+640:                     width={TIME_COLUMN_WIDTH}
+641:                   >
+642:                     <TimeText>{time}</TimeText>
+643:                   </TimeSlot>
+644:                 ))}
+645:               </TimeColumn>
+646:             </ScrollView>
+647:           </LeftColumnContainer>
+648: 
+649:           <HeaderScrollView
+650:             ref={gridScrollRef}
+651:             horizontal
+652:             showsHorizontalScrollIndicator={false}
+653:             onScroll={handleGridScroll}
+654:             scrollEventThrottle={16}
+655:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
+656:           >
+657:             <ScrollView
+658:               ref={verticalScrollRef}
+659:               onScroll={handleVerticalScroll}
+660:               scrollEventThrottle={16}
+661:               showsVerticalScrollIndicator={false}
+662:             >
+663:               <GridContainer style={{ height: contentHeight }}>
+664:                 {/* Render grid cells */}
+665:                 <View style={{ flexDirection: "row" }}>
+666:                   {/* All item columns */}
+667:                   {sortedItems.map((seatingItem, index) => (
+668:                     <View
+669:                       key={`item-col-${seatingItem.id}`}
+670:                       style={{ width: getItemWidth(seatingItem.type) }}
+671:                     >
+672:                       {timeSlots.map((time, timeIndex) => (
+673:                         <View
+674:                           key={`item-cell-${index}-${timeIndex}`}
+675:                           style={{
+676:                             width: getItemWidth(seatingItem.type),
+677:                             height: TIME_SLOT_HEIGHT,
+678:                             borderLeftWidth: 1,
+679:                             borderBottomWidth: 1,
+680:                             borderLeftColor: "#e1e1e1",
+681:                             borderBottomColor: "#e1e1e1",
+682:                           }}
+683:                         />
+684:                       ))}
+685:                     </View>
+686:                   ))}
+687:                 </View>
+688: 
+689:                 {}
+690:                 <CurrentTimeLine style={{ top: currentTimePosition }}>
+691:                   <CurrentTimeIndicator />
+692:                 </CurrentTimeLine>
+693: 
+694:                 {}
+695:                 {renderReservationBlocks()}
+696:               </GridContainer>
+697:             </ScrollView>
+698:           </HeaderScrollView>
+699:         </ContentContainer>
+700:       </MainGrid>
+701: 
+702:       {}
+703:       {selectedReservation && (
+704:         <ReservationDetailsPanel
+705:           reservation={selectedReservation}
+706:           onClose={() => setSelectedReservation(null)}
+707:         />
+708:       )}
+709:     </Container>
+710:   );
+711: };
+712: 
+713: export default ReservationsGrid;
+
+================
+File: src/features/merchant/reservations/components/ReservationsMailbox.js
+================
+  1: import React, { useState, useRef } from "react";
+  2: import {
+  3:   FlatList,
+  4:   Animated,
+  5:   View,
+  6:   Alert,
+  7:   TouchableOpacity,
+  8: } from "react-native";
+  9: import styled from "styled-components/native";
+ 10: import { CustomText } from "../../../../components/CustomText/CustomText";
+ 11: import { MaterialIcons } from "@expo/vector-icons";
+ 12: import { GestureHandlerRootView } from "react-native-gesture-handler";
+ 13: import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+ 14: 
+ 15: const Container = styled.View`
+ 16:   flex: 1;
+ 17:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 18: `;
+ 19: 
+ 20: const ReservationCard = styled(TouchableOpacity)`
+ 21:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 22:   border-radius: 8px;
+ 23:   margin: 8px 16px;
+ 24:   padding: 16px;
+ 25:   shadow-opacity: 0.1;
+ 26:   shadow-radius: 4px;
+ 27:   shadow-color: #000;
+ 28:   shadow-offset: 0px 2px;
+ 29:   elevation: 3;
+ 30:   border-left-width: 5px;
+ 31:   border-left-color: ${(props) => {
+ 32:     switch (props.status) {
+ 33:       case "pending":
+ 34:         return "#ffd11a";
+ 35:       case "confirmed":
+ 36:         return "#b3ffb3";
+ 37:       default:
+ 38:         return "#ff4d4d";
+ 39:     }
+ 40:   }};
+ 41: `;
+ 42: 
+ 43: const StatusIndicator = styled.View`
+ 44:   position: absolute;
+ 45:   right: 16px;
+ 46:   top: 16px;
+ 47:   border-radius: 4px;
+ 48:   padding: 4px 8px;
+ 49:   background-color: ${(props) => {
+ 50:     switch (props.status) {
+ 51:       case "pending":
+ 52:         return "#ffd11a";
+ 53:       case "confirmed":
+ 54:         return "#b3ffb3";
+ 55:       default:
+ 56:         return "#ff4d4d";
+ 57:     }
+ 58:   }};
+ 59: `;
+ 60: 
+ 61: const StatusText = styled(CustomText)`
+ 62:   font-size: 12px;
+ 63:   font-weight: bold;
+ 64:   color: ${(props) => {
+ 65:     switch (props.status) {
+ 66:       case "pending":
+ 67:         return "#a67f00";
+ 68:       case "confirmed":
+ 69:         return "#138000";
+ 70:       default:
+ 71:         return "#b30000";
+ 72:     }
+ 73:   }};
+ 74: `;
+ 75: 
+ 76: const CardTitle = styled(CustomText)`
+ 77:   font-size: 18px;
+ 78:   font-weight: bold;
+ 79:   margin-bottom: 8px;
+ 80:   margin-right: 80px;
+ 81: `;
+ 82: 
+ 83: const DetailRow = styled.View`
+ 84:   flex-direction: row;
+ 85:   align-items: center;
+ 86:   margin-vertical: 4px;
+ 87: `;
+ 88: 
+ 89: const DetailIcon = styled(MaterialIcons)`
+ 90:   margin-right: 8px;
+ 91: `;
+ 92: 
+ 93: const DetailText = styled(CustomText)`
+ 94:   font-size: 14px;
+ 95: `;
+ 96: 
+ 97: const SectionHeader = styled.View`
+ 98:   background-color: ${(props) => props.theme.colors.ui.tertiary};
+ 99:   padding: 8px 16px;
+100: `;
+101: 
+102: const SectionHeaderText = styled(CustomText)`
+103:   font-size: 16px;
+104:   font-weight: bold;
+105: `;
+106: 
+107: const SwipeHintContainer = styled.View`
+108:   padding: 16px;
+109:   align-items: center;
+110:   margin-bottom: 8px;
 111: `;
 112: 
-113: const TimeText = styled(CustomText)`
-114:   font-size: ${(props) => props.theme.fontSizes.caption};
-115: `;
-116: 
-117: const ExpandAllButton = styled.TouchableOpacity`
-118:   background-color: ${(props) => props.theme.colors.ui.disabled};
-119:   padding: 4px 8px;
-120:   border-radius: 12px;
-121:   margin-vertical: 8px;
-122:   align-items: center;
-123:   justify-content: center;
-124:   shadow-color: #000;
-125:   shadow-offset: 0px 2px;
-126:   shadow-opacity: 0.1;
-127:   shadow-radius: 3px;
-128:   elevation: 2;
-129:   width: 80%;
-130:   align-self: center;
-131: `;
-132: 
-133: const ExpandAllButtonText = styled(CustomText)`
-134:   font-size: ${(props) => props.theme.fontSizes.caption};
-135:   color: ${(props) => props.theme.colors.text.primary};
-136:   font-weight: ${(props) => props.theme.fontWeights.bold};
+113: const SwipeHintText = styled(CustomText)`
+114:   font-size: 14px;
+115:   color: ${(props) => props.theme.colors.text.secondary};
+116: `;
+117: 
+118: const SwipeActionContainer = styled(Animated.View)`
+119:   flex: 1;
+120:   align-items: center;
+121:   justify-content: center;
+122:   padding-horizontal: 20px;
+123:   background-color: ${(props) => props.backgroundColor};
+124: `;
+125: 
+126: const SwipeActionText = styled(CustomText)`
+127:   color: white;
+128:   font-weight: bold;
+129:   font-size: 16px;
+130: `;
+131: 
+132: const NoReservationsContainer = styled.View`
+133:   flex: 1;
+134:   justify-content: center;
+135:   align-items: center;
+136:   padding: 20px;
 137: `;
 138: 
-139: const ContentContainer = styled.View`
-140:   flex: 1;
-141:   flex-direction: row;
-142:   position: relative;
+139: const NoReservationsText = styled(CustomText)`
+140:   font-size: 16px;
+141:   color: ${(props) => props.theme.colors.text.secondary};
+142:   text-align: center;
 143: `;
 144: 
-145: const GridContainer = styled.View`
-146:   flex: 1;
-147:   position: relative;
-148: `;
-149: 
-150: const TimeColumnHeader = styled.View`
-151:   width: ${({ width }) => width}px;
-152:   padding: ${(props) => props.theme.space[2]};
-153:   padding-top: 40px;
-154:   align-items: center;
-155:   justify-content: center;
-156:   background-color: ${(props) => props.theme.colors.bg.primary};
-157: `;
-158: 
-159: const HeaderScrollView = styled.ScrollView`
-160:   flex-direction: row;
-161: `;
+145: const ReservationsMailbox = ({ reservations }) => {
+146:   const [expandedId, setExpandedId] = useState(null);
+147: 
+148:   // Create a reference to track the currently open swipeable
+149:   const swipeableRef = useRef(null);
+150: 
+151:   // Function to handle confirming a reservation
+152:   const handleConfirm = (id) => {
+153:     Alert.alert("Confirm Reservation", "Reservation has been confirmed.");
+154:     // Here you would update the reservation status in your state or database
+155:   };
+156: 
+157:   // Function to handle canceling a reservation
+158:   const handleCancel = (id) => {
+159:     Alert.alert("Cancel Reservation", "Reservation has been canceled.");
+160:     // Here you would update the reservation status in your state or database
+161:   };
 162: 
-163: const HeaderRow = styled.View`
-164:   flex-direction: row;
-165:   padding-vertical: ${(props) => props.theme.space[2]};
-166: `;
-167: 
-168: const CurrentTimeLine = styled(Animated.View)`
-169:   position: absolute;
-170:   left: 0;
-171:   right: 0;
-172:   height: 2px;
-173:   background-color: #ff3b30;
-174:   z-index: 5;
-175: `;
-176: 
-177: const CurrentTimeIndicator = styled.View`
-178:   position: absolute;
-179:   left: -5px;
-180:   width: 10px;
-181:   height: 10px;
-182:   border-radius: 5px;
-183:   background-color: #ff3b30;
-184:   top: -4px;
-185: `;
-186: 
-187: // Utility functions
-188: const calculateCurrentTimePosition = (timeSlotHeight) => {
-189:   const now = new Date();
-190:   const hours = now.getHours();
-191:   const minutes = now.getMinutes();
-192: 
-193:   if (hours < 9 || (hours === 22 && minutes > 30) || hours > 22) {
-194:     return -100;
-195:   }
-196: 
-197:   const minutesSince9AM = (hours - 9) * 60 + minutes;
-198:   return (minutesSince9AM / 30) * timeSlotHeight;
-199: };
-200: 
-201: // Parse time strings into minutes since midnight
-202: const parseTimeToMinutes = (timeStr) => {
-203:   const [hours, minutes] = timeStr.split(":").map(Number);
-204:   return hours * 60 + minutes;
-205: };
-206: 
-207: // Get ID from item consistently
-208: const getItemId = (item) => {
-209:   return typeof item === "object" ? item.id : item;
-210: };
-211: 
-212: // Sort all seating items (tables and counter seats) using smart sorting
-213: const smartSortSeatingItems = (tables, counterSeats, reservations) => {
-214:   if (!tables || !counterSeats || !reservations) {
-215:     return [];
-216:   }
-217: 
-218:   // Create a unified array with type information
-219:   const allItems = [
-220:     ...tables.map((table) => ({
-221:       item: table,
-222:       type: "table",
-223:       id: getItemId(table),
-224:     })),
-225:     ...counterSeats.map((seat) => ({
-226:       item: seat,
-227:       type: "counterSeat",
-228:       id: getItemId(seat),
-229:     })),
-230:   ];
-231: 
-232:   const now = new Date();
-233:   const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
-234: 
-235:   // Create a reservation map for quick lookups
-236:   const reservationMap = new Map();
-237: 
-238:   // Process all reservations and organize by table/seat ID
-239:   reservations.forEach((res) => {
-240:     const itemKey = res.isCounterSeat
-241:       ? `counter-${res.counterSeatId}`
-242:       : `table-${res.tableId}`;
-243: 
-244:     if (!reservationMap.has(itemKey)) {
-245:       reservationMap.set(itemKey, []);
-246:     }
-247: 
-248:     const startTime = parseTimeToMinutes(res.time);
-249:     const endTime = startTime + res.duration;
-250: 
-251:     reservationMap.get(itemKey).push({
-252:       reservation: res,
-253:       startTime,
-254:       endTime,
-255:       timeUntilStart: startTime - currentTimeInMinutes,
-256:       timeUntilEnd: endTime - currentTimeInMinutes,
-257:     });
-258:   });
-259: 
-260:   // Process each seating item
-261:   allItems.forEach((seatingItem) => {
-262:     const itemKey = `${seatingItem.type === "table" ? "table" : "counter"}-${
-263:       seatingItem.id
-264:     }`;
-265:     const itemReservations = reservationMap.get(itemKey) || [];
-266: 
-267:     if (itemReservations.length === 0) {
-268:       // No reservations for this item
-269:       seatingItem.status = "empty";
-270:       seatingItem.priority = Number.MAX_SAFE_INTEGER;
-271:       return;
-272:     }
-273: 
-274:     // Find upcoming, current, and past reservations
-275:     const upcomingReservations = itemReservations.filter(
-276:       (r) => r.timeUntilStart > 0
-277:     );
-278:     const currentReservations = itemReservations.filter(
-279:       (r) => r.timeUntilStart <= 0 && r.timeUntilEnd > 0
-280:     );
-281:     const pastReservations = itemReservations.filter(
-282:       (r) => r.timeUntilEnd <= 0
-283:     );
-284: 
-285:     // Determine status and priority
-286:     if (upcomingReservations.length > 0) {
-287:       // Sort by closest upcoming start time
-288:       upcomingReservations.sort((a, b) => a.timeUntilStart - b.timeUntilStart);
-289:       seatingItem.status = "upcoming";
-290:       seatingItem.priority = upcomingReservations[0].timeUntilStart;
-291:       seatingItem.reservation = upcomingReservations[0].reservation;
-292:     } else if (currentReservations.length > 0) {
-293:       // Sort by start time (earliest first)
-294:       currentReservations.sort((a, b) => a.startTime - b.startTime);
-295:       seatingItem.status = "current";
-296:       seatingItem.priority = 1000000 + currentReservations[0].startTime;
-297:       seatingItem.reservation = currentReservations[0].reservation;
-298:     } else if (pastReservations.length > 0) {
-299:       // Sort by most recent end time
-300:       pastReservations.sort((a, b) => b.endTime - a.endTime);
-301:       seatingItem.status = "past";
-302:       seatingItem.priority = 2000000 + (1440 - pastReservations[0].endTime);
-303:       seatingItem.reservation = pastReservations[0].reservation;
-304:     }
-305:   });
-306: 
-307:   // Sort the items
-308:   allItems.sort((a, b) => {
-309:     // First sort by reservation status
-310:     const statusOrder = { upcoming: 0, current: 1, past: 2, empty: 3 };
-311:     const aStatus = a.status || "empty";
-312:     const bStatus = b.status || "empty";
-313: 
-314:     if (statusOrder[aStatus] !== statusOrder[bStatus]) {
-315:       return statusOrder[aStatus] - statusOrder[bStatus];
-316:     }
-317: 
-318:     // Then sort by priority within the same status
-319:     if (a.priority !== b.priority) {
-320:       return a.priority - b.priority;
-321:     }
-322: 
-323:     // As a last resort, sort by ID
-324:     return a.id.toString().localeCompare(b.id.toString());
-325:   });
-326: 
-327:   return allItems;
-328: };
-329: 
-330: // Traditional sorting: Tables first, then counter seats, both sorted by ID
-331: const traditionalSortSeatingItems = (tables, counterSeats) => {
-332:   if (!tables || !counterSeats) {
-333:     return [];
-334:   }
-335: 
-336:   // Create a unified array with type information, sort by ID numerically
-337:   const tableItems = tables
-338:     .map((table) => ({
-339:       item: table,
-340:       type: "table",
-341:       id: getItemId(table),
-342:     }))
-343:     .sort((a, b) => {
-344:       // Extract numeric part for sorting
-345:       const aNum = parseInt(a.id.toString().replace(/\D/g, "")) || 0;
-346:       const bNum = parseInt(b.id.toString().replace(/\D/g, "")) || 0;
-347:       return aNum - bNum;
-348:     });
-349: 
-350:   const counterItems = counterSeats
-351:     .map((seat) => ({
-352:       item: seat,
-353:       type: "counterSeat",
-354:       id: getItemId(seat),
-355:     }))
-356:     .sort((a, b) => {
-357:       // Extract numeric part for sorting
-358:       const aNum = parseInt(a.id.toString().replace(/\D/g, "")) || 0;
-359:       const bNum = parseInt(b.id.toString().replace(/\D/g, "")) || 0;
-360:       return aNum - bNum;
-361:     });
-362: 
-363:   // Tables first, then counter seats
-364:   return [...tableItems, ...counterItems];
-365: };
+163:   // Function to sort reservations with pending first, then by time
+164:   const sortReservations = (reservations) => {
+165:     return [...reservations].sort((a, b) => {
+166:       // Priority by status (pending comes first)
+167:       if (a.status === "pending" && b.status !== "pending") return -1;
+168:       if (a.status !== "pending" && b.status === "pending") return 1;
+169: 
+170:       // Then sort by time
+171:       const timeA = a.time.split(":").map(Number);
+172:       const timeB = b.time.split(":").map(Number);
+173: 
+174:       if (timeA[0] !== timeB[0]) return timeA[0] - timeB[0]; // Sort by hour
+175:       return timeA[1] - timeB[1]; // Sort by minute
+176:     });
+177:   };
+178: 
+179:   // Group reservations by date (in a real app, you'd have date information)
+180:   const groupedReservations = {
+181:     today: sortReservations(reservations.filter((r) => r.status === "pending")),
+182:     upcoming: sortReservations(
+183:       reservations.filter((r) => r.status === "confirmed")
+184:     ),
+185:     past: sortReservations(
+186:       reservations.filter(
+187:         (r) => r.status !== "pending" && r.status !== "confirmed"
+188:       )
+189:     ),
+190:   };
+191: 
+192:   // Render each reservation card
+193:   const renderReservationCard = ({ item }) => {
+194:     const isExpanded = expandedId === item.id;
+195: 
+196:     // Render right actions (confirm button)
+197:     const renderRightActions = (progress, dragX) => {
+198:       const translateX = dragX.interpolate({
+199:         inputRange: [-100, 0],
+200:         outputRange: [0, 100],
+201:         extrapolate: "clamp",
+202:       });
+203: 
+204:       return (
+205:         <SwipeActionContainer
+206:           backgroundColor="#b3ffb3"
+207:           style={{ transform: [{ translateX }] }}
+208:         >
+209:           <MaterialIcons name="check-circle" size={24} color="white" />
+210:           <SwipeActionText>Confirm</SwipeActionText>
+211:         </SwipeActionContainer>
+212:       );
+213:     };
+214: 
+215:     // Render left actions (cancel button)
+216:     const renderLeftActions = (progress, dragX) => {
+217:       const translateX = dragX.interpolate({
+218:         inputRange: [0, 100],
+219:         outputRange: [-100, 0],
+220:         extrapolate: "clamp",
+221:       });
+222: 
+223:       return (
+224:         <SwipeActionContainer
+225:           backgroundColor="#ff4d4d"
+226:           style={{ transform: [{ translateX }] }}
+227:         >
+228:           <MaterialIcons name="cancel" size={24} color="white" />
+229:           <SwipeActionText>Cancel</SwipeActionText>
+230:         </SwipeActionContainer>
+231:       );
+232:     };
+233: 
+234:     return (
+235:       <Swipeable
+236:         ref={(ref) => {
+237:           if (ref && expandedId === item.id) {
+238:             swipeableRef.current = ref;
+239:           }
+240:         }}
+241:         renderRightActions={renderRightActions}
+242:         renderLeftActions={renderLeftActions}
+243:         onSwipeableRightOpen={() => handleConfirm(item.id)}
+244:         onSwipeableLeftOpen={() => handleCancel(item.id)}
+245:         onSwipeableWillOpen={() => {
+246:           // Close previous swipeable
+247:           if (swipeableRef.current && expandedId !== item.id) {
+248:             swipeableRef.current.close();
+249:           }
+250:           setExpandedId(item.id);
+251:         }}
+252:       >
+253:         <ReservationCard
+254:           status={item.status}
+255:           onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
+256:         >
+257:           <StatusIndicator status={item.status}>
+258:             <StatusText status={item.status}>
+259:               {item.status.toUpperCase()}
+260:             </StatusText>
+261:           </StatusIndicator>
+262: 
+263:           <CardTitle>{item.customerName}</CardTitle>
+264: 
+265:           <DetailRow>
+266:             <DetailIcon name="access-time" size={16} color="#757575" />
+267:             <DetailText>
+268:               {item.time} ({item.duration} min)
+269:             </DetailText>
+270:           </DetailRow>
+271: 
+272:           <DetailRow>
+273:             <DetailIcon name="people" size={16} color="#757575" />
+274:             <DetailText>
+275:               {item.people} {item.people > 1 ? "people" : "person"}
+276:             </DetailText>
+277:           </DetailRow>
+278: 
+279:           <DetailRow>
+280:             <DetailIcon name="event-seat" size={16} color="#757575" />
+281:             <DetailText>
+282:               {item.isCounterSeat
+283:                 ? `Counter Seat: ${item.counterSeatId}`
+284:                 : `Table: ${item.tableId}`}
+285:             </DetailText>
+286:           </DetailRow>
+287: 
+288:           {isExpanded && item.note && (
+289:             <DetailRow>
+290:               <DetailIcon name="notes" size={16} color="#757575" />
+291:               <DetailText>{item.note}</DetailText>
+292:             </DetailRow>
+293:           )}
+294:         </ReservationCard>
+295:       </Swipeable>
+296:     );
+297:   };
+298: 
+299:   // Render section headers
+300:   const renderSectionHeader = (title, count) => (
+301:     <SectionHeader>
+302:       <SectionHeaderText>
+303:         {title} ({count})
+304:       </SectionHeaderText>
+305:     </SectionHeader>
+306:   );
+307: 
+308:   // Combine all sections into a flat array for FlatList
+309:   const sections = [
+310:     { key: "hint", type: "hint" },
+311:     {
+312:       key: "pendingHeader",
+313:       type: "header",
+314:       title: "Pending Reservations",
+315:       count: groupedReservations.today.length,
+316:     },
+317:     ...groupedReservations.today.map((item) => ({
+318:       key: `pending-${item.id}`,
+319:       type: "item",
+320:       item,
+321:     })),
+322:     {
+323:       key: "upcomingHeader",
+324:       type: "header",
+325:       title: "Confirmed Reservations",
+326:       count: groupedReservations.upcoming.length,
+327:     },
+328:     ...groupedReservations.upcoming.map((item) => ({
+329:       key: `upcoming-${item.id}`,
+330:       type: "item",
+331:       item,
+332:     })),
+333:     {
+334:       key: "pastHeader",
+335:       type: "header",
+336:       title: "Past Reservations",
+337:       count: groupedReservations.past.length,
+338:     },
+339:     ...groupedReservations.past.map((item) => ({
+340:       key: `past-${item.id}`,
+341:       type: "item",
+342:       item,
+343:     })),
+344:   ];
+345: 
+346: 
+347:   const renderItem = ({ item }) => {
+348:     switch (item.type) {
+349:       case "hint":
+350:         return (
+351:           <SwipeHintContainer>
+352:             <SwipeHintText>
+353:               ← Swipe left to cancel or right to confirm →
+354:             </SwipeHintText>
+355:           </SwipeHintContainer>
+356:         );
+357:       case "header":
+358:         return renderSectionHeader(item.title, item.count);
+359:       case "item":
+360:         return renderReservationCard({ item: item.item });
+361:       default:
+362:         return null;
+363:     }
+364:   };
+365: 
 366: 
-367: // Main component
-368: const ReservationsGrid = ({
-369:   timeSlots,
-370:   tables,
-371:   counterSeats,
-372:   reservations,
-373: }) => {
-374:   const {
-375:     TABLE_WIDTH,
-376:     COUNTER_SEAT_WIDTH,
-377:     TIME_COLUMN_WIDTH,
-378:     TIME_SLOT_HEIGHT,
-379:   } = GRID_CONSTANTS;
-380: 
-381:   // State variables
-382:   const [selectedReservation, setSelectedReservation] = useState(null);
-383:   const [currentTimePosition, setCurrentTimePosition] = useState(0);
-384:   const [expandedTableIds, setExpandedTableIds] = useState(new Set());
-385:   const [expandedCounterSeatIds, setExpandedCounterSeatIds] = useState(
-386:     new Set()
-387:   );
-388:   const [areAllExpanded, setAreAllExpanded] = useState(false);
-389:   const [sortedItems, setSortedItems] = useState([]);
-390:   const [isSmartSorting, setIsSmartSorting] = useState(true);
-391: 
-392:   // Pre-compute sorted items for both sorting methods to eliminate waiting when switching
-393:   const [traditionalSorted, setTraditionalSorted] = useState([]);
-394:   const [smartSorted, setSmartSorted] = useState([]);
-395: 
-396:   // Animation for breathing effect on pending reservations
-397:   const [breathingAnim] = useState(new Animated.Value(0.4));
-398: 
-399:   // Set up breathing animation
-400:   useEffect(() => {
-401:     // Create the breathing animation sequence
-402:     const breathe = () => {
-403:       Animated.sequence([
-404:         Animated.timing(breathingAnim, {
-405:           toValue: 1,
-406:           duration: 1000,
-407:           useNativeDriver: false, // Changed to false for border animation
-408:         }),
-409:         Animated.timing(breathingAnim, {
-410:           toValue: 0.4,
-411:           duration: 1000,
-412:           useNativeDriver: false, // Changed to false for border animation
-413:         }),
-414:       ]).start(() => breathe()); // Restart animation when complete
-415:     };
-416: 
-417:     // Start the animation
-418:     breathe();
-419: 
-420:     // Clean up
-421:     return () => breathingAnim.stopAnimation();
-422:   }, []);
-423: 
-424:   // Pre-compute all sorting options when data changes
-425:   useEffect(() => {
-426:     const traditional = traditionalSortSeatingItems(tables, counterSeats);
-427:     const smart = smartSortSeatingItems(tables, counterSeats, reservations);
-428: 
-429:     setTraditionalSorted(traditional);
-430:     setSmartSorted(smart);
-431: 
-432:     // Set the current sorted items based on selected mode
-433:     setSortedItems(isSmartSorting ? smart : traditional);
-434:   }, [tables, counterSeats, reservations]);
-435: 
-436:   // Update sorted items immediately when sorting method changes
-437:   useEffect(() => {
-438:     setSortedItems(isSmartSorting ? smartSorted : traditionalSorted);
-439:   }, [isSmartSorting, smartSorted, traditionalSorted]);
-440: 
-441:   useEffect(() => {
-442:     const updateTimePosition = () => {
-443:       setCurrentTimePosition(calculateCurrentTimePosition(TIME_SLOT_HEIGHT));
-444:     };
-445: 
-446:     updateTimePosition();
-447:     const interval = setInterval(updateTimePosition, 60000);
-448:     return () => clearInterval(interval);
-449:   }, [TIME_SLOT_HEIGHT]);
-450: 
-451:   // Toggle expansion functions
-452:   const toggleExpand = (id, isTable) => {
-453:     if (isTable) {
-454:       setExpandedTableIds((prevExpanded) => {
-455:         const newExpanded = new Set(prevExpanded);
-456:         if (newExpanded.has(id)) {
-457:           newExpanded.delete(id);
-458:         } else {
-459:           newExpanded.add(id);
-460:         }
-461:         return newExpanded;
-462:       });
-463:     } else {
-464:       setExpandedCounterSeatIds((prevExpanded) => {
-465:         const newExpanded = new Set(prevExpanded);
-466:         if (newExpanded.has(id)) {
-467:           newExpanded.delete(id);
-468:         } else {
-469:           newExpanded.add(id);
-470:         }
-471:         return newExpanded;
-472:       });
-473:     }
-474:   };
-475: 
-476:   const toggleAllTables = () => {
-477:     if (areAllExpanded) {
-478:       setExpandedTableIds(new Set());
-479:       setExpandedCounterSeatIds(new Set());
-480:     } else {
-481:       setExpandedTableIds(new Set(tables.map((table) => getItemId(table))));
-482:       setExpandedCounterSeatIds(
-483:         new Set(counterSeats.map((seat) => getItemId(seat)))
-484:       );
-485:     }
-486:     setAreAllExpanded(!areAllExpanded);
-487:   };
-488: 
-489:   // Scroll sync handlers
-490:   const handleHeaderScroll = (event) => {
-491:     if (gridScrollRef.current) {
-492:       gridScrollRef.current.scrollTo({
-493:         x: event.nativeEvent.contentOffset.x,
-494:         y: 0,
-495:         animated: false,
-496:       });
-497:     }
-498:   };
-499: 
-500:   const handleGridScroll = (event) => {
-501:     if (headerScrollRef.current) {
-502:       headerScrollRef.current.scrollTo({
-503:         x: event.nativeEvent.contentOffset.x,
-504:         y: 0,
-505:         animated: false,
-506:       });
-507:     }
-508:   };
-509: 
-510:   const handleVerticalScroll = (event) => {
-511:     if (leftColumnScrollRef.current) {
-512:       leftColumnScrollRef.current.scrollTo({
-513:         y: event.nativeEvent.contentOffset.y,
-514:         animated: false,
-515:       });
-516:     }
-517:   };
-518: 
-519:   const handleLeftColumnScroll = (event) => {
-520:     if (verticalScrollRef.current) {
-521:       verticalScrollRef.current.scrollTo({
-522:         y: event.nativeEvent.contentOffset.y,
-523:         animated: false,
-524:       });
-525:     }
-526:   };
-527: 
-528:   // Handle reservation click
-529:   const handleReservationPress = (reservation) => {
-530:     setSelectedReservation(
-531:       selectedReservation?.id === reservation.id ? null : reservation
-532:     );
-533:   };
-534: 
-535:   // Refs for synchronized scrolling
-536:   const verticalScrollRef = useRef(null);
-537:   const leftColumnScrollRef = useRef(null);
-538:   const headerScrollRef = useRef(null);
-539:   const gridScrollRef = useRef(null);
-540: 
-541:   // Calculate content height
-542:   const contentHeight = timeSlots.length * TIME_SLOT_HEIGHT;
-543: 
-544:   // Render header for an item (either table or counter seat)
-545:   const renderItemHeader = (seatingItem) => {
-546:     const { item, type, id } = seatingItem;
-547: 
-548:     if (type === "table") {
-549:       const isExpanded = expandedTableIds.has(id);
-550:       return (
-551:         <TableHeader
-552:           key={`table-${id}`}
-553:           table={item}
-554:           isExpanded={isExpanded}
-555:           toggleExpand={() => toggleExpand(id, true)}
-556:           width={TABLE_WIDTH}
-557:         />
-558:       );
-559:     } else {
-560:       // counter seat
-561:       const isExpanded = expandedCounterSeatIds.has(id);
-562:       return (
-563:         <CounterSeatHeader
-564:           key={`counter-${id}`}
-565:           seat={item}
-566:           isExpanded={isExpanded}
-567:           toggleExpand={() => toggleExpand(id, false)}
-568:           width={COUNTER_SEAT_WIDTH}
-569:         />
-570:       );
-571:     }
-572:   };
-573: 
-574:   // Get width for an item based on its type
-575:   const getItemWidth = (type) => {
-576:     return type === "table" ? TABLE_WIDTH : COUNTER_SEAT_WIDTH;
-577:   };
-578: 
-579:   // Render reservation blocks
-580:   const renderReservationBlocks = () => {
-581:     // Create a map of the sorted item positions
-582:     const itemPositionMap = {};
-583:     let currentPosition = 0;
-584: 
-585:     sortedItems.forEach((item) => {
-586:       const key = `${item.type === "table" ? "table" : "counter"}-${item.id}`;
-587:       itemPositionMap[key] = currentPosition;
-588:       currentPosition += getItemWidth(item.type);
-589:     });
-590: 
-591:     return (
-592:       <>
-593:         {reservations.map((reservation) => {
-594:           const isCounterSeat = !!reservation.isCounterSeat;
-595:           const itemKey = isCounterSeat
-596:             ? `counter-${reservation.counterSeatId}`
-597:             : `table-${reservation.tableId}`;
-598: 
-599:           // Skip if we don't have this item in our sorted grid
-600:           if (!(itemKey in itemPositionMap)) {
-601:             return null;
-602:           }
-603: 
-604:           // Calculate position based on the sortedItems layout
-605:           const position = itemPositionMap[itemKey];
-606:           const width = isCounterSeat ? COUNTER_SEAT_WIDTH : TABLE_WIDTH;
-607: 
-608:           return (
-609:             <ReservationBlockStyled
-610:               key={`res-${reservation.id}`}
-611:               left={position}
-612:               top={
-613:                 ((parseTimeToMinutes(reservation.time) - 9 * 60) / 30) *
-614:                 TIME_SLOT_HEIGHT
-615:               }
-616:               width={width}
-617:               height={(reservation.duration / 30) * TIME_SLOT_HEIGHT}
-618:               status={reservation.status}
-619:               onPress={() => handleReservationPress(reservation)}
-620:               isSelected={selectedReservation?.id === reservation.id}
-621:               isPending={reservation.status === "pending"}
-622:             >
-623:               {reservation.status === "pending" && (
-624:                 <PendingBorder style={{ opacity: breathingAnim }} />
-625:               )}
-626:               <ReservationName>{reservation.customerName}</ReservationName>
-627:               <ReservationDetails>
-628:                 {reservation.time} • {reservation.people}{" "}
-629:                 {reservation.people > 1 ? "people" : "person"}
-630:               </ReservationDetails>
-631:             </ReservationBlockStyled>
-632:           );
-633:         })}
-634:       </>
-635:     );
-636:   };
-637: 
-638:   // Define the reservation block styled component directly here
-639:   // This ensures we have access to the component for use in the render method
-640:   const ReservationBlockStyled = styled.TouchableOpacity`
-641:     position: absolute;
-642:     left: ${(props) => props.left}px;
-643:     top: ${(props) => props.top}px;
-644:     width: ${(props) => props.width}px;
-645:     height: ${(props) => props.height}px;
-646:     background-color: ${(props) =>
-647:       props.status === "confirmed"
-648:         ? "#b3ffb3"
-649:         : props.status === "pending"
-650:         ? "#ffd11a"
-651:         : "#ff4d4d"};
-652:     border-radius: 5px;
-653:     padding: ${(props) => props.theme.space[1]};
-654:     justify-content: space-between;
-655:     z-index: 1;
-656:     box-sizing: border-box;
-657:     ${(props) =>
-658:       props.isSelected &&
-659:       !props.isPending &&
-660:       `
-661:       border-width: 2px;
-662:       border-color: blue;
-663:     `}
-664:   `;
-665: 
-666:   const ReservationName = styled(CustomText)`
-667:     font-size: ${(props) => props.theme.fontSizes.caption};
-668:     font-weight: ${(props) => props.theme.fontWeights.bold};
-669:   `;
-670: 
-671:   const ReservationDetails = styled(CustomText)`
-672:     font-size: ${(props) => props.theme.fontSizes.caption};
-673:   `;
-674: 
-675:   return (
-676:     <Container>
-677:       {/* Simple Tab Bar */}
-678:       <TabBar>
-679:         <Tab
-680:           active={!isSmartSorting}
-681:           onPress={() => setIsSmartSorting(false)}
-682:           activeOpacity={0.6}
-683:         >
-684:           <MaterialIcons
-685:             name="format-list-numbered"
-686:             size={20}
-687:             color={!isSmartSorting ? "#262626" : "#757575"}
-688:           />
-689:           <TabText active={!isSmartSorting}>Traditional</TabText>
-690:         </Tab>
-691:         <Tab
-692:           active={isSmartSorting}
-693:           onPress={() => setIsSmartSorting(true)}
-694:           activeOpacity={0.6}
-695:         >
-696:           <MaterialIcons
-697:             name="auto-awesome"
-698:             size={20}
-699:             color={isSmartSorting ? "#262626" : "#757575"}
-700:           />
-701:           <TabText active={isSmartSorting}>Smart</TabText>
-702:         </Tab>
-703:       </TabBar>
-704: 
-705:       <MainGrid>
-706:         <HeaderContainer>
-707:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
-708:             <TimeColumnHeader width={TIME_COLUMN_WIDTH}>
-709:               <ExpandAllButton
-710:                 onPress={toggleAllTables}
-711:                 areAllExpanded={areAllExpanded}
-712:               >
-713:                 <ExpandAllButtonText>
-714:                   {areAllExpanded ? "Collapse All" : "Expand All"}
-715:                 </ExpandAllButtonText>
-716:               </ExpandAllButton>
-717:             </TimeColumnHeader>
-718:           </LeftColumnContainer>
-719: 
-720:           <HeaderScrollView
-721:             ref={headerScrollRef}
-722:             horizontal
-723:             showsHorizontalScrollIndicator={false}
-724:             onScroll={handleHeaderScroll}
-725:             scrollEventThrottle={16}
-726:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
-727:           >
-728:             <HeaderRow>
-729:               {/* Render all items headers in sorted order */}
-730:               {sortedItems.map(renderItemHeader)}
-731:             </HeaderRow>
-732:           </HeaderScrollView>
-733:         </HeaderContainer>
-734: 
-735:         <ContentContainer>
-736:           <LeftColumnContainer width={TIME_COLUMN_WIDTH}>
-737:             <ScrollView
-738:               ref={leftColumnScrollRef}
-739:               onScroll={handleLeftColumnScroll}
-740:               scrollEventThrottle={16}
-741:               showsVerticalScrollIndicator={true}
-742:             >
-743:               <TimeColumn width={TIME_COLUMN_WIDTH}>
-744:                 {timeSlots.map((time) => (
-745:                   <TimeSlot
-746:                     key={time}
-747:                     height={TIME_SLOT_HEIGHT}
-748:                     width={TIME_COLUMN_WIDTH}
-749:                   >
-750:                     <TimeText>{time}</TimeText>
-751:                   </TimeSlot>
-752:                 ))}
-753:               </TimeColumn>
-754:             </ScrollView>
-755:           </LeftColumnContainer>
-756: 
-757:           <HeaderScrollView
-758:             ref={gridScrollRef}
-759:             horizontal
-760:             showsHorizontalScrollIndicator={false}
-761:             onScroll={handleGridScroll}
-762:             scrollEventThrottle={16}
-763:             contentContainerStyle={{ paddingLeft: TIME_COLUMN_WIDTH }}
-764:           >
-765:             <ScrollView
-766:               ref={verticalScrollRef}
-767:               onScroll={handleVerticalScroll}
-768:               scrollEventThrottle={16}
-769:               showsVerticalScrollIndicator={false}
-770:             >
-771:               <GridContainer style={{ height: contentHeight }}>
-772:                 {/* Render grid cells */}
-773:                 <View style={{ flexDirection: "row" }}>
-774:                   {/* All item columns */}
-775:                   {sortedItems.map((seatingItem, index) => (
-776:                     <View
-777:                       key={`item-col-${seatingItem.id}`}
-778:                       style={{ width: getItemWidth(seatingItem.type) }}
-779:                     >
-780:                       {timeSlots.map((time, timeIndex) => (
-781:                         <View
-782:                           key={`item-cell-${index}-${timeIndex}`}
-783:                           style={{
-784:                             width: getItemWidth(seatingItem.type),
-785:                             height: TIME_SLOT_HEIGHT,
-786:                             borderLeftWidth: 1,
-787:                             borderBottomWidth: 1,
-788:                             borderLeftColor: "#e1e1e1",
-789:                             borderBottomColor: "#e1e1e1",
-790:                           }}
-791:                         />
-792:                       ))}
-793:                     </View>
-794:                   ))}
-795:                 </View>
-796: 
-797:                 {}
-798:                 <CurrentTimeLine style={{ top: currentTimePosition }}>
-799:                   <CurrentTimeIndicator />
-800:                 </CurrentTimeLine>
-801: 
-802:                 {}
-803:                 {renderReservationBlocks()}
-804:               </GridContainer>
-805:             </ScrollView>
-806:           </HeaderScrollView>
-807:         </ContentContainer>
-808:       </MainGrid>
-809: 
-810:       {}
-811:       {selectedReservation && (
-812:         <ReservationDetailsPanel
-813:           reservation={selectedReservation}
-814:           onClose={() => setSelectedReservation(null)}
-815:         />
-816:       )}
-817:     </Container>
-818:   );
-819: };
-820: 
-821: export default ReservationsGrid;
+367:   if (!reservations || reservations.length === 0) {
+368:     return (
+369:       <NoReservationsContainer>
+370:         <MaterialIcons name="event-busy" size={60} color="#757575" />
+371:         <NoReservationsText>No reservations found</NoReservationsText>
+372:       </NoReservationsContainer>
+373:     );
+374:   }
+375: 
+376:   return (
+377:     <GestureHandlerRootView style={{ flex: 1 }}>
+378:       <Container>
+379:         <FlatList
+380:           data={sections}
+381:           renderItem={renderItem}
+382:           keyExtractor={(item) => item.key}
+383:         />
+384:       </Container>
+385:     </GestureHandlerRootView>
+386:   );
+387: };
+388: 
+389: export default ReservationsMailbox;
 
 ================
 File: src/features/merchant/reservations/screens/MerchantReservationsScreen.js
 ================
- 1: import React from "react";
+ 1: import React, { useState } from "react";
  2: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
  3: import { seatingData, merchantReservations } from "../../../../data/mockData";
  4: import { generateTimeSlots } from "../utils/timeUtils";
  5: import ReservationsGrid from "../components/ReservationsGrid";
- 6: 
- 7: export const MerchantReservationsScreen = () => {
- 8:   const timeSlots = generateTimeSlots();
- 9: 
-10:   return (
-11:     <SafeArea>
-12:       <ReservationsGrid
-13:         timeSlots={timeSlots}
-14:         tables={seatingData.tables}
-15:         counterSeats={seatingData.counterSeats}
-16:         reservations={merchantReservations}
-17:       />
-18:     </SafeArea>
-19:   );
-20: };
+ 6: import ReservationsMailbox from "../components/ReservationsMailbox";
+ 7: import {
+ 8:   TabBar,
+ 9:   Tab,
+10:   TabText,
+11: } from "../components/ReservationComponents.styles";
+12: import { MaterialIcons } from "@expo/vector-icons";
+13: import styled from "styled-components/native";
+14: 
+15: const Container = styled.View`
+16:   flex: 1;
+17:   background-color: ${(props) => props.theme.colors.bg.primary};
+18: `;
+19: 
+20: 
+21: const TABS = {
+22:   GRID: "grid",
+23:   SMART: "smart",
+24:   MAILBOX: "mailbox",
+25: };
+26: 
+27: export const MerchantReservationsScreen = () => {
+28:   const timeSlots = generateTimeSlots();
+29:   const [activeTab, setActiveTab] = useState(TABS.GRID);
+30: 
+31:   return (
+32:     <SafeArea>
+33:       <Container>
+34:         <TabBar>
+35:           <Tab
+36:             active={activeTab === TABS.GRID}
+37:             onPress={() => setActiveTab(TABS.GRID)}
+38:             activeOpacity={0.6}
+39:           >
+40:             <MaterialIcons
+41:               name="grid-on"
+42:               size={20}
+43:               color={activeTab === TABS.GRID ? "#262626" : "#757575"}
+44:             />
+45:             <TabText active={activeTab === TABS.GRID}>Grid View</TabText>
+46:           </Tab>
+47: 
+48:           <Tab
+49:             active={activeTab === TABS.SMART}
+50:             onPress={() => setActiveTab(TABS.SMART)}
+51:             activeOpacity={0.6}
+52:           >
+53:             <MaterialIcons
+54:               name="auto-awesome"
+55:               size={20}
+56:               color={activeTab === TABS.SMART ? "#262626" : "#757575"}
+57:             />
+58:             <TabText active={activeTab === TABS.SMART}>Smart View</TabText>
+59:           </Tab>
+60: 
+61:           <Tab
+62:             active={activeTab === TABS.MAILBOX}
+63:             onPress={() => setActiveTab(TABS.MAILBOX)}
+64:             activeOpacity={0.6}
+65:           >
+66:             <MaterialIcons
+67:               name="mail"
+68:               size={20}
+69:               color={activeTab === TABS.MAILBOX ? "#262626" : "#757575"}
+70:             />
+71:             <TabText active={activeTab === TABS.MAILBOX}>Inbox</TabText>
+72:           </Tab>
+73:         </TabBar>
+74: 
+75:         {activeTab === TABS.MAILBOX ? (
+76:           <ReservationsMailbox reservations={merchantReservations} />
+77:         ) : (
+78:           <ReservationsGrid
+79:             timeSlots={timeSlots}
+80:             tables={seatingData.tables}
+81:             counterSeats={seatingData.counterSeats}
+82:             reservations={merchantReservations}
+83:             isSmartSorting={activeTab === TABS.SMART}
+84:           />
+85:         )}
+86:       </Container>
+87:     </SafeArea>
+88:   );
+89: };
 
 ================
 File: src/features/merchant/reservations/utils/timeUtils.js

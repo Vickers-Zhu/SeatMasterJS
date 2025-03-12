@@ -1,5 +1,4 @@
-// src/features/merchant/reservations/components/ReservationsMailbox.js
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FlatList,
   Animated,
@@ -10,12 +9,26 @@ import {
 import styled from "styled-components/native";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import { MaterialIcons } from "@expo/vector-icons";
-import {
-  GestureHandlerRootView,
-  Swipeable,
-} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
-// Styled components for the mailbox UI
+// Status colors
+const COLORS = {
+  PENDING: {
+    bg: "#ffd11a",
+    text: "#a67f00",
+  },
+  CONFIRMED: {
+    bg: "#4CAF50",
+    text: "#FFFFFF",
+  },
+  CANCELED: {
+    bg: "#ff4d4d",
+    text: "#FFFFFF",
+  },
+};
+
+// Component styles
 const Container = styled.View`
   flex: 1;
   background-color: ${(props) => props.theme.colors.bg.primary};
@@ -23,84 +36,85 @@ const Container = styled.View`
 
 const ReservationCard = styled(TouchableOpacity)`
   background-color: ${(props) => props.theme.colors.bg.primary};
-  border-radius: 8px;
-  margin: 8px 16px;
-  padding: 16px;
-  shadow-opacity: 0.1;
-  shadow-radius: 4px;
+  border-radius: 4px;
+  margin: 2px 12px;
+  padding: 10px 12px;
+  shadow-opacity: 0.05;
+  shadow-radius: 2px;
   shadow-color: #000;
-  shadow-offset: 0px 2px;
-  elevation: 3;
-  border-left-width: 5px;
+  shadow-offset: 0px 1px;
+  elevation: 1;
+  border-left-width: 3px;
   border-left-color: ${(props) => {
     switch (props.status) {
       case "pending":
-        return "#ffd11a";
+        return COLORS.PENDING.bg;
       case "confirmed":
-        return "#b3ffb3";
+        return COLORS.CONFIRMED.bg;
       default:
-        return "#ff4d4d";
+        return COLORS.CANCELED.bg;
     }
   }};
 `;
 
 const StatusIndicator = styled.View`
   position: absolute;
-  right: 16px;
-  top: 16px;
-  border-radius: 4px;
-  padding: 4px 8px;
+  right: 10px;
+  top: 10px;
+  border-radius: 3px;
+  padding: 2px 4px;
   background-color: ${(props) => {
     switch (props.status) {
       case "pending":
-        return "#ffd11a";
+        return COLORS.PENDING.bg;
       case "confirmed":
-        return "#b3ffb3";
+        return COLORS.CONFIRMED.bg;
       default:
-        return "#ff4d4d";
+        return COLORS.CANCELED.bg;
     }
   }};
 `;
 
 const StatusText = styled(CustomText)`
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
   color: ${(props) => {
     switch (props.status) {
       case "pending":
-        return "#a67f00";
+        return COLORS.PENDING.text;
       case "confirmed":
-        return "#138000";
+        return COLORS.CONFIRMED.text;
       default:
-        return "#b30000";
+        return COLORS.CANCELED.text;
     }
   }};
 `;
 
 const CardTitle = styled(CustomText)`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  margin-bottom: 8px;
-  margin-right: 80px; /* Make space for status indicator */
+  margin-bottom: 4px;
+  margin-right: 65px;
 `;
 
 const DetailRow = styled.View`
   flex-direction: row;
   align-items: center;
-  margin-vertical: 4px;
+  margin-vertical: 2px;
 `;
 
 const DetailIcon = styled(MaterialIcons)`
-  margin-right: 8px;
+  margin-right: 4px;
+  font-size: 14px;
 `;
 
 const DetailText = styled(CustomText)`
-  font-size: 14px;
+  font-size: 12px;
 `;
 
 const SectionHeader = styled.View`
   background-color: ${(props) => props.theme.colors.ui.tertiary};
-  padding: 8px 16px;
+  padding: 6px 12px;
 `;
 
 const SectionHeaderText = styled(CustomText)`
@@ -108,7 +122,7 @@ const SectionHeaderText = styled(CustomText)`
   font-weight: bold;
 `;
 
-const SwipeHintContainer = styled.View`
+const SwipeHintContainer = styled(Animated.View)`
   padding: 16px;
   align-items: center;
   margin-bottom: 8px;
@@ -117,20 +131,22 @@ const SwipeHintContainer = styled.View`
 const SwipeHintText = styled(CustomText)`
   font-size: 14px;
   color: ${(props) => props.theme.colors.text.secondary};
+  text-align: center;
 `;
 
-const SwipeActionContainer = styled(Animated.View)`
+const ActionContainer = styled.View`
   flex: 1;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding-horizontal: 20px;
-  background-color: ${(props) => props.backgroundColor};
+  background-color: ${(props) => props.color};
 `;
 
-const SwipeActionText = styled(CustomText)`
+const ActionText = styled(CustomText)`
   color: white;
   font-weight: bold;
   font-size: 16px;
+  margin-left: 8px;
 `;
 
 const NoReservationsContainer = styled.View`
@@ -148,26 +164,88 @@ const NoReservationsText = styled(CustomText)`
 
 const ReservationsMailbox = ({ reservations }) => {
   const [expandedId, setExpandedId] = useState(null);
-
-  // Create a reference to track the currently open swipeable
+  const [hintVisible, setHintVisible] = useState(true);
   const swipeableRef = useRef(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const flatListRef = useRef(null);
+  const hideTimerRef = useRef(null);
 
-  // Function to handle confirming a reservation
-  const handleConfirm = (id) => {
-    Alert.alert("Confirm Reservation", "Reservation has been confirmed.");
-    // Here you would update the reservation status in your state or database
+  // Track scroll for pull detection
+  const lastScrollY = useRef(0);
+  const scrollVelocity = useRef(0);
+  const lastScrollTime = useRef(Date.now());
+
+  // Auto-hide hint after initial display
+  useEffect(() => {
+    // Initial timeout - hide after 5 seconds
+    const timer = setTimeout(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start(() => setHintVisible(false));
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Show hint only with strong pull-to-refresh type gesture
+  const handleScroll = (event) => {
+    const currentTime = Date.now();
+    const timeDelta = currentTime - lastScrollTime.current;
+    const currentY = event.nativeEvent.contentOffset.y;
+
+    // Calculate scroll velocity (pixels per millisecond)
+    if (timeDelta > 0) {
+      scrollVelocity.current = (lastScrollY.current - currentY) / timeDelta;
+    }
+
+    // Strong pull detected at the top (negative because pulling down)
+    const isStrongPullUp = scrollVelocity.current > 0.5 && currentY < 10;
+    const isScrollingDown = currentY > 30 && currentY > lastScrollY.current;
+
+    // Show hint on strong pull at top
+    if (isStrongPullUp && !hintVisible) {
+      setHintVisible(true);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Keep hint visible for a short time
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }).start(() => setHintVisible(false));
+      }, 3000);
+    }
+    // Hide hint when scrolling down
+    else if (isScrollingDown && hintVisible) {
+      clearTimeout(hideTimerRef.current);
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setHintVisible(false));
+    }
+
+    // Save current position and time for next calculation
+    lastScrollY.current = currentY;
+    lastScrollTime.current = currentTime;
   };
 
-  // Function to handle canceling a reservation
-  const handleCancel = (id) => {
-    Alert.alert("Cancel Reservation", "Reservation has been canceled.");
-    // Here you would update the reservation status in your state or database
-  };
-
-  // Function to sort reservations with pending first, then by time
   const sortReservations = (reservations) => {
     return [...reservations].sort((a, b) => {
-      // Priority by status (pending comes first)
+      // Priority by status (pending first)
       if (a.status === "pending" && b.status !== "pending") return -1;
       if (a.status !== "pending" && b.status === "pending") return 1;
 
@@ -180,7 +258,7 @@ const ReservationsMailbox = ({ reservations }) => {
     });
   };
 
-  // Group reservations by date (in a real app, you'd have date information)
+  // Group reservations by status
   const groupedReservations = {
     today: sortReservations(reservations.filter((r) => r.status === "pending")),
     upcoming: sortReservations(
@@ -193,47 +271,45 @@ const ReservationsMailbox = ({ reservations }) => {
     ),
   };
 
-  // Render each reservation card
+  // Handler functions with alerts for testing
+  const handleConfirm = (id) => {
+    Alert.alert(
+      "Confirm Reservation",
+      `Reservation #${id} has been CONFIRMED.`,
+      [{ text: "OK" }]
+    );
+    // Here you would update the reservation status in your state or database
+  };
+
+  const handleCancel = (id) => {
+    Alert.alert("Cancel Reservation", `Reservation #${id} has been CANCELED.`, [
+      { text: "OK" },
+    ]);
+    // Here you would update the reservation status in your state or database
+  };
+
+  // Action renderers - Pure functions that return appropriate action UI
+  const renderRightActions = (progress, dragX) => {
+    return (
+      <ActionContainer color={COLORS.CONFIRMED.bg}>
+        <MaterialIcons name="check-circle" size={24} color="white" />
+        <ActionText>CONFIRM</ActionText>
+      </ActionContainer>
+    );
+  };
+
+  const renderLeftActions = (progress, dragX) => {
+    return (
+      <ActionContainer color={COLORS.CANCELED.bg}>
+        <MaterialIcons name="cancel" size={24} color="white" />
+        <ActionText>CANCEL</ActionText>
+      </ActionContainer>
+    );
+  };
+
+  // Card renderer
   const renderReservationCard = ({ item }) => {
     const isExpanded = expandedId === item.id;
-
-    // Render right actions (confirm button)
-    const renderRightActions = (progress, dragX) => {
-      const translateX = dragX.interpolate({
-        inputRange: [-100, 0],
-        outputRange: [0, 100],
-        extrapolate: "clamp",
-      });
-
-      return (
-        <SwipeActionContainer
-          backgroundColor="#b3ffb3"
-          style={{ transform: [{ translateX }] }}
-        >
-          <MaterialIcons name="check-circle" size={24} color="white" />
-          <SwipeActionText>Confirm</SwipeActionText>
-        </SwipeActionContainer>
-      );
-    };
-
-    // Render left actions (cancel button)
-    const renderLeftActions = (progress, dragX) => {
-      const translateX = dragX.interpolate({
-        inputRange: [0, 100],
-        outputRange: [-100, 0],
-        extrapolate: "clamp",
-      });
-
-      return (
-        <SwipeActionContainer
-          backgroundColor="#ff4d4d"
-          style={{ transform: [{ translateX }] }}
-        >
-          <MaterialIcons name="cancel" size={24} color="white" />
-          <SwipeActionText>Cancel</SwipeActionText>
-        </SwipeActionContainer>
-      );
-    };
 
     return (
       <Swipeable
@@ -242,17 +318,24 @@ const ReservationsMailbox = ({ reservations }) => {
             swipeableRef.current = ref;
           }
         }}
-        renderRightActions={renderRightActions}
+        friction={2}
+        leftThreshold={40}
+        rightThreshold={40}
         renderLeftActions={renderLeftActions}
-        onSwipeableRightOpen={() => handleConfirm(item.id)}
+        renderRightActions={renderRightActions}
         onSwipeableLeftOpen={() => handleCancel(item.id)}
-        onSwipeableWillOpen={() => {
+        onSwipeableRightOpen={() => handleConfirm(item.id)}
+        onSwipeableWillOpen={(direction) => {
           // Close previous swipeable
           if (swipeableRef.current && expandedId !== item.id) {
             swipeableRef.current.close();
           }
+          // Log for debugging
+          console.log(`Swiping ${direction} for reservation #${item.id}`);
           setExpandedId(item.id);
         }}
+        containerStyle={{ backgroundColor: "transparent" }}
+        childrenContainerStyle={{ backgroundColor: "white" }}
       >
         <ReservationCard
           status={item.status}
@@ -264,43 +347,57 @@ const ReservationsMailbox = ({ reservations }) => {
             </StatusText>
           </StatusIndicator>
 
-          <CardTitle>{item.customerName}</CardTitle>
+          <CardTitle numberOfLines={1} ellipsizeMode="tail">
+            {item.customerName}
+          </CardTitle>
 
           <DetailRow>
-            <DetailIcon name="access-time" size={16} color="#757575" />
+            <DetailIcon name="access-time" color="#757575" />
             <DetailText>
               {item.time} ({item.duration} min)
             </DetailText>
           </DetailRow>
 
           <DetailRow>
-            <DetailIcon name="people" size={16} color="#757575" />
+            <DetailIcon name="people" color="#757575" />
             <DetailText>
               {item.people} {item.people > 1 ? "people" : "person"}
             </DetailText>
           </DetailRow>
 
-          <DetailRow>
-            <DetailIcon name="event-seat" size={16} color="#757575" />
-            <DetailText>
-              {item.isCounterSeat
-                ? `Counter Seat: ${item.counterSeatId}`
-                : `Table: ${item.tableId}`}
-            </DetailText>
-          </DetailRow>
-
-          {isExpanded && item.note && (
+          {!isExpanded ? (
             <DetailRow>
-              <DetailIcon name="notes" size={16} color="#757575" />
-              <DetailText>{item.note}</DetailText>
+              <DetailIcon name="event-seat" color="#757575" />
+              <DetailText numberOfLines={1} ellipsizeMode="tail">
+                {item.isCounterSeat
+                  ? `Counter: ${item.counterSeatId}`
+                  : `Table: ${item.tableId}`}
+              </DetailText>
             </DetailRow>
+          ) : (
+            <>
+              <DetailRow>
+                <DetailIcon name="event-seat" color="#757575" />
+                <DetailText>
+                  {item.isCounterSeat
+                    ? `Counter Seat: ${item.counterSeatId}`
+                    : `Table: ${item.tableId}`}
+                </DetailText>
+              </DetailRow>
+              {item.note && (
+                <DetailRow>
+                  <DetailIcon name="notes" color="#757575" />
+                  <DetailText>{item.note}</DetailText>
+                </DetailRow>
+              )}
+            </>
           )}
         </ReservationCard>
       </Swipeable>
     );
   };
 
-  // Render section headers
+  // Section header renderer
   const renderSectionHeader = (title, count) => (
     <SectionHeader>
       <SectionHeaderText>
@@ -347,17 +444,17 @@ const ReservationsMailbox = ({ reservations }) => {
     })),
   ];
 
-  // Handle rendering different item types
   const renderItem = ({ item }) => {
     switch (item.type) {
       case "hint":
-        return (
-          <SwipeHintContainer>
+        return hintVisible ? (
+          <SwipeHintContainer style={{ opacity: fadeAnim }}>
             <SwipeHintText>
-              ← Swipe left to cancel or right to confirm →
+              ← Swipe LEFT to CANCEL{"\n"}
+              Swipe RIGHT to CONFIRM →
             </SwipeHintText>
           </SwipeHintContainer>
-        );
+        ) : null;
       case "header":
         return renderSectionHeader(item.title, item.count);
       case "item":
@@ -367,7 +464,6 @@ const ReservationsMailbox = ({ reservations }) => {
     }
   };
 
-  // Check if there are any reservations
   if (!reservations || reservations.length === 0) {
     return (
       <NoReservationsContainer>
@@ -381,9 +477,12 @@ const ReservationsMailbox = ({ reservations }) => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Container>
         <FlatList
+          ref={flatListRef}
           data={sections}
           renderItem={renderItem}
           keyExtractor={(item) => item.key}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         />
       </Container>
     </GestureHandlerRootView>
