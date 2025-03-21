@@ -20,6 +20,8 @@ import {
 import LoginDropDownPicker from "../components/LoginDropDownPicker";
 import SwitchContainer from "../../../components/Switch/Switch";
 import { useAuthentication } from "../../../services/AuthenticationContext";
+import { useLanguage } from "../../../services/LanguageContext";
+import LanguageSelector from "../../../components/LanguageSelector/LanguageSelector";
 
 // Validation Schema
 const validationSchema = yup.object().shape({
@@ -39,6 +41,7 @@ export const LoginScreen = ({ navigation }) => {
   // isMerchant: false means Customer (default), true means Merchant.
   const [isMerchant, setIsMerchant] = useState(false);
   const { onLogin, isLoading, error } = useAuthentication();
+  const { currentLanguage, changeLanguage } = useLanguage();
 
   const handleLogin = (values) => {
     const selectedCode =
@@ -53,6 +56,16 @@ export const LoginScreen = ({ navigation }) => {
 
   return (
     <Container>
+      <LanguageSelector
+        currentLanguage={currentLanguage}
+        onChangeLanguage={changeLanguage}
+        style={{
+          position: "absolute",
+          top: 20,
+          left: 20,
+          zIndex: 1000,
+        }}
+      />
       {/* Top right switch wrapped in TopRightContainer with a scale transform */}
       <TopRightContainer style={{ transform: [{ scale: 0.8 }] }}>
         <SwitchContainer

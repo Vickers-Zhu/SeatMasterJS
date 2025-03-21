@@ -61,6 +61,8 @@ src/
       Favourite.js
     GlobalWrapper/
       GlobalWrapper.js
+    LanguageSelector/
+      LanguageSelector.js
     SafeArea/
       SafeArea.js
     Separator/
@@ -121,7 +123,6 @@ src/
           AccountSettingsScreen.js
           AccountSettingsScreen.styles.js
           SettingsScreen.js
-          SettingsScreen.styles.js
     merchant/
       dashboard/
         components/
@@ -163,7 +164,17 @@ src/
       sizes.js
       spacing.js
   services/
+    i18n/
+      locales/
+        en/
+          en.js
+        ja/
+          ja.js
+        zh/
+          zh.js
+      index.js
     AuthenticationContext.js
+    LanguageContext.js
 .cursorignore
 .gitignore
 App.js
@@ -479,6 +490,109 @@ File: src/components/GlobalWrapper/GlobalWrapper.js
 21:     {children}
 22:   </SafeAreaProvider>
 23: );
+
+================
+File: src/components/LanguageSelector/LanguageSelector.js
+================
+ 1: import React, { useState } from "react";
+ 2: import { TouchableOpacity, View } from "react-native";
+ 3: import { MaterialIcons } from "@expo/vector-icons";
+ 4: import styled from "styled-components/native";
+ 5: import { useTranslation } from "react-i18next";
+ 6: import { CustomText } from "../CustomText/CustomText";
+ 7: 
+ 8: const languages = [
+ 9:   { code: "en", label: "English" },
+10:   { code: "ja", label: "日本語" },
+11:   { code: "zh", label: "中文" },
+12: ];
+13: 
+14: const LanguageButton = styled(TouchableOpacity)`
+15:   flex-direction: row;
+16:   align-items: center;
+17:   background-color: ${(props) => props.theme.colors.bg.secondary};
+18:   padding: ${(props) => props.theme.space[2]} ${(props) => props.theme.space[3]};
+19:   border-radius: 15px;
+20: `;
+21: 
+22: const LanguageText = styled(CustomText)`
+23:   margin-right: ${(props) => props.theme.space[2]};
+24:   font-size: ${(props) => props.theme.fontSizes.body};
+25: `;
+26: 
+27: const DropdownContainer = styled.View`
+28:   position: absolute;
+29:   top: 100%;
+30:   left: 0;
+31:   margin-top: 5px;
+32:   background-color: ${(props) => props.theme.colors.bg.primary};
+33:   border-radius: 8px;
+34:   padding: ${(props) => props.theme.space[2]};
+35:   min-width: 160px;
+36:   shadow-opacity: 0.2;
+37:   shadow-radius: 3px;
+38:   shadow-color: #000;
+39:   shadow-offset: 0px 2px;
+40:   elevation: 5;
+41:   z-index: 1000;
+42: `;
+43: 
+44: const LanguageOption = styled(TouchableOpacity)`
+45:   padding: ${(props) => props.theme.space[2]} ${(props) => props.theme.space[3]};
+46:   border-bottom-width: ${(props) => (props.isLast ? "0" : "0.5px")};
+47:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
+48: `;
+49: 
+50: const LanguageSelector = ({
+51:   currentLanguage = "en",
+52:   onChangeLanguage,
+53:   style,
+54: }) => {
+55:   const [isOpen, setIsOpen] = useState(false);
+56:   const { t } = useTranslation("common");
+57:   const currentLanguageObj =
+58:     languages.find((lang) => lang.code === currentLanguage) || languages[0];
+59: 
+60:   const toggleDropdown = () => {
+61:     setIsOpen(!isOpen);
+62:   };
+63: 
+64:   const handleSelectLanguage = (languageCode) => {
+65:     if (onChangeLanguage) {
+66:       onChangeLanguage(languageCode);
+67:     }
+68:     setIsOpen(false);
+69:   };
+70: 
+71:   return (
+72:     <View style={[{ position: "relative" }, style]}>
+73:       <LanguageButton onPress={toggleDropdown}>
+74:         <LanguageText>{t("languages." + currentLanguage)}</LanguageText>
+75:         <MaterialIcons
+76:           name={isOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+77:           size={22}
+78:           color="#262626"
+79:         />
+80:       </LanguageButton>
+81: 
+82:       {isOpen && (
+83:         <DropdownContainer>
+84:           {languages.map((language, index) => (
+85:             <LanguageOption
+86:               key={language.code}
+87:               isLast={index === languages.length - 1}
+88:               onPress={() => handleSelectLanguage(language.code)}
+89:             >
+90:               <LanguageText>{t("languages." + language.code)}</LanguageText>
+91:             </LanguageOption>
+92:           ))}
+93:         </DropdownContainer>
+94:       )}
+95:     </View>
+96:   );
+97: };
+98: 
+99: export default LanguageSelector;
 
 ================
 File: src/components/SafeArea/SafeArea.js
@@ -1724,136 +1838,149 @@ File: src/features/auth/screens/LoginScreen.js
  19: import LoginDropDownPicker from "../components/LoginDropDownPicker";
  20: import SwitchContainer from "../../../components/Switch/Switch";
  21: import { useAuthentication } from "../../../services/AuthenticationContext";
- 22: 
- 23: 
- 24: const validationSchema = yup.object().shape({
- 25:   phone: yup
- 26:     .string()
- 27:     .required("Phone number is required")
- 28:     .matches(/^\d+$/, "Phone number must contain only digits"),
- 29:   password: yup
- 30:     .string()
- 31:     .min(6, "Password must be at least 6 characters")
- 32:     .required("Password is required"),
- 33: });
- 34: 
- 35: export const LoginScreen = ({ navigation }) => {
- 36:   const [selectedCountry, setSelectedCountry] = useState("United States");
- 37:   const [containerWidth, setContainerWidth] = useState(380);
- 38: 
- 39:   const [isMerchant, setIsMerchant] = useState(false);
- 40:   const { onLogin, isLoading, error } = useAuthentication();
- 41: 
- 42:   const handleLogin = (values) => {
- 43:     const selectedCode =
- 44:       countryCodes.find((country) => country.countryName === selectedCountry)
- 45:         ?.code || "+1";
- 46:     onLogin(
- 47:       `${selectedCode}${values.phone}`,
- 48:       values.password,
- 49:       isMerchant ? "merchant" : "customer"
- 50:     );
- 51:   };
- 52: 
- 53:   return (
- 54:     <Container>
- 55:       {}
- 56:       <TopRightContainer style={{ transform: [{ scale: 0.8 }] }}>
- 57:         <SwitchContainer
- 58:           isOn={isMerchant}
- 59:           setIsOn={setIsMerchant}
- 60:           leftLabel="Customer"
- 61:           rightLabel="Merchant"
- 62:           variant="alternate"
- 63:         />
- 64:       </TopRightContainer>
- 65: 
- 66:       <Logo source={require("../../../../assets/images/splash copy.png")} />
- 67:       <TitleText variant="title">Login</TitleText>
- 68: 
- 69:       <Formik
- 70:         initialValues={{ phone: "", password: "" }}
- 71:         validationSchema={validationSchema}
- 72:         onSubmit={handleLogin}
- 73:       >
- 74:         {({
- 75:           handleChange,
- 76:           handleBlur,
- 77:           handleSubmit,
- 78:           values,
- 79:           errors,
- 80:           touched,
- 81:           isValid,
- 82:         }) => (
- 83:           <>
- 84:             <InputContainer
- 85:               style={{ zIndex: 2000, elevation: 2000 }}
- 86:               onLayout={(event) => {
- 87:                 const { width } = event.nativeEvent.layout;
- 88:                 setContainerWidth(width);
- 89:               }}
- 90:             >
- 91:               <FlexContainer>
- 92:                 <View
- 93:                   style={{
- 94:                     flex: 0.29,
- 95:                     marginRight: "2%",
- 96:                     zIndex: 9000,
- 97:                     elevation: 9000,
- 98:                   }}
- 99:                 >
-100:                   <LoginDropDownPicker
-101:                     countryCodes={countryCodes}
-102:                     selectedCountry={selectedCountry}
-103:                     setSelectedCountry={setSelectedCountry}
-104:                     containerWidth={containerWidth}
-105:                   />
-106:                 </View>
-107:                 <View style={{ flex: 0.71 }}>
-108:                   <TextInput
-109:                     placeholder="Phone number"
-110:                     placeholderTextColor="#9C9C9C"
-111:                     keyboardType="number-pad"
-112:                     onChangeText={handleChange("phone")}
-113:                     onBlur={handleBlur("phone")}
-114:                     value={values.phone}
-115:                   />
-116:                 </View>
-117:               </FlexContainer>
-118:               {errors.phone && touched.phone && (
-119:                 <ErrorText>{errors.phone}</ErrorText>
-120:               )}
-121:             </InputContainer>
-122: 
-123:             <InputContainer>
-124:               <TextInput
-125:                 placeholder="Password"
-126:                 placeholderTextColor="#9C9C9C"
-127:                 secureTextEntry
-128:                 autoCapitalize="none"
-129:                 onChangeText={handleChange("password")}
-130:                 onBlur={handleBlur("password")}
-131:                 value={values.password}
-132:               />
-133:               {errors.password && touched.password && (
-134:                 <ErrorText>{errors.password}</ErrorText>
-135:               )}
-136:             </InputContainer>
-137: 
-138:             <Button onPress={handleSubmit} disabled={!isValid}>
-139:               <ButtonText> {isLoading ? "Logging in..." : "Login"} </ButtonText>
-140:             </Button>
-141:             {error && <ErrorText>{error}</ErrorText>}
-142: 
-143:             <LinkText onPress={() => console.log("Navigate to SignUp")}>
-144:               Don't have an account? Sign Up
-145:             </LinkText>
-146:           </>
-147:         )}
-148:       </Formik>
-149:     </Container>
-150:   );
-151: };
+ 22: import { useLanguage } from "../../../services/LanguageContext";
+ 23: import LanguageSelector from "../../../components/LanguageSelector/LanguageSelector";
+ 24: 
+ 25: 
+ 26: const validationSchema = yup.object().shape({
+ 27:   phone: yup
+ 28:     .string()
+ 29:     .required("Phone number is required")
+ 30:     .matches(/^\d+$/, "Phone number must contain only digits"),
+ 31:   password: yup
+ 32:     .string()
+ 33:     .min(6, "Password must be at least 6 characters")
+ 34:     .required("Password is required"),
+ 35: });
+ 36: 
+ 37: export const LoginScreen = ({ navigation }) => {
+ 38:   const [selectedCountry, setSelectedCountry] = useState("United States");
+ 39:   const [containerWidth, setContainerWidth] = useState(380);
+ 40: 
+ 41:   const [isMerchant, setIsMerchant] = useState(false);
+ 42:   const { onLogin, isLoading, error } = useAuthentication();
+ 43:   const { currentLanguage, changeLanguage } = useLanguage();
+ 44: 
+ 45:   const handleLogin = (values) => {
+ 46:     const selectedCode =
+ 47:       countryCodes.find((country) => country.countryName === selectedCountry)
+ 48:         ?.code || "+1";
+ 49:     onLogin(
+ 50:       `${selectedCode}${values.phone}`,
+ 51:       values.password,
+ 52:       isMerchant ? "merchant" : "customer"
+ 53:     );
+ 54:   };
+ 55: 
+ 56:   return (
+ 57:     <Container>
+ 58:       <LanguageSelector
+ 59:         currentLanguage={currentLanguage}
+ 60:         onChangeLanguage={changeLanguage}
+ 61:         style={{
+ 62:           position: "absolute",
+ 63:           top: 20,
+ 64:           left: 20,
+ 65:           zIndex: 1000,
+ 66:         }}
+ 67:       />
+ 68:       {}
+ 69:       <TopRightContainer style={{ transform: [{ scale: 0.8 }] }}>
+ 70:         <SwitchContainer
+ 71:           isOn={isMerchant}
+ 72:           setIsOn={setIsMerchant}
+ 73:           leftLabel="Customer"
+ 74:           rightLabel="Merchant"
+ 75:           variant="alternate"
+ 76:         />
+ 77:       </TopRightContainer>
+ 78: 
+ 79:       <Logo source={require("../../../../assets/images/splash copy.png")} />
+ 80:       <TitleText variant="title">Login</TitleText>
+ 81: 
+ 82:       <Formik
+ 83:         initialValues={{ phone: "", password: "" }}
+ 84:         validationSchema={validationSchema}
+ 85:         onSubmit={handleLogin}
+ 86:       >
+ 87:         {({
+ 88:           handleChange,
+ 89:           handleBlur,
+ 90:           handleSubmit,
+ 91:           values,
+ 92:           errors,
+ 93:           touched,
+ 94:           isValid,
+ 95:         }) => (
+ 96:           <>
+ 97:             <InputContainer
+ 98:               style={{ zIndex: 2000, elevation: 2000 }}
+ 99:               onLayout={(event) => {
+100:                 const { width } = event.nativeEvent.layout;
+101:                 setContainerWidth(width);
+102:               }}
+103:             >
+104:               <FlexContainer>
+105:                 <View
+106:                   style={{
+107:                     flex: 0.29,
+108:                     marginRight: "2%",
+109:                     zIndex: 9000,
+110:                     elevation: 9000,
+111:                   }}
+112:                 >
+113:                   <LoginDropDownPicker
+114:                     countryCodes={countryCodes}
+115:                     selectedCountry={selectedCountry}
+116:                     setSelectedCountry={setSelectedCountry}
+117:                     containerWidth={containerWidth}
+118:                   />
+119:                 </View>
+120:                 <View style={{ flex: 0.71 }}>
+121:                   <TextInput
+122:                     placeholder="Phone number"
+123:                     placeholderTextColor="#9C9C9C"
+124:                     keyboardType="number-pad"
+125:                     onChangeText={handleChange("phone")}
+126:                     onBlur={handleBlur("phone")}
+127:                     value={values.phone}
+128:                   />
+129:                 </View>
+130:               </FlexContainer>
+131:               {errors.phone && touched.phone && (
+132:                 <ErrorText>{errors.phone}</ErrorText>
+133:               )}
+134:             </InputContainer>
+135: 
+136:             <InputContainer>
+137:               <TextInput
+138:                 placeholder="Password"
+139:                 placeholderTextColor="#9C9C9C"
+140:                 secureTextEntry
+141:                 autoCapitalize="none"
+142:                 onChangeText={handleChange("password")}
+143:                 onBlur={handleBlur("password")}
+144:                 value={values.password}
+145:               />
+146:               {errors.password && touched.password && (
+147:                 <ErrorText>{errors.password}</ErrorText>
+148:               )}
+149:             </InputContainer>
+150: 
+151:             <Button onPress={handleSubmit} disabled={!isValid}>
+152:               <ButtonText> {isLoading ? "Logging in..." : "Login"} </ButtonText>
+153:             </Button>
+154:             {error && <ErrorText>{error}</ErrorText>}
+155: 
+156:             <LinkText onPress={() => console.log("Navigate to SignUp")}>
+157:               Don't have an account? Sign Up
+158:             </LinkText>
+159:           </>
+160:         )}
+161:       </Formik>
+162:     </Container>
+163:   );
+164: };
 
 ================
 File: src/features/auth/screens/LoginScreen.styles.js
@@ -3098,164 +3225,231 @@ File: src/features/customer/settings/screens/AccountSettingsScreen.styles.js
 File: src/features/customer/settings/screens/SettingsScreen.js
 ================
   1: import React from "react";
-  2: import { TouchableOpacity } from "react-native";
-  3: import { List, Avatar } from "react-native-paper";
-  4: 
-  5: import { useAuthentication } from "../../../../services/AuthenticationContext";
-  6: 
-  7: 
-  8: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
-  9: import { Spacer } from "../../../../components/Spacer/Spacer";
- 10: import { CustomText } from "../../../../components/CustomText/CustomText";
+  2: import { TouchableOpacity, View } from "react-native";
+  3: import { List, Avatar, Divider } from "react-native-paper";
+  4: import styled from "styled-components/native";
+  5: 
+  6: import { useAuthentication } from "../../../../services/AuthenticationContext";
+  7: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+  8: import { Spacer } from "../../../../components/Spacer/Spacer";
+  9: import { CustomText } from "../../../../components/CustomText/CustomText";
+ 10: import { Separator } from "../../../../components/Separator/Separator";
  11: 
  12: 
  13: import { users } from "../../../../data/mockData";
  14: 
  15: 
- 16: import {
- 17:   SettingsContainer,
- 18:   ProfileContainer,
- 19:   UserInfoContainer,
- 20:   AvatarContainer,
- 21:   SettingsItem,
- 22:   EmailText,
- 23: } from "./SettingsScreen.styles";
- 24: import { use } from "react";
- 25: 
- 26: export const SettingsScreen = ({ navigation }) => {
- 27:   const { onLogout } = useAuthentication();
- 28:   const user = users[0];
+ 16: const SettingsContainer = styled.ScrollView`
+ 17:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 18: `;
+ 19: 
+ 20: const ProfileContainer = styled.View`
+ 21:   flex-direction: row;
+ 22:   justify-content: space-between;
+ 23:   align-items: center;
+ 24:   padding: ${(props) => props.theme.space[3]};
+ 25:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 26:   border-bottom-width: 1px;
+ 27:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
+ 28: `;
  29: 
- 30:   return (
- 31:     <SafeArea>
- 32:       <SettingsContainer>
- 33:         <ProfileContainer>
- 34:           <UserInfoContainer>
- 35:             {}
- 36:             <CustomText variant="h3">{user.username}</CustomText>
- 37:             <Spacer position="top" size="small" />
- 38:             {}
- 39:             <EmailText variant="caption">{user.email}</EmailText>
- 40:           </UserInfoContainer>
- 41:           <AvatarContainer>
- 42:             {}
- 43:             <TouchableOpacity onPress={() => {}}>
- 44:               <Avatar.Image
- 45:                 size={100}
- 46:                 source={user.profileImage}
- 47:                 backgroundColor={(props) => props.theme.colors.brand.primary}
- 48:               />
- 49:             </TouchableOpacity>
- 50:           </AvatarContainer>
- 51:         </ProfileContainer>
- 52: 
- 53:         {}
- 54:         <List.Section>
- 55:           <SettingsItem
- 56:             title="Account Settings"
- 57:             left={(props) => (
- 58:               <List.Icon
- 59:                 {...props}
- 60:                 color={(props) => props.theme.colors.text.primary}
- 61:                 icon="account-cog"
- 62:               />
- 63:             )}
- 64:             onPress={() => navigation.navigate("AccountSettings")}
- 65:           />
- 66:           <SettingsItem
- 67:             title="Reservations"
- 68:             left={(props) => (
- 69:               <List.Icon
- 70:                 {...props}
- 71:                 color={(props) => props.theme.colors.text.primary}
- 72:                 icon="book"
- 73:               />
- 74:             )}
- 75:             onPress={() => navigation.navigate("Reservations")}
- 76:           />
- 77:           <SettingsItem
- 78:             title="Payment Methods"
- 79:             left={(props) => (
- 80:               <List.Icon
- 81:                 {...props}
- 82:                 color={(props) => props.theme.colors.text.primary}
- 83:                 icon="credit-card"
- 84:               />
- 85:             )}
- 86:             onPress={() => navigation.navigate("PaymentMethods")}
- 87:           />
- 88:           <SettingsItem
- 89:             title="Help"
- 90:             left={(props) => (
- 91:               <List.Icon
- 92:                 {...props}
- 93:                 color={(props) => props.theme.colors.text.primary}
- 94:                 icon="help-circle"
- 95:               />
- 96:             )}
- 97:           />
- 98:           <SettingsItem
- 99:             title="Logout"
-100:             left={(props) => (
-101:               <List.Icon
-102:                 {...props}
-103:                 color={(props) => props.theme.colors.text.primary}
-104:                 icon="logout"
-105:               />
-106:             )}
-107: 
-108:             onPress={() => {
-109:               onLogout();
-110:             }}
-111:           />
-112:         </List.Section>
-113:       </SettingsContainer>
-114:     </SafeArea>
-115:   );
-116: };
-
-================
-File: src/features/customer/settings/screens/SettingsScreen.styles.js
-================
- 1: import styled from "styled-components/native";
- 2: import { ScrollView, View, TouchableOpacity } from "react-native";
- 3: import { List } from "react-native-paper";
- 4: import { CustomText } from "../../../../components/CustomText/CustomText";
- 5: 
- 6: export const SafeArea = styled.View`
- 7:   flex: 1;
- 8:   background-color: ${(props) => props.theme.colors.bg.primary};
- 9: `;
-10: 
-11: export const SettingsContainer = styled(ScrollView)`
-12:   background-color: ${(props) => props.theme.colors.bg.primary};
-13: `;
-14: 
-15: export const ProfileContainer = styled(View)`
-16:   flex-direction: row;
-17:   justify-content: space-between;
-18:   align-items: center;
-19:   padding: ${(props) => props.theme.space[3]};
-20: `;
-21: 
-22: export const UserInfoContainer = styled(View)`
-23:   flex: 1;
-24:   margin-right: ${(props) => props.theme.space[2]};
-25:   align-items: flex-start;
-26: `;
-27: 
-28: export const AvatarContainer = styled(View)`
-29:   align-items: center;
-30:   justify-content: center;
-31: `;
-32: 
-33: export const SettingsItem = styled(List.Item)`
-34:   padding: ${(props) => props.theme.space[3]};
-35: `;
-36: 
-37: export const EmailText = styled(CustomText)`
-38:   margin-left: ${(props) => props.theme.space[1]};
-39: `;
+ 30: const UserInfoContainer = styled.View`
+ 31:   flex: 1;
+ 32:   margin-right: ${(props) => props.theme.space[2]};
+ 33:   align-items: flex-start;
+ 34: `;
+ 35: 
+ 36: const AvatarContainer = styled.View`
+ 37:   align-items: center;
+ 38:   justify-content: center;
+ 39: `;
+ 40: 
+ 41: const SettingsItem = styled(List.Item)`
+ 42:   padding: ${(props) => props.theme.space[2]};
+ 43: `;
+ 44: 
+ 45: const EmailText = styled(CustomText)`
+ 46:   color: ${(props) => props.theme.colors.text.secondary};
+ 47: `;
+ 48: 
+ 49: const SectionHeader = styled.View`
+ 50:   padding: ${(props) => props.theme.space[2]};
+ 51:   background-color: ${(props) => props.theme.colors.bg.secondary};
+ 52: `;
+ 53: 
+ 54: const SectionTitle = styled(CustomText)`
+ 55:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 56:   color: ${(props) => props.theme.colors.text.secondary};
+ 57: `;
+ 58: 
+ 59: export const SettingsScreen = ({ navigation }) => {
+ 60:   const { onLogout } = useAuthentication();
+ 61:   const user = users[0];
+ 62: 
+ 63:   return (
+ 64:     <SafeArea>
+ 65:       <SettingsContainer>
+ 66:         {}
+ 67:         <ProfileContainer>
+ 68:           <UserInfoContainer>
+ 69:             <CustomText variant="h3">{user.username}</CustomText>
+ 70:             <Spacer position="top" size="small" />
+ 71:             <EmailText variant="caption">{user.email}</EmailText>
+ 72:             <Spacer position="top" size="small" />
+ 73:             <EmailText variant="caption">{user.phoneNumber}</EmailText>
+ 74:           </UserInfoContainer>
+ 75:           <AvatarContainer>
+ 76:             <TouchableOpacity onPress={() => {}}>
+ 77:               <Avatar.Image
+ 78:                 size={80}
+ 79:                 source={user.profileImage}
+ 80:                 backgroundColor={(props) => props.theme.colors.brand.primary}
+ 81:               />
+ 82:             </TouchableOpacity>
+ 83:           </AvatarContainer>
+ 84:         </ProfileContainer>
+ 85: 
+ 86:         {}
+ 87:         <SectionHeader>
+ 88:           <SectionTitle variant="body">ACCOUNT</SectionTitle>
+ 89:         </SectionHeader>
+ 90:         <List.Section>
+ 91:           <SettingsItem
+ 92:             title="Account Settings"
+ 93:             description="Manage your personal information"
+ 94:             left={(props) => (
+ 95:               <List.Icon
+ 96:                 {...props}
+ 97:                 color={(props) => props.theme.colors.text.primary}
+ 98:                 icon="account-cog"
+ 99:               />
+100:             )}
+101:             onPress={() => navigation.navigate("AccountSettings")}
+102:           />
+103:           <Divider />
+104:           <SettingsItem
+105:             title="Reservations"
+106:             description="View and manage your restaurant reservations"
+107:             left={(props) => (
+108:               <List.Icon
+109:                 {...props}
+110:                 color={(props) => props.theme.colors.text.primary}
+111:                 icon="book"
+112:               />
+113:             )}
+114:             onPress={() => navigation.navigate("Reservations")}
+115:           />
+116:           <Divider />
+117:           <SettingsItem
+118:             title="Payment Methods"
+119:             description="Manage your saved payment options"
+120:             left={(props) => (
+121:               <List.Icon
+122:                 {...props}
+123:                 color={(props) => props.theme.colors.text.primary}
+124:                 icon="credit-card"
+125:               />
+126:             )}
+127:             onPress={() => navigation.navigate("PaymentMethods")}
+128:           />
+129:         </List.Section>
+130: 
+131:         {}
+132:         <SectionHeader>
+133:           <SectionTitle variant="body">PREFERENCES</SectionTitle>
+134:         </SectionHeader>
+135:         <List.Section>
+136:           <SettingsItem
+137:             title="Notifications"
+138:             description="Manage your notification settings"
+139:             left={(props) => (
+140:               <List.Icon
+141:                 {...props}
+142:                 color={(props) => props.theme.colors.text.primary}
+143:                 icon="bell"
+144:               />
+145:             )}
+146:             onPress={() => {}}
+147:           />
+148:           <Divider />
+149:           <SettingsItem
+150:             title="Language"
+151:             description="Change your preferred language"
+152:             left={(props) => (
+153:               <List.Icon
+154:                 {...props}
+155:                 color={(props) => props.theme.colors.text.primary}
+156:                 icon="translate"
+157:               />
+158:             )}
+159:             onPress={() => {}}
+160:           />
+161:           <Divider />
+162:           <SettingsItem
+163:             title="Appearance"
+164:             description="Customize the app's look and feel"
+165:             left={(props) => (
+166:               <List.Icon
+167:                 {...props}
+168:                 color={(props) => props.theme.colors.text.primary}
+169:                 icon="palette"
+170:               />
+171:             )}
+172:             onPress={() => {}}
+173:           />
+174:         </List.Section>
+175: 
+176:         {}
+177:         <SectionHeader>
+178:           <SectionTitle variant="body">SUPPORT</SectionTitle>
+179:         </SectionHeader>
+180:         <List.Section>
+181:           <SettingsItem
+182:             title="Help"
+183:             description="Get support and read FAQs"
+184:             left={(props) => (
+185:               <List.Icon
+186:                 {...props}
+187:                 color={(props) => props.theme.colors.text.primary}
+188:                 icon="help-circle"
+189:               />
+190:             )}
+191:             onPress={() => {}}
+192:           />
+193:           <Divider />
+194:           <SettingsItem
+195:             title="About"
+196:             description="Learn more about SeatMaster"
+197:             left={(props) => (
+198:               <List.Icon
+199:                 {...props}
+200:                 color={(props) => props.theme.colors.text.primary}
+201:                 icon="information"
+202:               />
+203:             )}
+204:             onPress={() => {}}
+205:           />
+206:           <Divider />
+207:           <SettingsItem
+208:             title="Logout"
+209:             description="Sign out from your account"
+210:             left={(props) => (
+211:               <List.Icon
+212:                 {...props}
+213:                 color={(props) => props.theme.colors.text.error}
+214:                 icon="logout"
+215:               />
+216:             )}
+217:             onPress={() => {
+218:               onLogout();
+219:             }}
+220:           />
+221:         </List.Section>
+222:         <Spacer position="bottom" size="large" />
+223:       </SettingsContainer>
+224:     </SafeArea>
+225:   );
+226: };
 
 ================
 File: src/features/merchant/dashboard/components/CounterSeats.js
@@ -4819,7 +5013,7 @@ File: src/features/merchant/reservations/components/ReservationsGrid.js
 ================
 File: src/features/merchant/reservations/components/ReservationsMailbox.js
 ================
-  1: import React, { useState, useRef } from "react";
+  1: import React, { useState, useRef, useEffect } from "react";
   2: import {
   3:   FlatList,
   4:   Animated,
@@ -4831,383 +5025,486 @@ File: src/features/merchant/reservations/components/ReservationsMailbox.js
  10: import { CustomText } from "../../../../components/CustomText/CustomText";
  11: import { MaterialIcons } from "@expo/vector-icons";
  12: import { GestureHandlerRootView } from "react-native-gesture-handler";
- 13: import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+ 13: import Swipeable from "react-native-gesture-handler/Swipeable";
  14: 
- 15: const Container = styled.View`
- 16:   flex: 1;
- 17:   background-color: ${(props) => props.theme.colors.bg.primary};
- 18: `;
- 19: 
- 20: const ReservationCard = styled(TouchableOpacity)`
- 21:   background-color: ${(props) => props.theme.colors.bg.primary};
- 22:   border-radius: 8px;
- 23:   margin: 8px 16px;
- 24:   padding: 16px;
- 25:   shadow-opacity: 0.1;
- 26:   shadow-radius: 4px;
- 27:   shadow-color: #000;
- 28:   shadow-offset: 0px 2px;
- 29:   elevation: 3;
- 30:   border-left-width: 5px;
- 31:   border-left-color: ${(props) => {
- 32:     switch (props.status) {
- 33:       case "pending":
- 34:         return "#ffd11a";
- 35:       case "confirmed":
- 36:         return "#b3ffb3";
- 37:       default:
- 38:         return "#ff4d4d";
- 39:     }
- 40:   }};
- 41: `;
- 42: 
- 43: const StatusIndicator = styled.View`
- 44:   position: absolute;
- 45:   right: 16px;
- 46:   top: 16px;
- 47:   border-radius: 4px;
- 48:   padding: 4px 8px;
- 49:   background-color: ${(props) => {
- 50:     switch (props.status) {
- 51:       case "pending":
- 52:         return "#ffd11a";
- 53:       case "confirmed":
- 54:         return "#b3ffb3";
- 55:       default:
- 56:         return "#ff4d4d";
- 57:     }
- 58:   }};
- 59: `;
- 60: 
- 61: const StatusText = styled(CustomText)`
- 62:   font-size: 12px;
- 63:   font-weight: bold;
- 64:   color: ${(props) => {
- 65:     switch (props.status) {
- 66:       case "pending":
- 67:         return "#a67f00";
- 68:       case "confirmed":
- 69:         return "#138000";
- 70:       default:
- 71:         return "#b30000";
- 72:     }
- 73:   }};
- 74: `;
- 75: 
- 76: const CardTitle = styled(CustomText)`
- 77:   font-size: 18px;
- 78:   font-weight: bold;
- 79:   margin-bottom: 8px;
- 80:   margin-right: 80px;
- 81: `;
- 82: 
- 83: const DetailRow = styled.View`
- 84:   flex-direction: row;
- 85:   align-items: center;
- 86:   margin-vertical: 4px;
- 87: `;
- 88: 
- 89: const DetailIcon = styled(MaterialIcons)`
- 90:   margin-right: 8px;
+ 15: 
+ 16: const COLORS = {
+ 17:   PENDING: {
+ 18:     bg: "#ffd11a",
+ 19:     text: "#a67f00",
+ 20:   },
+ 21:   CONFIRMED: {
+ 22:     bg: "#4CAF50",
+ 23:     text: "#FFFFFF",
+ 24:   },
+ 25:   CANCELED: {
+ 26:     bg: "#ff4d4d",
+ 27:     text: "#FFFFFF",
+ 28:   },
+ 29: };
+ 30: 
+ 31: 
+ 32: const Container = styled.View`
+ 33:   flex: 1;
+ 34:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 35: `;
+ 36: 
+ 37: const ReservationCard = styled(TouchableOpacity)`
+ 38:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 39:   border-radius: 4px;
+ 40:   margin: 2px 12px;
+ 41:   padding: 10px 12px;
+ 42:   shadow-opacity: 0.05;
+ 43:   shadow-radius: 2px;
+ 44:   shadow-color: #000;
+ 45:   shadow-offset: 0px 1px;
+ 46:   elevation: 1;
+ 47:   border-left-width: 3px;
+ 48:   border-left-color: ${(props) => {
+ 49:     switch (props.status) {
+ 50:       case "pending":
+ 51:         return COLORS.PENDING.bg;
+ 52:       case "confirmed":
+ 53:         return COLORS.CONFIRMED.bg;
+ 54:       default:
+ 55:         return COLORS.CANCELED.bg;
+ 56:     }
+ 57:   }};
+ 58: `;
+ 59: 
+ 60: const StatusIndicator = styled.View`
+ 61:   position: absolute;
+ 62:   right: 10px;
+ 63:   top: 10px;
+ 64:   border-radius: 3px;
+ 65:   padding: 2px 4px;
+ 66:   background-color: ${(props) => {
+ 67:     switch (props.status) {
+ 68:       case "pending":
+ 69:         return COLORS.PENDING.bg;
+ 70:       case "confirmed":
+ 71:         return COLORS.CONFIRMED.bg;
+ 72:       default:
+ 73:         return COLORS.CANCELED.bg;
+ 74:     }
+ 75:   }};
+ 76: `;
+ 77: 
+ 78: const StatusText = styled(CustomText)`
+ 79:   font-size: 10px;
+ 80:   font-weight: bold;
+ 81:   color: ${(props) => {
+ 82:     switch (props.status) {
+ 83:       case "pending":
+ 84:         return COLORS.PENDING.text;
+ 85:       case "confirmed":
+ 86:         return COLORS.CONFIRMED.text;
+ 87:       default:
+ 88:         return COLORS.CANCELED.text;
+ 89:     }
+ 90:   }};
  91: `;
  92: 
- 93: const DetailText = styled(CustomText)`
- 94:   font-size: 14px;
- 95: `;
- 96: 
- 97: const SectionHeader = styled.View`
- 98:   background-color: ${(props) => props.theme.colors.ui.tertiary};
- 99:   padding: 8px 16px;
-100: `;
-101: 
-102: const SectionHeaderText = styled(CustomText)`
-103:   font-size: 16px;
-104:   font-weight: bold;
-105: `;
-106: 
-107: const SwipeHintContainer = styled.View`
-108:   padding: 16px;
-109:   align-items: center;
-110:   margin-bottom: 8px;
-111: `;
-112: 
-113: const SwipeHintText = styled(CustomText)`
-114:   font-size: 14px;
-115:   color: ${(props) => props.theme.colors.text.secondary};
-116: `;
-117: 
-118: const SwipeActionContainer = styled(Animated.View)`
-119:   flex: 1;
-120:   align-items: center;
-121:   justify-content: center;
-122:   padding-horizontal: 20px;
-123:   background-color: ${(props) => props.backgroundColor};
-124: `;
-125: 
-126: const SwipeActionText = styled(CustomText)`
-127:   color: white;
-128:   font-weight: bold;
-129:   font-size: 16px;
-130: `;
-131: 
-132: const NoReservationsContainer = styled.View`
-133:   flex: 1;
-134:   justify-content: center;
-135:   align-items: center;
-136:   padding: 20px;
-137: `;
-138: 
-139: const NoReservationsText = styled(CustomText)`
-140:   font-size: 16px;
-141:   color: ${(props) => props.theme.colors.text.secondary};
-142:   text-align: center;
+ 93: const CardTitle = styled(CustomText)`
+ 94:   font-size: 16px;
+ 95:   font-weight: bold;
+ 96:   margin-bottom: 4px;
+ 97:   margin-right: 65px;
+ 98: `;
+ 99: 
+100: const DetailRow = styled.View`
+101:   flex-direction: row;
+102:   align-items: center;
+103:   margin-vertical: 2px;
+104: `;
+105: 
+106: const DetailIcon = styled(MaterialIcons)`
+107:   margin-right: 4px;
+108:   font-size: 14px;
+109: `;
+110: 
+111: const DetailText = styled(CustomText)`
+112:   font-size: 12px;
+113: `;
+114: 
+115: const SectionHeader = styled.View`
+116:   background-color: ${(props) => props.theme.colors.ui.tertiary};
+117:   padding: 6px 12px;
+118: `;
+119: 
+120: const SectionHeaderText = styled(CustomText)`
+121:   font-size: 16px;
+122:   font-weight: bold;
+123: `;
+124: 
+125: const SwipeHintContainer = styled(Animated.View)`
+126:   padding: 16px;
+127:   align-items: center;
+128:   margin-bottom: 8px;
+129: `;
+130: 
+131: const SwipeHintText = styled(CustomText)`
+132:   font-size: 14px;
+133:   color: ${(props) => props.theme.colors.text.secondary};
+134:   text-align: center;
+135: `;
+136: 
+137: const ActionContainer = styled.View`
+138:   flex: 1;
+139:   flex-direction: row;
+140:   align-items: center;
+141:   justify-content: center;
+142:   background-color: ${(props) => props.color};
 143: `;
 144: 
-145: const ReservationsMailbox = ({ reservations }) => {
-146:   const [expandedId, setExpandedId] = useState(null);
-147: 
-148:   // Create a reference to track the currently open swipeable
-149:   const swipeableRef = useRef(null);
-150: 
-151:   // Function to handle confirming a reservation
-152:   const handleConfirm = (id) => {
-153:     Alert.alert("Confirm Reservation", "Reservation has been confirmed.");
-154:     // Here you would update the reservation status in your state or database
-155:   };
-156: 
-157:   // Function to handle canceling a reservation
-158:   const handleCancel = (id) => {
-159:     Alert.alert("Cancel Reservation", "Reservation has been canceled.");
-160:     // Here you would update the reservation status in your state or database
-161:   };
-162: 
-163:   // Function to sort reservations with pending first, then by time
-164:   const sortReservations = (reservations) => {
-165:     return [...reservations].sort((a, b) => {
-166:       // Priority by status (pending comes first)
-167:       if (a.status === "pending" && b.status !== "pending") return -1;
-168:       if (a.status !== "pending" && b.status === "pending") return 1;
-169: 
-170:       // Then sort by time
-171:       const timeA = a.time.split(":").map(Number);
-172:       const timeB = b.time.split(":").map(Number);
-173: 
-174:       if (timeA[0] !== timeB[0]) return timeA[0] - timeB[0]; // Sort by hour
-175:       return timeA[1] - timeB[1]; // Sort by minute
-176:     });
-177:   };
-178: 
-179:   // Group reservations by date (in a real app, you'd have date information)
-180:   const groupedReservations = {
-181:     today: sortReservations(reservations.filter((r) => r.status === "pending")),
-182:     upcoming: sortReservations(
-183:       reservations.filter((r) => r.status === "confirmed")
-184:     ),
-185:     past: sortReservations(
-186:       reservations.filter(
-187:         (r) => r.status !== "pending" && r.status !== "confirmed"
-188:       )
-189:     ),
-190:   };
-191: 
-192:   // Render each reservation card
-193:   const renderReservationCard = ({ item }) => {
-194:     const isExpanded = expandedId === item.id;
-195: 
-196:     // Render right actions (confirm button)
-197:     const renderRightActions = (progress, dragX) => {
-198:       const translateX = dragX.interpolate({
-199:         inputRange: [-100, 0],
-200:         outputRange: [0, 100],
-201:         extrapolate: "clamp",
-202:       });
-203: 
-204:       return (
-205:         <SwipeActionContainer
-206:           backgroundColor="#b3ffb3"
-207:           style={{ transform: [{ translateX }] }}
-208:         >
-209:           <MaterialIcons name="check-circle" size={24} color="white" />
-210:           <SwipeActionText>Confirm</SwipeActionText>
-211:         </SwipeActionContainer>
-212:       );
-213:     };
-214: 
-215:     // Render left actions (cancel button)
-216:     const renderLeftActions = (progress, dragX) => {
-217:       const translateX = dragX.interpolate({
-218:         inputRange: [0, 100],
-219:         outputRange: [-100, 0],
-220:         extrapolate: "clamp",
-221:       });
-222: 
-223:       return (
-224:         <SwipeActionContainer
-225:           backgroundColor="#ff4d4d"
-226:           style={{ transform: [{ translateX }] }}
-227:         >
-228:           <MaterialIcons name="cancel" size={24} color="white" />
-229:           <SwipeActionText>Cancel</SwipeActionText>
-230:         </SwipeActionContainer>
-231:       );
-232:     };
-233: 
-234:     return (
-235:       <Swipeable
-236:         ref={(ref) => {
-237:           if (ref && expandedId === item.id) {
-238:             swipeableRef.current = ref;
-239:           }
-240:         }}
-241:         renderRightActions={renderRightActions}
-242:         renderLeftActions={renderLeftActions}
-243:         onSwipeableRightOpen={() => handleConfirm(item.id)}
-244:         onSwipeableLeftOpen={() => handleCancel(item.id)}
-245:         onSwipeableWillOpen={() => {
-246:           // Close previous swipeable
-247:           if (swipeableRef.current && expandedId !== item.id) {
-248:             swipeableRef.current.close();
-249:           }
-250:           setExpandedId(item.id);
-251:         }}
-252:       >
-253:         <ReservationCard
-254:           status={item.status}
-255:           onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
-256:         >
-257:           <StatusIndicator status={item.status}>
-258:             <StatusText status={item.status}>
-259:               {item.status.toUpperCase()}
-260:             </StatusText>
-261:           </StatusIndicator>
-262: 
-263:           <CardTitle>{item.customerName}</CardTitle>
-264: 
-265:           <DetailRow>
-266:             <DetailIcon name="access-time" size={16} color="#757575" />
-267:             <DetailText>
-268:               {item.time} ({item.duration} min)
-269:             </DetailText>
-270:           </DetailRow>
-271: 
-272:           <DetailRow>
-273:             <DetailIcon name="people" size={16} color="#757575" />
-274:             <DetailText>
-275:               {item.people} {item.people > 1 ? "people" : "person"}
-276:             </DetailText>
-277:           </DetailRow>
-278: 
-279:           <DetailRow>
-280:             <DetailIcon name="event-seat" size={16} color="#757575" />
-281:             <DetailText>
-282:               {item.isCounterSeat
-283:                 ? `Counter Seat: ${item.counterSeatId}`
-284:                 : `Table: ${item.tableId}`}
-285:             </DetailText>
-286:           </DetailRow>
-287: 
-288:           {isExpanded && item.note && (
-289:             <DetailRow>
-290:               <DetailIcon name="notes" size={16} color="#757575" />
-291:               <DetailText>{item.note}</DetailText>
-292:             </DetailRow>
-293:           )}
-294:         </ReservationCard>
-295:       </Swipeable>
-296:     );
-297:   };
-298: 
-299:   // Render section headers
-300:   const renderSectionHeader = (title, count) => (
-301:     <SectionHeader>
-302:       <SectionHeaderText>
-303:         {title} ({count})
-304:       </SectionHeaderText>
-305:     </SectionHeader>
-306:   );
-307: 
-308:   // Combine all sections into a flat array for FlatList
-309:   const sections = [
-310:     { key: "hint", type: "hint" },
-311:     {
-312:       key: "pendingHeader",
-313:       type: "header",
-314:       title: "Pending Reservations",
-315:       count: groupedReservations.today.length,
-316:     },
-317:     ...groupedReservations.today.map((item) => ({
-318:       key: `pending-${item.id}`,
-319:       type: "item",
-320:       item,
-321:     })),
-322:     {
-323:       key: "upcomingHeader",
-324:       type: "header",
-325:       title: "Confirmed Reservations",
-326:       count: groupedReservations.upcoming.length,
-327:     },
-328:     ...groupedReservations.upcoming.map((item) => ({
-329:       key: `upcoming-${item.id}`,
-330:       type: "item",
-331:       item,
-332:     })),
-333:     {
-334:       key: "pastHeader",
-335:       type: "header",
-336:       title: "Past Reservations",
-337:       count: groupedReservations.past.length,
-338:     },
-339:     ...groupedReservations.past.map((item) => ({
-340:       key: `past-${item.id}`,
-341:       type: "item",
-342:       item,
-343:     })),
-344:   ];
-345: 
-346: 
-347:   const renderItem = ({ item }) => {
-348:     switch (item.type) {
-349:       case "hint":
-350:         return (
-351:           <SwipeHintContainer>
-352:             <SwipeHintText>
-353:               ← Swipe left to cancel or right to confirm →
-354:             </SwipeHintText>
-355:           </SwipeHintContainer>
-356:         );
-357:       case "header":
-358:         return renderSectionHeader(item.title, item.count);
-359:       case "item":
-360:         return renderReservationCard({ item: item.item });
-361:       default:
-362:         return null;
-363:     }
-364:   };
-365: 
-366: 
-367:   if (!reservations || reservations.length === 0) {
-368:     return (
-369:       <NoReservationsContainer>
-370:         <MaterialIcons name="event-busy" size={60} color="#757575" />
-371:         <NoReservationsText>No reservations found</NoReservationsText>
-372:       </NoReservationsContainer>
-373:     );
-374:   }
-375: 
-376:   return (
-377:     <GestureHandlerRootView style={{ flex: 1 }}>
-378:       <Container>
-379:         <FlatList
-380:           data={sections}
-381:           renderItem={renderItem}
-382:           keyExtractor={(item) => item.key}
-383:         />
-384:       </Container>
-385:     </GestureHandlerRootView>
-386:   );
-387: };
-388: 
-389: export default ReservationsMailbox;
+145: const ActionText = styled(CustomText)`
+146:   color: white;
+147:   font-weight: bold;
+148:   font-size: 16px;
+149:   margin-left: 8px;
+150: `;
+151: 
+152: const NoReservationsContainer = styled.View`
+153:   flex: 1;
+154:   justify-content: center;
+155:   align-items: center;
+156:   padding: 20px;
+157: `;
+158: 
+159: const NoReservationsText = styled(CustomText)`
+160:   font-size: 16px;
+161:   color: ${(props) => props.theme.colors.text.secondary};
+162:   text-align: center;
+163: `;
+164: 
+165: const ReservationsMailbox = ({ reservations }) => {
+166:   const [expandedId, setExpandedId] = useState(null);
+167:   const [hintVisible, setHintVisible] = useState(true);
+168:   const swipeableRef = useRef(null);
+169:   const fadeAnim = useRef(new Animated.Value(1)).current;
+170:   const flatListRef = useRef(null);
+171:   const hideTimerRef = useRef(null);
+172: 
+173:   // Track scroll for pull detection
+174:   const lastScrollY = useRef(0);
+175:   const scrollVelocity = useRef(0);
+176:   const lastScrollTime = useRef(Date.now());
+177: 
+178:   // Auto-hide hint after initial display
+179:   useEffect(() => {
+180:     // Initial timeout - hide after 5 seconds
+181:     const timer = setTimeout(() => {
+182:       Animated.timing(fadeAnim, {
+183:         toValue: 0,
+184:         duration: 1000,
+185:         useNativeDriver: true,
+186:       }).start(() => setHintVisible(false));
+187:     }, 5000);
+188: 
+189:     return () => {
+190:       clearTimeout(timer);
+191:       if (hideTimerRef.current) {
+192:         clearTimeout(hideTimerRef.current);
+193:       }
+194:     };
+195:   }, []);
+196: 
+197:   // Show hint only with strong pull-to-refresh type gesture
+198:   const handleScroll = (event) => {
+199:     const currentTime = Date.now();
+200:     const timeDelta = currentTime - lastScrollTime.current;
+201:     const currentY = event.nativeEvent.contentOffset.y;
+202: 
+203:     // Calculate scroll velocity (pixels per millisecond)
+204:     if (timeDelta > 0) {
+205:       scrollVelocity.current = (lastScrollY.current - currentY) / timeDelta;
+206:     }
+207: 
+208:     // Strong pull detected at the top (negative because pulling down)
+209:     const isStrongPullUp = scrollVelocity.current > 0.5 && currentY < 10;
+210:     const isScrollingDown = currentY > 30 && currentY > lastScrollY.current;
+211: 
+212:     // Show hint on strong pull at top
+213:     if (isStrongPullUp && !hintVisible) {
+214:       setHintVisible(true);
+215:       Animated.timing(fadeAnim, {
+216:         toValue: 1,
+217:         duration: 300,
+218:         useNativeDriver: true,
+219:       }).start();
+220: 
+221:       // Keep hint visible for a short time
+222:       clearTimeout(hideTimerRef.current);
+223:       hideTimerRef.current = setTimeout(() => {
+224:         Animated.timing(fadeAnim, {
+225:           toValue: 0,
+226:           duration: 500,
+227:           useNativeDriver: true,
+228:         }).start(() => setHintVisible(false));
+229:       }, 3000);
+230:     }
+231:     // Hide hint when scrolling down
+232:     else if (isScrollingDown && hintVisible) {
+233:       clearTimeout(hideTimerRef.current);
+234:       Animated.timing(fadeAnim, {
+235:         toValue: 0,
+236:         duration: 300,
+237:         useNativeDriver: true,
+238:       }).start(() => setHintVisible(false));
+239:     }
+240: 
+241:     // Save current position and time for next calculation
+242:     lastScrollY.current = currentY;
+243:     lastScrollTime.current = currentTime;
+244:   };
+245: 
+246:   const sortReservations = (reservations) => {
+247:     return [...reservations].sort((a, b) => {
+248:       // Priority by status (pending first)
+249:       if (a.status === "pending" && b.status !== "pending") return -1;
+250:       if (a.status !== "pending" && b.status === "pending") return 1;
+251: 
+252:       // Then sort by time
+253:       const timeA = a.time.split(":").map(Number);
+254:       const timeB = b.time.split(":").map(Number);
+255: 
+256:       if (timeA[0] !== timeB[0]) return timeA[0] - timeB[0]; // Sort by hour
+257:       return timeA[1] - timeB[1]; // Sort by minute
+258:     });
+259:   };
+260: 
+261:   // Group reservations by status
+262:   const groupedReservations = {
+263:     today: sortReservations(reservations.filter((r) => r.status === "pending")),
+264:     upcoming: sortReservations(
+265:       reservations.filter((r) => r.status === "confirmed")
+266:     ),
+267:     past: sortReservations(
+268:       reservations.filter(
+269:         (r) => r.status !== "pending" && r.status !== "confirmed"
+270:       )
+271:     ),
+272:   };
+273: 
+274:   // Handler functions with alerts for testing
+275:   const handleConfirm = (id) => {
+276:     Alert.alert(
+277:       "Confirm Reservation",
+278:       `Reservation #${id} has been CONFIRMED.`,
+279:       [{ text: "OK" }]
+280:     );
+281:     // Here you would update the reservation status in your state or database
+282:   };
+283: 
+284:   const handleCancel = (id) => {
+285:     Alert.alert("Cancel Reservation", `Reservation #${id} has been CANCELED.`, [
+286:       { text: "OK" },
+287:     ]);
+288:     // Here you would update the reservation status in your state or database
+289:   };
+290: 
+291:   // Action renderers - Pure functions that return appropriate action UI
+292:   const renderRightActions = (progress, dragX) => {
+293:     return (
+294:       <ActionContainer color={COLORS.CONFIRMED.bg}>
+295:         <MaterialIcons name="check-circle" size={24} color="white" />
+296:         <ActionText>CONFIRM</ActionText>
+297:       </ActionContainer>
+298:     );
+299:   };
+300: 
+301:   const renderLeftActions = (progress, dragX) => {
+302:     return (
+303:       <ActionContainer color={COLORS.CANCELED.bg}>
+304:         <MaterialIcons name="cancel" size={24} color="white" />
+305:         <ActionText>CANCEL</ActionText>
+306:       </ActionContainer>
+307:     );
+308:   };
+309: 
+310:   // Card renderer
+311:   const renderReservationCard = ({ item }) => {
+312:     const isExpanded = expandedId === item.id;
+313: 
+314:     return (
+315:       <Swipeable
+316:         ref={(ref) => {
+317:           if (ref && expandedId === item.id) {
+318:             swipeableRef.current = ref;
+319:           }
+320:         }}
+321:         friction={2}
+322:         leftThreshold={40}
+323:         rightThreshold={40}
+324:         renderLeftActions={renderLeftActions}
+325:         renderRightActions={renderRightActions}
+326:         onSwipeableLeftOpen={() => handleCancel(item.id)}
+327:         onSwipeableRightOpen={() => handleConfirm(item.id)}
+328:         onSwipeableWillOpen={(direction) => {
+329:           // Close previous swipeable
+330:           if (swipeableRef.current && expandedId !== item.id) {
+331:             swipeableRef.current.close();
+332:           }
+333:           // Log for debugging
+334:           console.log(`Swiping ${direction} for reservation #${item.id}`);
+335:           setExpandedId(item.id);
+336:         }}
+337:         containerStyle={{ backgroundColor: "transparent" }}
+338:         childrenContainerStyle={{ backgroundColor: "white" }}
+339:       >
+340:         <ReservationCard
+341:           status={item.status}
+342:           onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
+343:         >
+344:           <StatusIndicator status={item.status}>
+345:             <StatusText status={item.status}>
+346:               {item.status.toUpperCase()}
+347:             </StatusText>
+348:           </StatusIndicator>
+349: 
+350:           <CardTitle numberOfLines={1} ellipsizeMode="tail">
+351:             {item.customerName}
+352:           </CardTitle>
+353: 
+354:           <DetailRow>
+355:             <DetailIcon name="access-time" color="#757575" />
+356:             <DetailText>
+357:               {item.time} ({item.duration} min)
+358:             </DetailText>
+359:           </DetailRow>
+360: 
+361:           <DetailRow>
+362:             <DetailIcon name="people" color="#757575" />
+363:             <DetailText>
+364:               {item.people} {item.people > 1 ? "people" : "person"}
+365:             </DetailText>
+366:           </DetailRow>
+367: 
+368:           {!isExpanded ? (
+369:             <DetailRow>
+370:               <DetailIcon name="event-seat" color="#757575" />
+371:               <DetailText numberOfLines={1} ellipsizeMode="tail">
+372:                 {item.isCounterSeat
+373:                   ? `Counter: ${item.counterSeatId}`
+374:                   : `Table: ${item.tableId}`}
+375:               </DetailText>
+376:             </DetailRow>
+377:           ) : (
+378:             <>
+379:               <DetailRow>
+380:                 <DetailIcon name="event-seat" color="#757575" />
+381:                 <DetailText>
+382:                   {item.isCounterSeat
+383:                     ? `Counter Seat: ${item.counterSeatId}`
+384:                     : `Table: ${item.tableId}`}
+385:                 </DetailText>
+386:               </DetailRow>
+387:               {item.note && (
+388:                 <DetailRow>
+389:                   <DetailIcon name="notes" color="#757575" />
+390:                   <DetailText>{item.note}</DetailText>
+391:                 </DetailRow>
+392:               )}
+393:             </>
+394:           )}
+395:         </ReservationCard>
+396:       </Swipeable>
+397:     );
+398:   };
+399: 
+400:   // Section header renderer
+401:   const renderSectionHeader = (title, count) => (
+402:     <SectionHeader>
+403:       <SectionHeaderText>
+404:         {title} ({count})
+405:       </SectionHeaderText>
+406:     </SectionHeader>
+407:   );
+408: 
+409:   // Combine all sections into a flat array for FlatList
+410:   const sections = [
+411:     { key: "hint", type: "hint" },
+412:     {
+413:       key: "pendingHeader",
+414:       type: "header",
+415:       title: "Pending Reservations",
+416:       count: groupedReservations.today.length,
+417:     },
+418:     ...groupedReservations.today.map((item) => ({
+419:       key: `pending-${item.id}`,
+420:       type: "item",
+421:       item,
+422:     })),
+423:     {
+424:       key: "upcomingHeader",
+425:       type: "header",
+426:       title: "Confirmed Reservations",
+427:       count: groupedReservations.upcoming.length,
+428:     },
+429:     ...groupedReservations.upcoming.map((item) => ({
+430:       key: `upcoming-${item.id}`,
+431:       type: "item",
+432:       item,
+433:     })),
+434:     {
+435:       key: "pastHeader",
+436:       type: "header",
+437:       title: "Past Reservations",
+438:       count: groupedReservations.past.length,
+439:     },
+440:     ...groupedReservations.past.map((item) => ({
+441:       key: `past-${item.id}`,
+442:       type: "item",
+443:       item,
+444:     })),
+445:   ];
+446: 
+447:   const renderItem = ({ item }) => {
+448:     switch (item.type) {
+449:       case "hint":
+450:         return hintVisible ? (
+451:           <SwipeHintContainer style={{ opacity: fadeAnim }}>
+452:             <SwipeHintText>
+453:               ← Swipe LEFT to CANCEL{"\n"}
+454:               Swipe RIGHT to CONFIRM →
+455:             </SwipeHintText>
+456:           </SwipeHintContainer>
+457:         ) : null;
+458:       case "header":
+459:         return renderSectionHeader(item.title, item.count);
+460:       case "item":
+461:         return renderReservationCard({ item: item.item });
+462:       default:
+463:         return null;
+464:     }
+465:   };
+466: 
+467:   if (!reservations || reservations.length === 0) {
+468:     return (
+469:       <NoReservationsContainer>
+470:         <MaterialIcons name="event-busy" size={60} color="#757575" />
+471:         <NoReservationsText>No reservations found</NoReservationsText>
+472:       </NoReservationsContainer>
+473:     );
+474:   }
+475: 
+476:   return (
+477:     <GestureHandlerRootView style={{ flex: 1 }}>
+478:       <Container>
+479:         <FlatList
+480:           ref={flatListRef}
+481:           data={sections}
+482:           renderItem={renderItem}
+483:           keyExtractor={(item) => item.key}
+484:           onScroll={handleScroll}
+485:           scrollEventThrottle={16}
+486:         />
+487:       </Container>
+488:     </GestureHandlerRootView>
+489:   );
+490: };
+491: 
+492: export default ReservationsMailbox;
 
 ================
 File: src/features/merchant/reservations/screens/MerchantReservationsScreen.js
@@ -5399,50 +5696,253 @@ File: src/features/merchant/reservations/utils/timeUtils.js
 ================
 File: src/features/merchant/settings/screens/MerchantSettingsScreen.js
 ================
- 1: import React from "react";
- 2: import styled from "styled-components/native";
- 3: import { TouchableOpacity } from "react-native";
- 4: 
- 5: import { useAuthentication } from "../../../../services/AuthenticationContext";
- 6: 
- 7: const Container = styled.View`
- 8:   flex: 1;
- 9:   justify-content: center;
-10:   align-items: center;
-11:   background-color: ${(props) => props.theme.colors.bg.secondary};
-12: `;
-13: 
-14: const Title = styled.Text`
-15:   font-family: ${(props) => props.theme.fonts.heading};
-16:   font-size: ${(props) => props.theme.fontSizes.title};
-17:   color: ${(props) => props.theme.colors.text.primary};
-18: `;
-19: 
-20: const LogoutButton = styled(TouchableOpacity)`
-21:   margin-top: 20px;
-22:   padding: 10px 20px;
-23:   background-color: ${(props) => props.theme.colors.ui.error};
-24:   border-radius: 8px;
-25: `;
-26: 
-27: const LogoutButtonText = styled.Text`
-28:   color: ${(props) => props.theme.colors.text.inverse};
-29:   font-size: ${(props) => props.theme.fontSizes.body};
-30:   font-family: ${(props) => props.theme.fonts.body};
-31: `;
-32: 
-33: export const MerchantSettingsScreen = () => {
-34:   const { onLogout } = useAuthentication();
-35: 
-36:   return (
-37:     <Container>
-38:       <Title>Merchant Settings Screen</Title>
-39:       <LogoutButton onPress={onLogout}>
-40:         <LogoutButtonText>Logout</LogoutButtonText>
-41:       </LogoutButton>
-42:     </Container>
-43:   );
-44: };
+  1: import React from "react";
+  2: import { ScrollView, View, TouchableOpacity } from "react-native";
+  3: import { List, Avatar } from "react-native-paper";
+  4: import styled from "styled-components/native";
+  5: 
+  6: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+  7: import { Spacer } from "../../../../components/Spacer/Spacer";
+  8: import { CustomText } from "../../../../components/CustomText/CustomText";
+  9: import { Separator } from "../../../../components/Separator/Separator";
+ 10: import { useAuthentication } from "../../../../services/AuthenticationContext";
+ 11: 
+ 12: 
+ 13: const merchantProfile = {
+ 14:   name: "Restaurant Owner",
+ 15:   email: "restaurant@example.com",
+ 16:   restaurantName: "Gourmet Delights",
+ 17:   profileImage: require("../../../../../assets/images/user_profile.jpg"),
+ 18:   phoneNumber: "+81 80 6748 5678",
+ 19: };
+ 20: 
+ 21: 
+ 22: const SettingsContainer = styled(ScrollView)`
+ 23:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 24: `;
+ 25: 
+ 26: const ProfileContainer = styled(View)`
+ 27:   flex-direction: row;
+ 28:   justify-content: space-between;
+ 29:   align-items: center;
+ 30:   padding: ${(props) => props.theme.space[3]};
+ 31: `;
+ 32: 
+ 33: const UserInfoContainer = styled(View)`
+ 34:   flex: 1;
+ 35:   margin-right: ${(props) => props.theme.space[2]};
+ 36:   align-items: flex-start;
+ 37: `;
+ 38: 
+ 39: const AvatarContainer = styled(View)`
+ 40:   align-items: center;
+ 41:   justify-content: center;
+ 42: `;
+ 43: 
+ 44: const SettingsItem = styled(List.Item)`
+ 45:   padding: ${(props) => props.theme.space[3]};
+ 46: `;
+ 47: 
+ 48: const EmailText = styled(CustomText)`
+ 49:   margin-top: ${(props) => props.theme.space[1]};
+ 50:   color: ${(props) => props.theme.colors.text.secondary};
+ 51: `;
+ 52: 
+ 53: const RestaurantNameText = styled(CustomText)`
+ 54:   margin-top: ${(props) => props.theme.space[1]};
+ 55:   color: ${(props) => props.theme.colors.text.primary};
+ 56:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 57: `;
+ 58: 
+ 59: const StatusBadge = styled(View)`
+ 60:   background-color: #4caf50;
+ 61:   padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
+ 62:   border-radius: 12px;
+ 63:   margin-top: ${(props) => props.theme.space[2]};
+ 64:   align-self: flex-start;
+ 65: `;
+ 66: 
+ 67: const StatusText = styled(CustomText)`
+ 68:   color: ${(props) => props.theme.colors.text.inverse};
+ 69:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 70:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 71: `;
+ 72: 
+ 73: const SectionTitle = styled(CustomText)`
+ 74:   padding: ${(props) => props.theme.space[3]};
+ 75:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 76:   color: ${(props) => props.theme.colors.text.secondary};
+ 77: `;
+ 78: 
+ 79: export const MerchantSettingsScreen = ({ navigation }) => {
+ 80:   const { onLogout } = useAuthentication();
+ 81: 
+ 82:   return (
+ 83:     <SafeArea>
+ 84:       <SettingsContainer>
+ 85:         {}
+ 86:         <ProfileContainer>
+ 87:           <UserInfoContainer>
+ 88:             <CustomText variant="h3">{merchantProfile.name}</CustomText>
+ 89:             <EmailText variant="caption">{merchantProfile.email}</EmailText>
+ 90:             <RestaurantNameText variant="body">
+ 91:               {merchantProfile.restaurantName}
+ 92:             </RestaurantNameText>
+ 93:             <StatusBadge>
+ 94:               <StatusText>ACTIVE</StatusText>
+ 95:             </StatusBadge>
+ 96:           </UserInfoContainer>
+ 97:           <AvatarContainer>
+ 98:             <TouchableOpacity onPress={() => {}}>
+ 99:               <Avatar.Image
+100:                 size={80}
+101:                 source={merchantProfile.profileImage}
+102:                 backgroundColor={(props) => props.theme.colors.brand.primary}
+103:               />
+104:             </TouchableOpacity>
+105:           </AvatarContainer>
+106:         </ProfileContainer>
+107:         <Separator type="full" />
+108: 
+109:         {}
+110:         <SectionTitle variant="body">ACCOUNT</SectionTitle>
+111:         <List.Section>
+112:           <SettingsItem
+113:             title="Profile Settings"
+114:             description="Edit your personal information"
+115:             left={(props) => (
+116:               <List.Icon
+117:                 {...props}
+118:                 color={(props) => props.theme.colors.text.primary}
+119:                 icon="account-cog"
+120:               />
+121:             )}
+122:             onPress={() => {}}
+123:           />
+124:           <SettingsItem
+125:             title="Restaurant Information"
+126:             description="Update restaurant details"
+127:             left={(props) => (
+128:               <List.Icon
+129:                 {...props}
+130:                 color={(props) => props.theme.colors.text.primary}
+131:                 icon="store"
+132:               />
+133:             )}
+134:             onPress={() => {}}
+135:           />
+136:           <SettingsItem
+137:             title="Menu Management"
+138:             description="Add, edit, or remove menu items"
+139:             left={(props) => (
+140:               <List.Icon
+141:                 {...props}
+142:                 color={(props) => props.theme.colors.text.primary}
+143:                 icon="food"
+144:               />
+145:             )}
+146:             onPress={() => {}}
+147:           />
+148:         </List.Section>
+149: 
+150:         {}
+151:         <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
+152:         <List.Section>
+153:           <SettingsItem
+154:             title="Seating Layout"
+155:             description="Manage tables and seating arrangement"
+156:             left={(props) => (
+157:               <List.Icon
+158:                 {...props}
+159:                 color={(props) => props.theme.colors.text.primary}
+160:                 icon="table-furniture"
+161:               />
+162:             )}
+163:             onPress={() => navigation.navigate("Home")}
+164:           />
+165:           <SettingsItem
+166:             title="Reservation Settings"
+167:             description="Configure reservation rules and availability"
+168:             left={(props) => (
+169:               <List.Icon
+170:                 {...props}
+171:                 color={(props) => props.theme.colors.text.primary}
+172:                 icon="calendar-clock"
+173:               />
+174:             )}
+175:             onPress={() => navigation.navigate("Reservations")}
+176:           />
+177:           <SettingsItem
+178:             title="Business Hours"
+179:             description="Set your restaurant opening hours"
+180:             left={(props) => (
+181:               <List.Icon
+182:                 {...props}
+183:                 color={(props) => props.theme.colors.text.primary}
+184:                 icon="clock-outline"
+185:               />
+186:             )}
+187:             onPress={() => {}}
+188:           />
+189:         </List.Section>
+190: 
+191:         {}
+192:         <SectionTitle variant="body">SYSTEM</SectionTitle>
+193:         <List.Section>
+194:           <SettingsItem
+195:             title="Notifications"
+196:             description="Manage notification preferences"
+197:             left={(props) => (
+198:               <List.Icon
+199:                 {...props}
+200:                 color={(props) => props.theme.colors.text.primary}
+201:                 icon="bell"
+202:               />
+203:             )}
+204:             onPress={() => {}}
+205:           />
+206:           <SettingsItem
+207:             title="Payment Methods"
+208:             description="Configure payment options"
+209:             left={(props) => (
+210:               <List.Icon
+211:                 {...props}
+212:                 color={(props) => props.theme.colors.text.primary}
+213:                 icon="credit-card"
+214:               />
+215:             )}
+216:             onPress={() => {}}
+217:           />
+218:           <SettingsItem
+219:             title="Help & Support"
+220:             description="Contact customer support"
+221:             left={(props) => (
+222:               <List.Icon
+223:                 {...props}
+224:                 color={(props) => props.theme.colors.text.primary}
+225:                 icon="help-circle"
+226:               />
+227:             )}
+228:             onPress={() => {}}
+229:           />
+230:           <SettingsItem
+231:             title="Logout"
+232:             description="Sign out from your account"
+233:             left={(props) => (
+234:               <List.Icon
+235:                 {...props}
+236:                 color={(props) => props.theme.colors.text.error}
+237:                 icon="logout"
+238:               />
+239:             )}
+240:             onPress={onLogout}
+241:           />
+242:         </List.Section>
+243:         <Spacer position="bottom" size="large" />
+244:       </SettingsContainer>
+245:     </SafeArea>
+246:   );
+247: };
 
 ================
 File: src/infrastructure/navigation/AppNavigator.js
@@ -5902,6 +6402,839 @@ File: src/infrastructure/theme/spacing.js
 6:   export const space = ['0px', '4px', '8px', '16px', '32px', '64px'];
 
 ================
+File: src/services/i18n/locales/en/en.js
+================
+  1: export default {
+  2:   common: {
+  3:     languages: {
+  4:       en: "English",
+  5:       ja: "Japanese",
+  6:       zh: "Chinese",
+  7:     },
+  8:     actions: {
+  9:       save: "Save",
+ 10:       cancel: "Cancel",
+ 11:       confirm: "Confirm",
+ 12:       delete: "Delete",
+ 13:       edit: "Edit",
+ 14:       view: "View",
+ 15:       back: "Back",
+ 16:       next: "Next",
+ 17:       submit: "Submit",
+ 18:     },
+ 19:     status: {
+ 20:       loading: "Loading...",
+ 21:       success: "Success",
+ 22:       error: "Error",
+ 23:       pending: "Pending",
+ 24:       completed: "Completed",
+ 25:       confirmed: "Confirmed",
+ 26:       cancelled: "Cancelled",
+ 27:     },
+ 28:     validation: {
+ 29:       required: "This field is required",
+ 30:       invalidEmail: "Please enter a valid email address",
+ 31:       invalidPhone: "Please enter a valid phone number",
+ 32:       minLength: "Must be at least {{count}} characters",
+ 33:       maxLength: "Must be at most {{count}} characters",
+ 34:       passwordMatch: "Passwords do not match",
+ 35:       invalidInput: "Invalid input",
+ 36:     },
+ 37:   },
+ 38:   auth: {
+ 39:     login: {
+ 40:       title: "Login",
+ 41:       phoneNumber: "Phone number",
+ 42:       password: "Password",
+ 43:       loginButton: "Login",
+ 44:       loggingIn: "Logging in...",
+ 45:       noAccount: "Don't have an account? Sign Up",
+ 46:       customer: "Customer",
+ 47:       merchant: "Merchant",
+ 48:       forgotPassword: "Forgot Password?",
+ 49:     },
+ 50:     signup: {
+ 51:       title: "Sign Up",
+ 52:       name: "Full Name",
+ 53:       email: "Email Address",
+ 54:       phoneNumber: "Phone Number",
+ 55:       password: "Password",
+ 56:       confirmPassword: "Confirm Password",
+ 57:       signupButton: "Sign Up",
+ 58:       haveAccount: "Already have an account? Login",
+ 59:     },
+ 60:     validation: {
+ 61:       phoneRequired: "Phone number is required",
+ 62:       phoneDigitsOnly: "Phone number must contain only digits",
+ 63:       passwordRequired: "Password is required",
+ 64:       passwordMinLength: "Password must be at least 6 characters",
+ 65:       nameRequired: "Name is required",
+ 66:       emailRequired: "Email is required",
+ 67:     },
+ 68:     errors: {
+ 69:       invalidCredentials: "Invalid credentials",
+ 70:       networkError: "Network error, please try again",
+ 71:       unknownError: "An unknown error occurred",
+ 72:     },
+ 73:   },
+ 74:   restaurant: {
+ 75:     list: {
+ 76:       title: "Restaurants",
+ 77:       search: "Search restaurants...",
+ 78:       filter: "Filter",
+ 79:       sort: "Sort",
+ 80:       noResults: "No restaurants found",
+ 81:       open: "Open Now",
+ 82:       closed: "Closed",
+ 83:     },
+ 84:     detail: {
+ 85:       menu: "Menu",
+ 86:       reviews: "Reviews",
+ 87:       info: "Information",
+ 88:       photos: "Photos",
+ 89:       address: "Address",
+ 90:       hours: "Opening Hours",
+ 91:       phone: "Phone",
+ 92:       website: "Website",
+ 93:       reserve: "Make Reservation",
+ 94:       directions: "Get Directions",
+ 95:     },
+ 96:     filters: {
+ 97:       price: "Price",
+ 98:       cuisine: "Cuisine",
+ 99:       distance: "Distance",
+100:       rating: "Rating",
+101:       openNow: "Open Now",
+102:     },
+103:     menu: {
+104:       starters: "Starters",
+105:       mainCourse: "Main Course",
+106:       desserts: "Desserts",
+107:       drinks: "Drinks",
+108:       specials: "Specials",
+109:       popular: "Popular Items",
+110:     },
+111:     reviews: {
+112:       write: "Write a Review",
+113:       rating: "Rating",
+114:       comment: "Comment",
+115:       submit: "Submit Review",
+116:       helpful: "Helpful",
+117:       report: "Report",
+118:     },
+119:   },
+120:   reservations: {
+121:     new: {
+122:       title: "New Reservation",
+123:       date: "Date",
+124:       time: "Time",
+125:       party: "Party Size",
+126:       notes: "Special Requests",
+127:       confirm: "Confirm Reservation",
+128:       termsAgree: "I agree to the booking terms and conditions",
+129:     },
+130:     list: {
+131:       title: "My Reservations",
+132:       upcoming: "Upcoming",
+133:       past: "Past",
+134:       cancelled: "Cancelled",
+135:       noUpcoming: "No upcoming reservations",
+136:       noPast: "No past reservations",
+137:     },
+138:     details: {
+139:       title: "Reservation Details",
+140:       restaurant: "Restaurant",
+141:       date: "Date",
+142:       time: "Time",
+143:       party: "Party Size",
+144:       status: "Status",
+145:       notes: "Special Requests",
+146:       cancel: "Cancel Reservation",
+147:       modify: "Modify Reservation",
+148:       directions: "Get Directions",
+149:       contact: "Contact Restaurant",
+150:     },
+151:     status: {
+152:       confirmed: "Confirmed",
+153:       pending: "Pending",
+154:       cancelled: "Cancelled",
+155:       completed: "Completed",
+156:       noShow: "No Show",
+157:     },
+158:     cancel: {
+159:       title: "Cancel Reservation",
+160:       confirm: "Are you sure you want to cancel this reservation?",
+161:       reason: "Reason for cancellation",
+162:       policy: "Cancellation Policy",
+163:       submit: "Submit Cancellation",
+164:     },
+165:   },
+166:   merchant: {
+167:     dashboard: {
+168:       title: "Dashboard",
+169:       overview: "Overview",
+170:       today: "Today",
+171:       reservations: "Reservations",
+172:       tables: "Tables",
+173:       seating: "Seating View",
+174:       revenue: "Revenue",
+175:       customers: "Customers",
+176:     },
+177:     tables: {
+178:       title: "Table Management",
+179:       tableNumber: "Table Number",
+180:       capacity: "Capacity",
+181:       status: "Status",
+182:       empty: "Empty",
+183:       occupied: "Occupied",
+184:       reserved: "Reserved",
+185:       addTable: "Add Table",
+186:       editTable: "Edit Table",
+187:       deleteTable: "Delete Table",
+188:     },
+189:     reservations: {
+190:       title: "Reservations",
+191:       calendar: "Calendar View",
+192:       list: "List View",
+193:       grid: "Grid View",
+194:       smart: "Smart View",
+195:       mailbox: "Inbox",
+196:       new: "New Reservation",
+197:       noReservations: "No reservations found",
+198:     },
+199:     settings: {
+200:       title: "Settings",
+201:       profile: "Restaurant Profile",
+202:       hours: "Business Hours",
+203:       menu: "Menu Management",
+204:       staff: "Staff Management",
+205:       notifications: "Notifications",
+206:       payment: "Payment Methods",
+207:       seating: "Seating Layout",
+208:       account: "Account Settings",
+209:     },
+210:   },
+211:   settings: {
+212:     title: "Settings",
+213:     account: {
+214:       title: "Account Settings",
+215:       name: "Name",
+216:       email: "Email",
+217:       phone: "Phone Number",
+218:       password: "Change Password",
+219:       language: "Language",
+220:       notifications: "Notifications",
+221:       logout: "Logout",
+222:     },
+223:     appearance: {
+224:       title: "Appearance",
+225:       theme: "Theme",
+226:       light: "Light",
+227:       dark: "Dark",
+228:       system: "System Default",
+229:       fontSize: "Font Size",
+230:     },
+231:     notifications: {
+232:       title: "Notifications",
+233:       push: "Push Notifications",
+234:       email: "Email Notifications",
+235:       sms: "SMS Notifications",
+236:       reservations: "Reservation Updates",
+237:       promotions: "Promotions and Offers",
+238:       system: "System Updates",
+239:     },
+240:     privacy: {
+241:       title: "Privacy",
+242:       dataUsage: "Data Usage",
+243:       location: "Location Services",
+244:       cookies: "Cookies",
+245:       advertising: "Personalized Advertising",
+246:     },
+247:     help: {
+248:       title: "Help & Support",
+249:       faq: "FAQ",
+250:       contact: "Contact Support",
+251:       terms: "Terms of Service",
+252:       privacy: "Privacy Policy",
+253:       about: "About SeatMaster",
+254:     },
+255:   },
+256: };
+
+================
+File: src/services/i18n/locales/ja/ja.js
+================
+  1: export default {
+  2:   common: {
+  3:     languages: {
+  4:       en: "英語",
+  5:       ja: "日本語",
+  6:       zh: "中国語",
+  7:     },
+  8:     actions: {
+  9:       save: "保存",
+ 10:       cancel: "キャンセル",
+ 11:       confirm: "確認",
+ 12:       delete: "削除",
+ 13:       edit: "編集",
+ 14:       view: "表示",
+ 15:       back: "戻る",
+ 16:       next: "次へ",
+ 17:       submit: "送信",
+ 18:     },
+ 19:     status: {
+ 20:       loading: "読み込み中...",
+ 21:       success: "成功",
+ 22:       error: "エラー",
+ 23:       pending: "保留中",
+ 24:       completed: "完了",
+ 25:       confirmed: "確認済み",
+ 26:       cancelled: "キャンセル済み",
+ 27:     },
+ 28:     validation: {
+ 29:       required: "このフィールドは必須です",
+ 30:       invalidEmail: "有効なメールアドレスを入力してください",
+ 31:       invalidPhone: "有効な電話番号を入力してください",
+ 32:       minLength: "{{count}}文字以上である必要があります",
+ 33:       maxLength: "{{count}}文字以下である必要があります",
+ 34:       passwordMatch: "パスワードが一致しません",
+ 35:       invalidInput: "無効な入力",
+ 36:     },
+ 37:   },
+ 38:   auth: {
+ 39:     login: {
+ 40:       title: "ログイン",
+ 41:       phoneNumber: "電話番号",
+ 42:       password: "パスワード",
+ 43:       loginButton: "ログイン",
+ 44:       loggingIn: "ログイン中...",
+ 45:       noAccount: "アカウントがありませんか？登録する",
+ 46:       customer: "お客様",
+ 47:       merchant: "店舗",
+ 48:       forgotPassword: "パスワードをお忘れですか？",
+ 49:     },
+ 50:     signup: {
+ 51:       title: "新規登録",
+ 52:       name: "氏名",
+ 53:       email: "メールアドレス",
+ 54:       phoneNumber: "電話番号",
+ 55:       password: "パスワード",
+ 56:       confirmPassword: "パスワード（確認）",
+ 57:       signupButton: "登録",
+ 58:       haveAccount: "すでにアカウントをお持ちですか？ログイン",
+ 59:     },
+ 60:     validation: {
+ 61:       phoneRequired: "電話番号が必要です",
+ 62:       phoneDigitsOnly: "電話番号は数字のみを含む必要があります",
+ 63:       passwordRequired: "パスワードが必要です",
+ 64:       passwordMinLength: "パスワードは6文字以上である必要があります",
+ 65:       nameRequired: "名前が必要です",
+ 66:       emailRequired: "メールアドレスが必要です",
+ 67:     },
+ 68:     errors: {
+ 69:       invalidCredentials: "無効な認証情報",
+ 70:       networkError: "ネットワークエラー、もう一度お試しください",
+ 71:       unknownError: "不明なエラーが発生しました",
+ 72:     },
+ 73:   },
+ 74:   restaurant: {
+ 75:     list: {
+ 76:       title: "レストラン",
+ 77:       search: "レストランを検索...",
+ 78:       filter: "フィルター",
+ 79:       sort: "並び替え",
+ 80:       noResults: "レストランが見つかりません",
+ 81:       open: "営業中",
+ 82:       closed: "閉店",
+ 83:     },
+ 84:     detail: {
+ 85:       menu: "メニュー",
+ 86:       reviews: "レビュー",
+ 87:       info: "情報",
+ 88:       photos: "写真",
+ 89:       address: "住所",
+ 90:       hours: "営業時間",
+ 91:       phone: "電話番号",
+ 92:       website: "ウェブサイト",
+ 93:       reserve: "予約する",
+ 94:       directions: "道順を見る",
+ 95:     },
+ 96:     filters: {
+ 97:       price: "価格",
+ 98:       cuisine: "料理ジャンル",
+ 99:       distance: "距離",
+100:       rating: "評価",
+101:       openNow: "営業中",
+102:     },
+103:     menu: {
+104:       starters: "前菜",
+105:       mainCourse: "メインコース",
+106:       desserts: "デザート",
+107:       drinks: "ドリンク",
+108:       specials: "おすすめ",
+109:       popular: "人気商品",
+110:     },
+111:     reviews: {
+112:       write: "レビューを書く",
+113:       rating: "評価",
+114:       comment: "コメント",
+115:       submit: "レビューを送信",
+116:       helpful: "役に立った",
+117:       report: "報告する",
+118:     },
+119:   },
+120:   reservations: {
+121:     new: {
+122:       title: "新規予約",
+123:       date: "日付",
+124:       time: "時間",
+125:       party: "人数",
+126:       notes: "特別リクエスト",
+127:       confirm: "予約を確定",
+128:       termsAgree: "予約規約に同意します",
+129:     },
+130:     list: {
+131:       title: "予約一覧",
+132:       upcoming: "今後の予約",
+133:       past: "過去の予約",
+134:       cancelled: "キャンセル済み",
+135:       noUpcoming: "今後の予約はありません",
+136:       noPast: "過去の予約はありません",
+137:     },
+138:     details: {
+139:       title: "予約詳細",
+140:       restaurant: "レストラン",
+141:       date: "日付",
+142:       time: "時間",
+143:       party: "人数",
+144:       status: "ステータス",
+145:       notes: "特別リクエスト",
+146:       cancel: "予約をキャンセル",
+147:       modify: "予約を変更",
+148:       directions: "道順を見る",
+149:       contact: "レストランに連絡",
+150:     },
+151:     status: {
+152:       confirmed: "確認済み",
+153:       pending: "保留中",
+154:       cancelled: "キャンセル済み",
+155:       completed: "完了",
+156:       noShow: "無断キャンセル",
+157:     },
+158:     cancel: {
+159:       title: "予約のキャンセル",
+160:       confirm: "この予約をキャンセルしてもよろしいですか？",
+161:       reason: "キャンセルの理由",
+162:       policy: "キャンセルポリシー",
+163:       submit: "キャンセルを送信",
+164:     },
+165:   },
+166:   merchant: {
+167:     dashboard: {
+168:       title: "ダッシュボード",
+169:       overview: "概要",
+170:       today: "今日",
+171:       reservations: "予約",
+172:       tables: "テーブル",
+173:       seating: "座席表示",
+174:       revenue: "売上",
+175:       customers: "顧客",
+176:     },
+177:     tables: {
+178:       title: "テーブル管理",
+179:       tableNumber: "テーブル番号",
+180:       capacity: "収容人数",
+181:       status: "状態",
+182:       empty: "空席",
+183:       occupied: "使用中",
+184:       reserved: "予約済み",
+185:       addTable: "テーブルを追加",
+186:       editTable: "テーブルを編集",
+187:       deleteTable: "テーブルを削除",
+188:     },
+189:     reservations: {
+190:       title: "予約",
+191:       calendar: "カレンダー表示",
+192:       list: "リスト表示",
+193:       grid: "グリッド表示",
+194:       smart: "スマート表示",
+195:       mailbox: "受信箱",
+196:       new: "新規予約",
+197:       noReservations: "予約が見つかりません",
+198:     },
+199:     settings: {
+200:       title: "設定",
+201:       profile: "レストランプロフィール",
+202:       hours: "営業時間",
+203:       menu: "メニュー管理",
+204:       staff: "スタッフ管理",
+205:       notifications: "通知",
+206:       payment: "支払い方法",
+207:       seating: "座席レイアウト",
+208:       account: "アカウント設定",
+209:     },
+210:   },
+211:   settings: {
+212:     title: "設定",
+213:     account: {
+214:       title: "アカウント設定",
+215:       name: "名前",
+216:       email: "メール",
+217:       phone: "電話番号",
+218:       password: "パスワード変更",
+219:       language: "言語",
+220:       notifications: "通知",
+221:       logout: "ログアウト",
+222:     },
+223:     appearance: {
+224:       title: "外観",
+225:       theme: "テーマ",
+226:       light: "ライト",
+227:       dark: "ダーク",
+228:       system: "システムデフォルト",
+229:       fontSize: "フォントサイズ",
+230:     },
+231:     notifications: {
+232:       title: "通知",
+233:       push: "プッシュ通知",
+234:       email: "メール通知",
+235:       sms: "SMS通知",
+236:       reservations: "予約アップデート",
+237:       promotions: "プロモーションとオファー",
+238:       system: "システムアップデート",
+239:     },
+240:     privacy: {
+241:       title: "プライバシー",
+242:       dataUsage: "データ使用",
+243:       location: "位置情報サービス",
+244:       cookies: "クッキー",
+245:       advertising: "パーソナライズド広告",
+246:     },
+247:     help: {
+248:       title: "ヘルプ＆サポート",
+249:       faq: "よくある質問",
+250:       contact: "サポートに連絡",
+251:       terms: "利用規約",
+252:       privacy: "プライバシーポリシー",
+253:       about: "SeatMasterについて",
+254:     },
+255:   },
+256: };
+
+================
+File: src/services/i18n/locales/zh/zh.js
+================
+  1: export default {
+  2:   common: {
+  3:     languages: {
+  4:       en: "英文",
+  5:       ja: "日文",
+  6:       zh: "中文",
+  7:     },
+  8:     actions: {
+  9:       save: "保存",
+ 10:       cancel: "取消",
+ 11:       confirm: "确认",
+ 12:       delete: "删除",
+ 13:       edit: "编辑",
+ 14:       view: "查看",
+ 15:       back: "返回",
+ 16:       next: "下一步",
+ 17:       submit: "提交",
+ 18:     },
+ 19:     status: {
+ 20:       loading: "加载中...",
+ 21:       success: "成功",
+ 22:       error: "错误",
+ 23:       pending: "待处理",
+ 24:       completed: "已完成",
+ 25:       confirmed: "已确认",
+ 26:       cancelled: "已取消",
+ 27:     },
+ 28:     validation: {
+ 29:       required: "此字段为必填项",
+ 30:       invalidEmail: "请输入有效的电子邮件地址",
+ 31:       invalidPhone: "请输入有效的电话号码",
+ 32:       minLength: "必须至少有{{count}}个字符",
+ 33:       maxLength: "必须最多有{{count}}个字符",
+ 34:       passwordMatch: "密码不匹配",
+ 35:       invalidInput: "无效输入",
+ 36:     },
+ 37:   },
+ 38:   auth: {
+ 39:     login: {
+ 40:       title: "登录",
+ 41:       phoneNumber: "电话号码",
+ 42:       password: "密码",
+ 43:       loginButton: "登录",
+ 44:       loggingIn: "正在登录...",
+ 45:       noAccount: "没有账户？注册",
+ 46:       customer: "顾客",
+ 47:       merchant: "商家",
+ 48:       forgotPassword: "忘记密码？",
+ 49:     },
+ 50:     signup: {
+ 51:       title: "注册",
+ 52:       name: "姓名",
+ 53:       email: "电子邮件",
+ 54:       phoneNumber: "电话号码",
+ 55:       password: "密码",
+ 56:       confirmPassword: "确认密码",
+ 57:       signupButton: "注册",
+ 58:       haveAccount: "已有账户？登录",
+ 59:     },
+ 60:     validation: {
+ 61:       phoneRequired: "电话号码为必填项",
+ 62:       phoneDigitsOnly: "电话号码只能包含数字",
+ 63:       passwordRequired: "密码为必填项",
+ 64:       passwordMinLength: "密码必须至少6个字符",
+ 65:       nameRequired: "姓名为必填项",
+ 66:       emailRequired: "电子邮件为必填项",
+ 67:     },
+ 68:     errors: {
+ 69:       invalidCredentials: "无效的凭据",
+ 70:       networkError: "网络错误，请重试",
+ 71:       unknownError: "发生未知错误",
+ 72:     },
+ 73:   },
+ 74:   restaurant: {
+ 75:     list: {
+ 76:       title: "餐厅",
+ 77:       search: "搜索餐厅...",
+ 78:       filter: "筛选",
+ 79:       sort: "排序",
+ 80:       noResults: "未找到餐厅",
+ 81:       open: "营业中",
+ 82:       closed: "已关闭",
+ 83:     },
+ 84:     detail: {
+ 85:       menu: "菜单",
+ 86:       reviews: "评价",
+ 87:       info: "信息",
+ 88:       photos: "照片",
+ 89:       address: "地址",
+ 90:       hours: "营业时间",
+ 91:       phone: "电话",
+ 92:       website: "网站",
+ 93:       reserve: "预订",
+ 94:       directions: "获取路线",
+ 95:     },
+ 96:     filters: {
+ 97:       price: "价格",
+ 98:       cuisine: "菜系",
+ 99:       distance: "距离",
+100:       rating: "评分",
+101:       openNow: "营业中",
+102:     },
+103:     menu: {
+104:       starters: "前菜",
+105:       mainCourse: "主菜",
+106:       desserts: "甜点",
+107:       drinks: "饮品",
+108:       specials: "特色菜",
+109:       popular: "热门菜品",
+110:     },
+111:     reviews: {
+112:       write: "写评价",
+113:       rating: "评分",
+114:       comment: "评论",
+115:       submit: "提交评价",
+116:       helpful: "有帮助",
+117:       report: "举报",
+118:     },
+119:   },
+120:   reservations: {
+121:     new: {
+122:       title: "新预订",
+123:       date: "日期",
+124:       time: "时间",
+125:       party: "人数",
+126:       notes: "特殊要求",
+127:       confirm: "确认预订",
+128:       termsAgree: "我同意预订条款和条件",
+129:     },
+130:     list: {
+131:       title: "我的预订",
+132:       upcoming: "即将到来",
+133:       past: "过去的",
+134:       cancelled: "已取消",
+135:       noUpcoming: "没有即将到来的预订",
+136:       noPast: "没有过去的预订",
+137:     },
+138:     details: {
+139:       title: "预订详情",
+140:       restaurant: "餐厅",
+141:       date: "日期",
+142:       time: "时间",
+143:       party: "人数",
+144:       status: "状态",
+145:       notes: "特殊要求",
+146:       cancel: "取消预订",
+147:       modify: "修改预订",
+148:       directions: "获取路线",
+149:       contact: "联系餐厅",
+150:     },
+151:     status: {
+152:       confirmed: "已确认",
+153:       pending: "待确认",
+154:       cancelled: "已取消",
+155:       completed: "已完成",
+156:       noShow: "未到场",
+157:     },
+158:     cancel: {
+159:       title: "取消预订",
+160:       confirm: "您确定要取消此预订吗？",
+161:       reason: "取消原因",
+162:       policy: "取消政策",
+163:       submit: "提交取消",
+164:     },
+165:   },
+166:   merchant: {
+167:     dashboard: {
+168:       title: "仪表板",
+169:       overview: "概览",
+170:       today: "今天",
+171:       reservations: "预订",
+172:       tables: "餐桌",
+173:       seating: "座位视图",
+174:       revenue: "收入",
+175:       customers: "顾客",
+176:     },
+177:     tables: {
+178:       title: "餐桌管理",
+179:       tableNumber: "餐桌号",
+180:       capacity: "容量",
+181:       status: "状态",
+182:       empty: "空闲",
+183:       occupied: "已占用",
+184:       reserved: "已预订",
+185:       addTable: "添加餐桌",
+186:       editTable: "编辑餐桌",
+187:       deleteTable: "删除餐桌",
+188:     },
+189:     reservations: {
+190:       title: "预订",
+191:       calendar: "日历视图",
+192:       list: "列表视图",
+193:       grid: "网格视图",
+194:       smart: "智能视图",
+195:       mailbox: "收件箱",
+196:       new: "新预订",
+197:       noReservations: "未找到预订",
+198:     },
+199:     settings: {
+200:       title: "设置",
+201:       profile: "餐厅档案",
+202:       hours: "营业时间",
+203:       menu: "菜单管理",
+204:       staff: "员工管理",
+205:       notifications: "通知",
+206:       payment: "支付方式",
+207:       seating: "座位布局",
+208:       account: "账户设置",
+209:     },
+210:   },
+211:   settings: {
+212:     title: "设置",
+213:     account: {
+214:       title: "账户设置",
+215:       name: "姓名",
+216:       email: "电子邮件",
+217:       phone: "电话号码",
+218:       password: "更改密码",
+219:       language: "语言",
+220:       notifications: "通知",
+221:       logout: "退出登录",
+222:     },
+223:     appearance: {
+224:       title: "外观",
+225:       theme: "主题",
+226:       light: "浅色",
+227:       dark: "深色",
+228:       system: "系统默认",
+229:       fontSize: "字体大小",
+230:     },
+231:     notifications: {
+232:       title: "通知",
+233:       push: "推送通知",
+234:       email: "电子邮件通知",
+235:       sms: "短信通知",
+236:       reservations: "预订更新",
+237:       promotions: "促销和优惠",
+238:       system: "系统更新",
+239:     },
+240:     privacy: {
+241:       title: "隐私",
+242:       dataUsage: "数据使用",
+243:       location: "位置服务",
+244:       cookies: "cookies",
+245:       advertising: "个性化广告",
+246:     },
+247:     help: {
+248:       title: "帮助与支持",
+249:       faq: "常见问题",
+250:       contact: "联系支持",
+251:       terms: "服务条款",
+252:       privacy: "隐私政策",
+253:       about: "关于SeatMaster",
+254:     },
+255:   },
+256: };
+
+================
+File: src/services/i18n/index.js
+================
+ 1: import i18n from "i18next";
+ 2: import { initReactI18next } from "react-i18next";
+ 3: import intervalPlural from "i18next-intervalplural-postprocessor";
+ 4: import * as RNLocalize from "react-native-localize";
+ 5: 
+ 6: 
+ 7: import en from "./locales/en/en";
+ 8: import ja from "./locales/ja/ja";
+ 9: import zh from "./locales/zh/zh";
+10: const resources = {
+11:   en: {
+12:     common: en.common,
+13:     auth: en.auth,
+14:     restaurant: en.restaurant,
+15: 
+16:   },
+17:   ja: {
+18:     common: ja.common,
+19:     auth: ja.auth,
+20:     restaurant: ja.restaurant,
+21: 
+22:   },
+23:   zh: {
+24:     common: zh.common,
+25:     auth: zh.auth,
+26:     restaurant: zh.restaurant,
+27: 
+28:   },
+29: };
+30: 
+31: const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
+32: const supportedLanguages = ["en", "ja", "zh"];
+33: 
+34: 
+35: i18n
+36:   .use(initReactI18next)
+37:   .use(intervalPlural)
+38:   .init({
+39:     resources,
+40:     lng: supportedLanguages.includes(deviceLanguage) ? deviceLanguage : "en",
+41:     fallbackLng: "en",
+42:     ns: ["common", "auth", "restaurant", "reservations", "settings"],
+43:     defaultNS: "common",
+44:     interpolation: {
+45:       escapeValue: false,
+46:     },
+47:   });
+48: 
+49: export default i18n;
+
+================
 File: src/services/AuthenticationContext.js
 ================
  1: import React, { useState, createContext, useContext } from "react";
@@ -5974,6 +7307,63 @@ File: src/services/AuthenticationContext.js
 68: export const useAuthentication = () => useContext(AuthenticationContext);
 
 ================
+File: src/services/LanguageContext.js
+================
+ 1: import React, { createContext, useState, useContext, useEffect } from "react";
+ 2: import AsyncStorage from "@react-native-async-storage/async-storage";
+ 3: import { useTranslation } from "react-i18next";
+ 4: 
+ 5: export const LanguageContext = createContext();
+ 6: 
+ 7: export const LanguageContextProvider = ({ children }) => {
+ 8:   const { i18n } = useTranslation();
+ 9:   const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
+10:   const [isLoading, setIsLoading] = useState(true);
+11: 
+12: 
+13:   useEffect(() => {
+14:     loadSavedLanguage();
+15:   }, []);
+16: 
+17:   const loadSavedLanguage = async () => {
+18:     try {
+19:       const savedLanguage = await AsyncStorage.getItem("userLanguage");
+20:       if (savedLanguage) {
+21:         setCurrentLanguage(savedLanguage);
+22:       }
+23:     } catch (error) {
+24:       console.error("Failed to load language preference:", error);
+25:     } finally {
+26:       setIsLoading(false);
+27:     }
+28:   };
+29: 
+30:   const changeLanguage = async (languageCode) => {
+31:     try {
+32:       setCurrentLanguage(languageCode);
+33:       await i18n.changeLanguage(languageCode);
+34:       await AsyncStorage.setItem("userLanguage", languageCode);
+35:     } catch (error) {
+36:       console.error("Failed to save language preference:", error);
+37:     }
+38:   };
+39: 
+40:   return (
+41:     <LanguageContext.Provider
+42:       value={{
+43:         currentLanguage,
+44:         changeLanguage,
+45:         isLoading,
+46:       }}
+47:     >
+48:       {children}
+49:     </LanguageContext.Provider>
+50:   );
+51: };
+52: 
+53: export const useLanguage = () => useContext(LanguageContext);
+
+================
 File: .cursorignore
 ================
 1: # Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
@@ -6036,22 +7426,26 @@ File: App.js
  1: import { theme } from "./src/infrastructure/theme";
  2: import { ThemeProvider } from "styled-components/native";
  3: import { AuthenticationContextProvider } from "./src/services/AuthenticationContext";
- 4: import { Navigation } from "./src/infrastructure/navigation";
- 5: import { StatusBar as ExpoStatusBar } from "expo-status-bar";
- 6: import Constants from "expo-constants";
- 7: 
- 8: export default function App() {
- 9:   return (
-10:     <>
-11:       <AuthenticationContextProvider>
-12:         <ThemeProvider theme={theme}>
-13:           <Navigation />
-14:         </ThemeProvider>
-15:       </AuthenticationContextProvider>
-16:       <ExpoStatusBar style="auto" />
-17:     </>
-18:   );
-19: }
+ 4: import { LanguageContextProvider } from "./src/services/LanguageContext";
+ 5: import { Navigation } from "./src/infrastructure/navigation";
+ 6: import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+ 7: import "./src/services/i18n";
+ 8: import Constants from "expo-constants";
+ 9: 
+10: export default function App() {
+11:   return (
+12:     <>
+13:       <LanguageContextProvider>
+14:         <AuthenticationContextProvider>
+15:           <ThemeProvider theme={theme}>
+16:             <Navigation />
+17:           </ThemeProvider>
+18:         </AuthenticationContextProvider>
+19:       </LanguageContextProvider>
+20:       <ExpoStatusBar style="auto" />
+21:     </>
+22:   );
+23: }
 
 ================
 File: app.json
@@ -6162,57 +7556,62 @@ File: package.json
 14:   },
 15:   "dependencies": {
 16:     "@expo/vector-icons": "^14.0.2",
-17:     "@react-navigation/native": "^6.1.18",
-18:     "@react-navigation/stack": "^6.4.1",
-19:     "expo": "~51.0.22",
-20:     "expo-asset": "^10.0.10",
-21:     "expo-dev-client": "^4.0.22",
-22:     "expo-file-system": "^17.0.1",
-23:     "expo-font": "~12.0.9",
-24:     "expo-gl": "^14.0.2",
-25:     "expo-linear-gradient": "~13.0.2",
-26:     "expo-linking": "~6.3.1",
-27:     "expo-router": "~3.5.18",
-28:     "expo-splash-screen": "~0.27.5",
-29:     "expo-status-bar": "~1.12.1",
-30:     "expo-system-ui": "~3.0.7",
-31:     "expo-web-browser": "~13.0.3",
-32:     "firebase": "^11.1.0",
-33:     "formik": "^2.4.6",
-34:     "react": "18.2.0",
-35:     "react-dom": "18.2.0",
-36:     "react-native": "^0.74.5",
-37:     "react-native-asset": "^2.1.1",
-38:     "react-native-collapsible-tab-view": "^8.0.0",
-39:     "react-native-dropdown-picker": "^5.4.6",
-40:     "react-native-fs": "^2.20.0",
-41:     "react-native-gesture-handler": "^2.20.0",
-42:     "react-native-pager-view": "6.3.0",
-43:     "react-native-paper": "^5.12.3",
-44:     "react-native-reanimated": "~3.10.1",
-45:     "react-native-safe-area-context": "4.10.5",
-46:     "react-native-static-server": "^0.5.0",
-47:     "react-native-svg": "15.2.0",
-48:     "react-native-tab-view": "^3.5.2",
-49:     "react-native-web": "~0.19.10",
-50:     "react-native-webview": "13.8.6",
-51:     "react-native-webview-autoheight": "^1.0.6",
-52:     "react-promise-suspense": "^0.3.4",
-53:     "styled-components": "^6.1.12",
-54:     "yup": "^1.5.0"
-55:   },
-56:   "devDependencies": {
-57:     "@babel/core": "^7.20.0",
-58:     "@types/react": "~18.2.45",
-59:     "@types/react-native": "^0.73.0",
-60:     "depcheck": "^1.4.7",
-61:     "jest": "^29.2.1",
-62:     "jest-expo": "~51.0.3",
-63:     "react-test-renderer": "18.2.0",
-64:     "typescript": "~5.3.3"
-65:   },
-66:   "private": true
-67: }
+17:     "@react-native-async-storage/async-storage": "^2.1.2",
+18:     "@react-navigation/native": "^6.1.18",
+19:     "@react-navigation/stack": "^6.4.1",
+20:     "expo": "~51.0.22",
+21:     "expo-asset": "^10.0.10",
+22:     "expo-dev-client": "^4.0.22",
+23:     "expo-file-system": "^17.0.1",
+24:     "expo-font": "~12.0.9",
+25:     "expo-gl": "^14.0.2",
+26:     "expo-linear-gradient": "~13.0.2",
+27:     "expo-linking": "~6.3.1",
+28:     "expo-router": "~3.5.18",
+29:     "expo-splash-screen": "~0.27.5",
+30:     "expo-status-bar": "~1.12.1",
+31:     "expo-system-ui": "~3.0.7",
+32:     "expo-web-browser": "~13.0.3",
+33:     "firebase": "^11.1.0",
+34:     "formik": "^2.4.6",
+35:     "i18next": "^24.2.3",
+36:     "i18next-intervalplural-postprocessor": "^3.0.0",
+37:     "react": "18.2.0",
+38:     "react-dom": "18.2.0",
+39:     "react-i18next": "^15.4.1",
+40:     "react-native": "^0.74.5",
+41:     "react-native-asset": "^2.1.1",
+42:     "react-native-collapsible-tab-view": "^8.0.0",
+43:     "react-native-dropdown-picker": "^5.4.6",
+44:     "react-native-fs": "^2.20.0",
+45:     "react-native-gesture-handler": "^2.20.0",
+46:     "react-native-localize": "^3.4.1",
+47:     "react-native-pager-view": "6.3.0",
+48:     "react-native-paper": "^5.12.3",
+49:     "react-native-reanimated": "~3.10.1",
+50:     "react-native-safe-area-context": "4.10.5",
+51:     "react-native-static-server": "^0.5.0",
+52:     "react-native-svg": "15.2.0",
+53:     "react-native-tab-view": "^3.5.2",
+54:     "react-native-web": "~0.19.10",
+55:     "react-native-webview": "13.8.6",
+56:     "react-native-webview-autoheight": "^1.0.6",
+57:     "react-promise-suspense": "^0.3.4",
+58:     "styled-components": "^6.1.12",
+59:     "yup": "^1.5.0"
+60:   },
+61:   "devDependencies": {
+62:     "@babel/core": "^7.20.0",
+63:     "@types/react": "~18.2.45",
+64:     "@types/react-native": "^0.73.0",
+65:     "depcheck": "^1.4.7",
+66:     "jest": "^29.2.1",
+67:     "jest-expo": "~51.0.3",
+68:     "react-test-renderer": "18.2.0",
+69:     "typescript": "~5.3.3"
+70:   },
+71:   "private": true
+72: }
 
 ================
 File: repomix.config.json
