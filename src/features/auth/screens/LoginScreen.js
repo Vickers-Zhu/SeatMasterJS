@@ -107,7 +107,7 @@ export const LoginScreen = ({ navigation }) => {
               <FlexContainer>
                 <View
                   style={{
-                    flex: 0.29,
+                    flex: 0.31,
                     marginRight: "2%",
                     zIndex: 9000,
                     elevation: 9000,
@@ -120,7 +120,7 @@ export const LoginScreen = ({ navigation }) => {
                     containerWidth={containerWidth}
                   />
                 </View>
-                <View style={{ flex: 0.71 }}>
+                <View style={{ flex: 0.69 }}>
                   <TextInput
                     placeholder="Phone number"
                     placeholderTextColor="#9C9C9C"

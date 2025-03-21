@@ -1677,20 +1677,20 @@ File: src/features/auth/components/CountryListItem.js
  1: import React from "react";
  2: import {
  3:   ListItemContainer,
- 4:   CountryInfoContainer,
- 5:   FlagText,
- 6:   CountryNameText,
- 7:   CodeText,
- 8: } from "./CountryListItem.styles";
- 9: import { TouchableOpacity } from "react-native";
+ 4:   FlagText,
+ 5:   CodeText,
+ 6: } from "./CountryListItem.styles";
+ 7: import { TouchableOpacity } from "react-native";
+ 8: 
+ 9: 
 10: 
-11: const CountryListItem = ({ item, onPress }) => (
-12:   <TouchableOpacity onPress={() => onPress(item)} activeOpacity={0.6}>
-13:     <ListItemContainer>
-14:       <CountryInfoContainer>
-15:         <FlagText>{item.flag}</FlagText>
-16:         <CountryNameText>{item.countryName}</CountryNameText>
-17:       </CountryInfoContainer>
+11: 
+12: 
+13: 
+14: const CountryListItem = ({ item, onPress }) => (
+15:   <TouchableOpacity onPress={() => onPress(item)} activeOpacity={0.6}>
+16:     <ListItemContainer>
+17:       <FlagText>{item.flag}</FlagText>
 18:       <CodeText>{item.code}</CodeText>
 19:     </ListItemContainer>
 20:   </TouchableOpacity>
@@ -1710,73 +1710,67 @@ File: src/features/auth/components/CountryListItem.styles.js
  7: export const ListItemContainer = styled(View)`
  8:   flex-direction: row;
  9:   align-items: center;
-10:   justify-content: space-between;
-11:   padding-vertical: ${(props) => props.theme.space[2]};
-12:   padding-horizontal: ${(props) => props.theme.space[3]};
-13:   background-color: ${(props) => props.theme.colors.bg.primary};
-14:   border-bottom-width: 0.5px;
-15:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
-16: `;
+10:   padding-vertical: ${(props) => props.theme.space[2]};
+11:   padding-horizontal: ${(props) => props.theme.space[2]};
+12:   background-color: ${(props) => props.theme.colors.bg.primary};
+13:   border-bottom-width: 0.5px;
+14:   border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
+15: `;
+16: 
 17: 
 18: 
 19: 
-20: 
-21: export const CountryInfoContainer = styled(View)`
-22:   flex-direction: row;
-23:   align-items: center;
-24:   flex: 1;
-25:   margin-right: ${(props) => props.theme.space[2]};
-26: `;
+20: export const CountryInfoContainer = styled(View)`
+21:   flex-direction: row;
+22:   align-items: center;
+23:   flex: 1;
+24:   margin-right: ${(props) => props.theme.space[2]};
+25: `;
+26: 
 27: 
 28: 
 29: 
-30: 
-31: export const FlagText = styled(Text)`
-32:   font-size: ${(props) => props.theme.fontSizes.title};
-33:   margin-right: ${(props) => props.theme.space[2]};
-34:   min-width: 30px;
-35:   text-align: center;
-36: `;
+30: export const FlagText = styled(Text)`
+31:   font-size: 20px;
+32:   margin-right: ${(props) => props.theme.space[2]};
+33: `;
+34: 
+35: 
+36: 
 37: 
-38: 
-39: 
-40: 
-41: export const CountryNameText = styled(Text)`
-42:   font-family: ${(props) => props.theme.fonts.body};
-43:   font-size: ${(props) => props.theme.fontSizes.body};
-44:   color: ${(props) => props.theme.colors.text.primary};
-45:   flex: 1;
-46: `;
+38: export const CountryNameText = styled(Text)`
+39:   font-family: ${(props) => props.theme.fonts.body};
+40:   font-size: ${(props) => props.theme.fontSizes.body};
+41:   color: ${(props) => props.theme.colors.text.primary};
+42:   flex: 1;
+43: `;
+44: 
+45: 
+46: 
 47: 
-48: 
-49: 
-50: 
-51: export const CodeText = styled(Text)`
-52:   font-family: ${(props) => props.theme.fonts.body};
-53:   font-size: ${(props) => props.theme.fontSizes.body};
-54:   font-weight: ${(props) => props.theme.fontWeights.medium};
-55:   color: ${(props) => props.theme.colors.text.primary};
-56:   padding-left: ${(props) => props.theme.space[2]};
-57:   min-width: 50px;
-58:   text-align: right;
-59: `;
+48: export const CodeText = styled(Text)`
+49:   font-family: ${(props) => props.theme.fonts.body};
+50:   font-size: 16px;
+51:   font-weight: ${(props) => props.theme.fontWeights.medium};
+52:   color: ${(props) => props.theme.colors.text.primary};
+53: `;
 
 ================
 File: src/features/auth/components/LoginDropDownPicker.js
 ================
   1: import React, { useState, useEffect } from "react";
-  2: import { Text } from "react-native";
-  3: import { MaterialIcons } from "@expo/vector-icons";
-  4: import {
-  5:   StyledDropDownPicker,
-  6:   DropdownContainer,
-  7:   SelectedItemContainer,
-  8:   PlaceholderText,
-  9:   FlagText,
- 10:   CodeText,
- 11: } from "./LoginDropDownPicker.styles";
- 12: import CountryListItem from "./CountryListItem";
- 13: import { useTheme } from "styled-components/native";
+  2: import { MaterialIcons } from "@expo/vector-icons";
+  3: import {
+  4:   DropdownContainer,
+  5:   PlaceholderText,
+  6:   SelectedItemWrapper,
+  7:   FlagText,
+  8:   CodeText,
+  9:   StyledDropDownPicker,
+ 10: } from "./LoginDropDownPicker.styles";
+ 11: import CountryListItem from "./CountryListItem";
+ 12: import { useTheme } from "styled-components/native";
+ 13: 
  14: 
  15: 
  16: 
@@ -1784,192 +1778,208 @@ File: src/features/auth/components/LoginDropDownPicker.js
  18: 
  19: 
  20: 
- 21: 
- 22: 
- 23: 
- 24: 
- 25: 
- 26: const LoginDropDownPicker = ({
- 27:   countryCodes,
- 28:   selectedCountry,
- 29:   setSelectedCountry,
- 30:   containerWidth,
- 31:   style,
- 32: }) => {
- 33:   const [open, setOpen] = useState(false);
- 34:   const [selectedItem, setSelectedItem] = useState(null);
- 35:   const theme = useTheme();
- 36: 
- 37: 
- 38:   useEffect(() => {
- 39:     if (selectedCountry && countryCodes) {
- 40:       const item = countryCodes.find(
- 41:         (item) => item.countryName === selectedCountry
- 42:       );
- 43:       setSelectedItem(item);
- 44:     }
- 45:   }, [selectedCountry, countryCodes]);
+ 21: const LoginDropDownPicker = ({
+ 22:   countryCodes,
+ 23:   selectedCountry,
+ 24:   setSelectedCountry,
+ 25:   style,
+ 26: }) => {
+ 27:   const [open, setOpen] = useState(false);
+ 28:   const [selectedItem, setSelectedItem] = useState(null);
+ 29:   const theme = useTheme();
+ 30: 
+ 31: 
+ 32:   useEffect(() => {
+ 33:     if (selectedCountry && countryCodes) {
+ 34:       const item = countryCodes.find(
+ 35:         (item) => item.countryName === selectedCountry
+ 36:       );
+ 37:       setSelectedItem(item);
+ 38:     }
+ 39:   }, [selectedCountry, countryCodes]);
+ 40: 
+ 41: 
+ 42:   const handleSelectItem = (item) => {
+ 43:     setSelectedCountry(item.countryName);
+ 44:     setOpen(false);
+ 45:   };
  46: 
- 47:   const handleSelectItem = (item) => {
- 48:     setSelectedCountry(item.countryName);
- 49:     setOpen(false);
- 50:   };
- 51: 
- 52: 
- 53:   const dropdownItems = countryCodes.map((item) => ({
- 54:     label: `${item.flag} ${item.code}`,
- 55:     value: item.countryName,
- 56:     countryName: item.countryName,
- 57:     code: item.code,
- 58:     flag: item.flag,
- 59:   }));
- 60: 
- 61: 
- 62:   const renderPlaceholder = () => {
- 63:     if (!selectedItem) return <PlaceholderText>Select</PlaceholderText>;
- 64: 
- 65:     return (
- 66:       <SelectedItemContainer>
- 67:         <FlagText>{selectedItem.flag}</FlagText>
- 68:         <CodeText>{selectedItem.code}</CodeText>
- 69:         <MaterialIcons
- 70:           name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
- 71:           size={16}
- 72:           color={theme.colors.text.primary}
- 73:         />
- 74:       </SelectedItemContainer>
- 75:     );
- 76:   };
- 77: 
- 78:   return (
- 79:     <DropdownContainer style={style}>
- 80:       <StyledDropDownPicker
- 81:         open={open}
- 82:         value={selectedCountry}
- 83:         items={dropdownItems}
- 84:         setOpen={setOpen}
- 85:         setValue={(val) => {
- 86:           const selectedItem = countryCodes.find(
- 87:             (item) => item.countryName === val
- 88:           );
- 89:           setSelectedCountry(selectedItem?.countryName);
- 90:         }}
- 91:         placeholder="Select"
- 92:         listMode="SCROLLVIEW"
- 93:         renderListItem={({ item }) => (
- 94:           <CountryListItem item={item} onPress={handleSelectItem} />
- 95:         )}
- 96:         searchable={false}
- 97:         ArrowUpIconComponent={() => null}
- 98:         ArrowDownIconComponent={() => null}
- 99:         renderSelectedItemLabel={() => null}
-100:         renderPlaceholder={renderPlaceholder}
-101:       />
-102:     </DropdownContainer>
-103:   );
-104: };
-105: 
-106: export default LoginDropDownPicker;
+ 47: 
+ 48:   const dropdownItems = countryCodes.map((item) => ({
+ 49:     label: `${item.flag}  ${item.code}`,
+ 50:     value: item.countryName,
+ 51:     countryName: item.countryName,
+ 52:     code: item.code,
+ 53:     flag: item.flag,
+ 54:   }));
+ 55: 
+ 56: 
+ 57:   const renderPlaceholder = () => {
+ 58:     if (!selectedItem) return <PlaceholderText>Select</PlaceholderText>;
+ 59: 
+ 60:     return (
+ 61:       <SelectedItemWrapper>
+ 62:         <FlagText>{selectedItem.flag}</FlagText>
+ 63:         <CodeText>{selectedItem.code}</CodeText>
+ 64:         <MaterialIcons
+ 65:           name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+ 66:           size={16}
+ 67:           color={theme.colors.text.primary}
+ 68:           style={{ marginLeft: 4 }}
+ 69:         />
+ 70:       </SelectedItemWrapper>
+ 71:     );
+ 72:   };
+ 73: 
+ 74:   return (
+ 75:     <DropdownContainer style={style}>
+ 76:       <StyledDropDownPicker
+ 77:         open={open}
+ 78:         value={selectedCountry}
+ 79:         items={dropdownItems}
+ 80:         setOpen={setOpen}
+ 81:         setValue={(val) => {
+ 82:           const item = countryCodes.find((item) => item.countryName === val);
+ 83:           setSelectedCountry(item?.countryName);
+ 84:         }}
+ 85:         placeholder="Select"
+ 86:         listMode="SCROLLVIEW"
+ 87:         renderListItem={({ item }) => (
+ 88:           <CountryListItem item={item} onPress={handleSelectItem} />
+ 89:         )}
+ 90:         searchable={false}
+ 91:         ArrowUpIconComponent={() => null}
+ 92:         ArrowDownIconComponent={() => null}
+ 93:         renderSelectedItemLabel={() => null}
+ 94:         renderPlaceholder={renderPlaceholder}
+ 95:       />
+ 96:     </DropdownContainer>
+ 97:   );
+ 98: };
+ 99: 
+100: export default LoginDropDownPicker;
 
 ================
 File: src/features/auth/components/LoginDropDownPicker.styles.js
 ================
- 1: import styled from "styled-components/native";
- 2: import DropDownPicker from "react-native-dropdown-picker";
- 3: import { View, Text } from "react-native";
- 4: 
- 5: 
- 6: 
- 7: 
- 8: export const DropdownContainer = styled(View)`
- 9:   position: relative;
-10:   background-color: ${(props) => props.theme.colors.bg.secondary};
-11:   border-radius: 8px;
-12: `;
-13: 
-14: 
-15: 
-16: 
-17: export const SelectedItemContainer = styled(View)`
-18:   flex-direction: row;
-19:   align-items: center;
-20:   justify-content: space-between;
-21:   padding-horizontal: ${(props) => props.theme.space[2]};
-22:   background-color: ${(props) => props.theme.colors.bg.secondary};
-23: `;
-24: 
-25: 
-26: 
-27: 
-28: export const PlaceholderText = styled(Text)`
-29:   color: ${(props) => props.theme.colors.text.disabled};
-30:   padding-horizontal: ${(props) => props.theme.space[2]};
-31:   font-family: ${(props) => props.theme.fonts.body};
-32: `;
-33: 
-34: 
-35: 
-36: 
-37: export const FlagText = styled(Text)`
-38:   font-size: 20px;
-39:   margin-right: ${(props) => props.theme.space[2]};
-40: `;
-41: 
-42: 
-43: 
-44: 
-45: export const CodeText = styled(Text)`
-46:   font-size: 14px;
-47:   font-weight: ${(props) => props.theme.fontWeights.medium};
-48:   margin-right: ${(props) => props.theme.space[1]};
-49:   color: ${(props) => props.theme.colors.text.primary};
-50: `;
-51: 
-52: 
-53: 
-54: 
-55: 
-56: export const StyledDropDownPicker = styled(DropDownPicker).attrs(
-57:   ({ theme }) => ({
-58:     style: {
-59:       backgroundColor: theme.colors.bg.secondary,
-60:       borderColor: theme.colors.ui.tertiary,
-61:       borderRadius: 8,
-62:       minHeight: 50,
-63:       borderWidth: 1,
-64:       width: "100%",
-65:     },
-66:     dropDownContainerStyle: {
-67:       position: "absolute",
-68:       width: "100%",
-69:       backgroundColor: theme.colors.bg.primary,
-70:       borderColor: theme.colors.ui.tertiary,
-71:       borderWidth: 1,
-72:       borderTopWidth: 0,
-73:       borderBottomLeftRadius: 8,
-74:       borderBottomRightRadius: 8,
-75:       elevation: 5,
-76:       shadowColor: "#000",
-77:       shadowOffset: { width: 0, height: 2 },
-78:       shadowOpacity: 0.1,
-79:       shadowRadius: 4,
-80:       zIndex: 1000,
-81:     },
-82:     listItemContainerStyle: {
-83:       height: 50,
-84:     },
-85:     listParentContainerStyle: {
-86:       maxHeight: 250,
-87:     },
-88:     modalContentContainerStyle: {
-89:       backgroundColor: theme.colors.bg.primary,
-90:       paddingVertical: 16,
-91:     },
-92:   })
-93: )`
-94:   /* Additional styled-components styles if needed */
-95:   z-index: 2000;
-96: `;
+  1: import styled from "styled-components/native";
+  2: import DropDownPicker from "react-native-dropdown-picker";
+  3: import { View, Text } from "react-native";
+  4: 
+  5: 
+  6: 
+  7: 
+  8: export const DropdownContainer = styled(View)`
+  9:   position: relative;
+ 10:   background-color: ${(props) => props.theme.colors.bg.secondary};
+ 11:   border-radius: 8px;
+ 12: `;
+ 13: 
+ 14: 
+ 15: 
+ 16: 
+ 17: export const PlaceholderText = styled(Text)`
+ 18:   color: ${(props) => props.theme.colors.text.disabled};
+ 19:   font-family: ${(props) => props.theme.fonts.body};
+ 20:   font-size: 16px;
+ 21:   padding-horizontal: ${(props) => props.theme.space[2]};
+ 22: `;
+ 23: 
+ 24: 
+ 25: 
+ 26: 
+ 27: export const SelectedItemWrapper = styled(View)`
+ 28:   flex-direction: row;
+ 29:   align-items: center;
+ 30:   padding-horizontal: ${(props) => props.theme.space[2]};
+ 31: `;
+ 32: 
+ 33: 
+ 34: 
+ 35: 
+ 36: export const FlagText = styled(Text)`
+ 37:   font-size: 20px;
+ 38:   margin-right: ${(props) => props.theme.space[2]};
+ 39: `;
+ 40: 
+ 41: 
+ 42: 
+ 43: 
+ 44: export const CodeText = styled(Text)`
+ 45:   font-family: ${(props) => props.theme.fonts.body};
+ 46:   font-size: 16px;
+ 47:   font-weight: ${(props) => props.theme.fontWeights.medium};
+ 48:   color: ${(props) => props.theme.colors.text.primary};
+ 49: `;
+ 50: 
+ 51: 
+ 52: 
+ 53: 
+ 54: export const StyledDropDownPicker = styled(DropDownPicker).attrs(
+ 55:   ({ theme }) => ({
+ 56: 
+ 57:     style: {
+ 58:       backgroundColor: theme.colors.bg.secondary,
+ 59:       borderColor: theme.colors.ui.tertiary,
+ 60:       borderRadius: 8,
+ 61:       minHeight: 50,
+ 62:       borderWidth: 1,
+ 63:       width: "100%",
+ 64:     },
+ 65: 
+ 66: 
+ 67:     dropDownContainerStyle: {
+ 68:       position: "absolute",
+ 69:       width: "100%",
+ 70:       backgroundColor: theme.colors.bg.primary,
+ 71:       borderColor: theme.colors.ui.tertiary,
+ 72:       borderWidth: 1,
+ 73:       borderTopWidth: 0,
+ 74:       borderBottomLeftRadius: 8,
+ 75:       borderBottomRightRadius: 8,
+ 76:       elevation: 5,
+ 77:       shadowColor: "#000",
+ 78:       shadowOffset: { width: 0, height: 2 },
+ 79:       shadowOpacity: 0.1,
+ 80:       shadowRadius: 4,
+ 81:       zIndex: 1000,
+ 82:     },
+ 83: 
+ 84: 
+ 85:     placeholderStyle: {
+ 86:       color: theme.colors.text.disabled,
+ 87:       fontFamily: theme.fonts.body,
+ 88:       fontSize: 16,
+ 89:     },
+ 90: 
+ 91: 
+ 92:     selectedItemContainerStyle: {
+ 93:       flexDirection: 'row',
+ 94:       alignItems: 'center',
+ 95:       paddingHorizontal: parseInt(theme.space[2]),
+ 96:     },
+ 97: 
+ 98: 
+ 99:     listItemContainerStyle: {
+100:       height: 50,
+101:       flexDirection: 'row',
+102:       alignItems: 'center',
+103:     },
+104: 
+105: 
+106:     listParentContainerStyle: {
+107:       maxHeight: 250,
+108:     },
+109: 
+110: 
+111:     itemSeparatorStyle: {
+112:       backgroundColor: theme.colors.ui.tertiary,
+113:       height: 0.5,
+114:     },
+115:   })
+116: )`
+117:   z-index: 2000;
+118: `;
 
 ================
 File: src/features/auth/screens/LoginScreen.js
@@ -2073,7 +2083,7 @@ File: src/features/auth/screens/LoginScreen.js
  97:         }) => (
  98:           <>
  99:             <InputContainer
-100:               style={{ zIndex: 2000 }}
+100:               style={{ zIndex: 2000, elevation: 2000 }}
 101:               onLayout={(event) => {
 102:                 const { width } = event.nativeEvent.layout;
 103:                 setContainerWidth(width);
@@ -2082,63 +2092,64 @@ File: src/features/auth/screens/LoginScreen.js
 106:               <FlexContainer>
 107:                 <View
 108:                   style={{
-109:                     flex: 0.32, // Slightly wider than before
-110:                     marginRight: 8,
+109:                     flex: 0.29,
+110:                     marginRight: "2%",
 111:                     zIndex: 9000,
-112:                   }}
-113:                 >
-114:                   <LoginDropDownPicker
-115:                     countryCodes={countryCodes}
-116:                     selectedCountry={selectedCountry}
-117:                     setSelectedCountry={setSelectedCountry}
-118:                     style={{ height: 50 }} // Match TextInput height
-119:                   />
-120:                 </View>
-121:                 <View style={{ flex: 0.68 }}>
-122:                   <TextInput
-123:                     placeholder="Phone number"
-124:                     placeholderTextColor="#9C9C9C"
-125:                     keyboardType="number-pad"
-126:                     onChangeText={handleChange("phone")}
-127:                     onBlur={handleBlur("phone")}
-128:                     value={values.phone}
-129:                   />
-130:                 </View>
-131:               </FlexContainer>
-132:               {errors.phone && touched.phone && (
-133:                 <ErrorText>{errors.phone}</ErrorText>
-134:               )}
-135:             </InputContainer>
-136: 
-137:             <InputContainer>
-138:               <TextInput
-139:                 placeholder="Password"
-140:                 placeholderTextColor="#9C9C9C"
-141:                 secureTextEntry
-142:                 autoCapitalize="none"
-143:                 onChangeText={handleChange("password")}
-144:                 onBlur={handleBlur("password")}
-145:                 value={values.password}
-146:               />
-147:               {errors.password && touched.password && (
-148:                 <ErrorText>{errors.password}</ErrorText>
-149:               )}
-150:             </InputContainer>
-151: 
-152:             <Button onPress={handleSubmit} disabled={!isValid}>
-153:               <ButtonText> {isLoading ? "Logging in..." : "Login"} </ButtonText>
-154:             </Button>
-155:             {error && <ErrorText>{error}</ErrorText>}
-156: 
-157:             <LinkText onPress={() => console.log("Navigate to SignUp")}>
-158:               Don't have an account? Sign Up
-159:             </LinkText>
-160:           </>
-161:         )}
-162:       </Formik>
-163:     </Container>
-164:   );
-165: };
+112:                     elevation: 9000,
+113:                   }}
+114:                 >
+115:                   <LoginDropDownPicker
+116:                     countryCodes={countryCodes}
+117:                     selectedCountry={selectedCountry}
+118:                     setSelectedCountry={setSelectedCountry}
+119:                     containerWidth={containerWidth}
+120:                   />
+121:                 </View>
+122:                 <View style={{ flex: 0.71 }}>
+123:                   <TextInput
+124:                     placeholder="Phone number"
+125:                     placeholderTextColor="#9C9C9C"
+126:                     keyboardType="number-pad"
+127:                     onChangeText={handleChange("phone")}
+128:                     onBlur={handleBlur("phone")}
+129:                     value={values.phone}
+130:                   />
+131:                 </View>
+132:               </FlexContainer>
+133:               {errors.phone && touched.phone && (
+134:                 <ErrorText>{errors.phone}</ErrorText>
+135:               )}
+136:             </InputContainer>
+137: 
+138:             <InputContainer>
+139:               <TextInput
+140:                 placeholder="Password"
+141:                 placeholderTextColor="#9C9C9C"
+142:                 secureTextEntry
+143:                 autoCapitalize="none"
+144:                 onChangeText={handleChange("password")}
+145:                 onBlur={handleBlur("password")}
+146:                 value={values.password}
+147:               />
+148:               {errors.password && touched.password && (
+149:                 <ErrorText>{errors.password}</ErrorText>
+150:               )}
+151:             </InputContainer>
+152: 
+153:             <Button onPress={handleSubmit} disabled={!isValid}>
+154:               <ButtonText> {isLoading ? "Logging in..." : "Login"} </ButtonText>
+155:             </Button>
+156:             {error && <ErrorText>{error}</ErrorText>}
+157: 
+158:             <LinkText onPress={() => console.log("Navigate to SignUp")}>
+159:               Don't have an account? Sign Up
+160:             </LinkText>
+161:           </>
+162:         )}
+163:       </Formik>
+164:     </Container>
+165:   );
+166: };
 
 ================
 File: src/features/auth/screens/LoginScreen.styles.js
