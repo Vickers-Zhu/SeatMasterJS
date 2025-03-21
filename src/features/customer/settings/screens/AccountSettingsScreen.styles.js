@@ -1,7 +1,6 @@
 // src/features/settings/screens/AccountSettingsScreen.styles.js
 import styled from "styled-components/native";
 import { ScrollView, View } from "react-native";
-import { Avatar } from "react-native-paper";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 
 export const SettingsContainer = styled(ScrollView)`

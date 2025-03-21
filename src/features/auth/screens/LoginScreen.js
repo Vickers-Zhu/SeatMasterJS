@@ -17,10 +17,12 @@ import {
   ErrorText,
   TitleText,
 } from "./LoginScreen.styles";
-import LoginDropDownPicker from "../components/LoginDropDownPicker";
-import SwitchContainer from "../../../components/Switch/Switch";
+
 import { useAuthentication } from "../../../services/AuthenticationContext";
 import { useLanguage } from "../../../services/LanguageContext";
+
+import LoginDropDownPicker from "../components/LoginDropDownPicker";
+import SwitchContainer from "../../../components/Switch/Switch";
 import LanguageSelector from "../../../components/LanguageSelector/LanguageSelector";
 
 // Validation Schema
