@@ -1,18 +1,21 @@
-// src/features/settings/screens/AccountSettingsScreen.styles.js
+// src/features/customer/settings/screens/AccountSettingsScreen.styles.js
 import styled from "styled-components/native";
-import { ScrollView, View } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 
 export const SettingsContainer = styled(ScrollView)`
   background-color: ${(props) => props.theme.colors.bg.primary};
+  flex: 1;
+  margin: ${(props) => props.theme.space[1]};
 `;
 
 export const Header = styled.View`
   flex-direction: row;
   align-items: center;
-  justify-content: center; /* Centers the title */
+  justify-content: center;
   padding: ${(props) => props.theme.space[2]};
   position: relative;
+  margin-bottom: ${(props) => props.theme.space[2]};
 `;
 
 export const CloseButtonWrapper = styled.View`
@@ -21,39 +24,35 @@ export const CloseButtonWrapper = styled.View`
 `;
 
 export const SectionTitle = styled(CustomText)`
-  padding: ${(props) => props.theme.space[3]} ${(props) => props.theme.space[3]};
   font-weight: ${(props) => props.theme.fontWeights.bold};
+  color: ${(props) => props.theme.colors.text.secondary};
+  font-size: ${(props) => props.theme.fontSizes.caption};
+  margin-bottom: ${(props) => props.theme.space[2]};
+  margin-left: ${(props) => props.theme.space[3]};
 `;
 
-export const FrameLine = styled.View`
-  border-width: 1px;
-  border-color: rgba(0, 0, 0, 0.1);
-  margin: ${(props) => props.theme.space[1]};
-  border-radius: 8px;
+export const SectionContainer = styled.View`
+  margin-top: ${(props) => props.theme.space[3]};
+  margin-bottom: ${(props) => props.theme.space[3]};
 `;
 
 export const ProfileContainer = styled.View`
   flex-direction: row;
   align-items: center;
+  justify-content: center;
   padding: ${(props) => props.theme.space[3]};
+  margin-bottom: ${(props) => props.theme.space[2]};
 `;
 
-export const ItemContainer = styled.View`
+export const SettingsItemRow = styled(TouchableOpacity)`
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  padding-vertical: ${(props) => props.theme.space[0]};
+  padding-vertical: ${(props) => props.theme.space[3]};
   padding-horizontal: ${(props) => props.theme.space[3]};
+  background-color: ${(props) => props.theme.colors.bg.primary};
 `;
 
-export const ItemTextContainer = styled.View`
-  flex-direction: column;
-`;
-
-export const BoldText = styled(CustomText)`
-  font-weight: ${(props) => props.theme.fontWeights.bold};
-`;
-
-export const InfoText = styled(CustomText)`
-  color: ${(props) => props.theme.colors.text.secondary};
+export const SettingsItemText = styled.View`
+  flex: 1;
+  margin-left: ${(props) => props.theme.space[3]};
 `;

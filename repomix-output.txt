@@ -1758,106 +1758,94 @@ File: src/features/auth/components/CountryListItem.styles.js
 ================
 File: src/features/auth/components/LoginDropDownPicker.js
 ================
-  1: import React, { useState, useEffect } from "react";
-  2: import { MaterialIcons } from "@expo/vector-icons";
-  3: import {
-  4:   DropdownContainer,
-  5:   PlaceholderText,
-  6:   SelectedItemWrapper,
-  7:   FlagText,
-  8:   CodeText,
-  9:   StyledDropDownPicker,
- 10: } from "./LoginDropDownPicker.styles";
- 11: import CountryListItem from "./CountryListItem";
- 12: import { useTheme } from "styled-components/native";
- 13: 
- 14: 
- 15: 
- 16: 
- 17: 
- 18: 
- 19: 
- 20: 
- 21: const LoginDropDownPicker = ({
- 22:   countryCodes,
- 23:   selectedCountry,
- 24:   setSelectedCountry,
- 25:   style,
- 26: }) => {
- 27:   const [open, setOpen] = useState(false);
- 28:   const [selectedItem, setSelectedItem] = useState(null);
- 29:   const theme = useTheme();
- 30: 
- 31: 
- 32:   useEffect(() => {
- 33:     if (selectedCountry && countryCodes) {
- 34:       const item = countryCodes.find(
- 35:         (item) => item.countryName === selectedCountry
- 36:       );
- 37:       setSelectedItem(item);
- 38:     }
- 39:   }, [selectedCountry, countryCodes]);
- 40: 
- 41: 
- 42:   const handleSelectItem = (item) => {
- 43:     setSelectedCountry(item.countryName);
- 44:     setOpen(false);
- 45:   };
- 46: 
- 47: 
- 48:   const dropdownItems = countryCodes.map((item) => ({
- 49:     label: `${item.flag}  ${item.code}`,
- 50:     value: item.countryName,
- 51:     countryName: item.countryName,
- 52:     code: item.code,
- 53:     flag: item.flag,
- 54:   }));
- 55: 
- 56: 
- 57:   const renderPlaceholder = () => {
- 58:     if (!selectedItem) return <PlaceholderText>Select</PlaceholderText>;
- 59: 
- 60:     return (
- 61:       <SelectedItemWrapper>
- 62:         <FlagText>{selectedItem.flag}</FlagText>
- 63:         <CodeText>{selectedItem.code}</CodeText>
- 64:         <MaterialIcons
- 65:           name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
- 66:           size={16}
- 67:           color={theme.colors.text.primary}
- 68:           style={{ marginLeft: 4 }}
- 69:         />
- 70:       </SelectedItemWrapper>
- 71:     );
- 72:   };
- 73: 
- 74:   return (
- 75:     <DropdownContainer style={style}>
- 76:       <StyledDropDownPicker
- 77:         open={open}
- 78:         value={selectedCountry}
- 79:         items={dropdownItems}
- 80:         setOpen={setOpen}
- 81:         setValue={(val) => {
- 82:           const item = countryCodes.find((item) => item.countryName === val);
- 83:           setSelectedCountry(item?.countryName);
- 84:         }}
- 85:         placeholder="Select"
- 86:         listMode="SCROLLVIEW"
- 87:         renderListItem={({ item }) => (
- 88:           <CountryListItem item={item} onPress={handleSelectItem} />
- 89:         )}
- 90:         searchable={false}
- 91:         ArrowUpIconComponent={() => null}
- 92:         ArrowDownIconComponent={() => null}
- 93:         renderSelectedItemLabel={() => null}
- 94:         renderPlaceholder={renderPlaceholder}
- 95:       />
- 96:     </DropdownContainer>
- 97:   );
- 98: };
- 99: 
-100: export default LoginDropDownPicker;
+ 1: import React, { useState, useEffect } from "react";
+ 2: import { MaterialIcons } from "@expo/vector-icons";
+ 3: import {
+ 4:   DropdownContainer,
+ 5:   PlaceholderText,
+ 6:   SelectedItemWrapper,
+ 7:   FlagText,
+ 8:   CodeText,
+ 9:   StyledDropDownPicker,
+10: } from "./LoginDropDownPicker.styles";
+11: import CountryListItem from "./CountryListItem";
+12: import { useTheme } from "styled-components/native";
+13: 
+14: const LoginDropDownPicker = ({
+15:   countryCodes,
+16:   selectedCountry,
+17:   setSelectedCountry,
+18:   style,
+19: }) => {
+20:   const [open, setOpen] = useState(false);
+21:   const [selectedItem, setSelectedItem] = useState(null);
+22:   const theme = useTheme();
+23: 
+24:   useEffect(() => {
+25:     if (selectedCountry && countryCodes) {
+26:       const item = countryCodes.find(
+27:         (item) => item.countryName === selectedCountry
+28:       );
+29:       setSelectedItem(item);
+30:     }
+31:   }, [selectedCountry, countryCodes]);
+32: 
+33:   const handleSelectItem = (item) => {
+34:     setSelectedCountry(item.countryName);
+35:     setOpen(false);
+36:   };
+37: 
+38:   const dropdownItems = countryCodes.map((item) => ({
+39:     label: `${item.flag}  ${item.code}`,
+40:     value: item.countryName,
+41:     countryName: item.countryName,
+42:     code: item.code,
+43:     flag: item.flag,
+44:   }));
+45: 
+46: 
+47: 
+48: 
+49: 
+50: 
+51: 
+52: 
+53: 
+54: 
+55: 
+56: 
+57: 
+58: 
+59: 
+60: 
+61: 
+62: 
+63: 
+64: 
+65: 
+66: 
+67: 
+68:   return (
+69:     <DropdownContainer style={style}>
+70:       <StyledDropDownPicker
+71:         open={open}
+72:         value={selectedCountry}
+73:         items={dropdownItems}
+74:         setOpen={setOpen}
+75:         setValue={(val) => {
+76:           const item = countryCodes.find((item) => item.countryName === val);
+77:           setSelectedCountry(item?.countryName);
+78:         }}
+79:         listMode="SCROLLVIEW"
+80:         renderListItem={({ item }) => (
+81:           <CountryListItem item={item} onPress={handleSelectItem} />
+82:         )}
+83:       />
+84:     </DropdownContainer>
+85:   );
+86: };
+87: 
+88: export default LoginDropDownPicker;
 
 ================
 File: src/features/auth/components/LoginDropDownPicker.styles.js
@@ -2092,7 +2080,7 @@ File: src/features/auth/screens/LoginScreen.js
 106:               <FlexContainer>
 107:                 <View
 108:                   style={{
-109:                     flex: 0.29,
+109:                     flex: 0.31,
 110:                     marginRight: "2%",
 111:                     zIndex: 9000,
 112:                     elevation: 9000,
@@ -2105,7 +2093,7 @@ File: src/features/auth/screens/LoginScreen.js
 119:                     containerWidth={containerWidth}
 120:                   />
 121:                 </View>
-122:                 <View style={{ flex: 0.71 }}>
+122:                 <View style={{ flex: 0.69 }}>
 123:                   <TextInput
 124:                     placeholder="Phone number"
 125:                     placeholderTextColor="#9C9C9C"
