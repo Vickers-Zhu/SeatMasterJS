@@ -1,16 +1,14 @@
 // src/features/merchant/settings/screens/MerchantSettingsScreen.js
 import React from "react";
-import { ScrollView, View, TouchableOpacity } from "react-native";
-import { List, Avatar } from "react-native-paper";
+import { TouchableOpacity, View } from "react-native";
+import { Avatar } from "react-native-paper";
+import { MaterialIcons } from "@expo/vector-icons";
 import styled from "styled-components/native";
 
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
-import { Spacer } from "../../../../components/Spacer/Spacer";
 import { CustomText } from "../../../../components/CustomText/CustomText";
-import { Separator } from "../../../../components/Separator/Separator";
 import { useAuthentication } from "../../../../services/AuthenticationContext";
 
-// Sample merchant profile data - this would come from your auth/data service
 const merchantProfile = {
   name: "Restaurant Owner",
   email: "restaurant@example.com",
@@ -19,45 +17,42 @@ const merchantProfile = {
   phoneNumber: "+81 80 6748 5678",
 };
 
-// Styled components
-const SettingsContainer = styled(ScrollView)`
+const SettingsContainer = styled.ScrollView`
   background-color: ${(props) => props.theme.colors.bg.primary};
+  flex: 1;
+  margin: ${(props) => props.theme.space[1]};
 `;
 
-const ProfileContainer = styled(View)`
+const ProfileContainer = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   padding: ${(props) => props.theme.space[3]};
+  background-color: ${(props) => props.theme.colors.bg.primary};
+  margin-bottom: ${(props) => props.theme.space[2]};
 `;
 
-const UserInfoContainer = styled(View)`
+const UserInfoContainer = styled.View`
   flex: 1;
   margin-right: ${(props) => props.theme.space[2]};
   align-items: flex-start;
 `;
 
-const AvatarContainer = styled(View)`
+const AvatarContainer = styled.View`
   align-items: center;
   justify-content: center;
 `;
 
-const SettingsItem = styled(List.Item)`
-  padding: ${(props) => props.theme.space[3]};
-`;
-
 const EmailText = styled(CustomText)`
-  margin-top: ${(props) => props.theme.space[1]};
   color: ${(props) => props.theme.colors.text.secondary};
 `;
 
 const RestaurantNameText = styled(CustomText)`
-  margin-top: ${(props) => props.theme.space[1]};
   color: ${(props) => props.theme.colors.text.primary};
   font-weight: ${(props) => props.theme.fontWeights.bold};
 `;
 
-const StatusBadge = styled(View)`
+const StatusBadge = styled.View`
   background-color: #4caf50;
   padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
   border-radius: 12px;
@@ -75,15 +70,127 @@ const SectionTitle = styled(CustomText)`
   padding: ${(props) => props.theme.space[3]};
   font-weight: ${(props) => props.theme.fontWeights.bold};
   color: ${(props) => props.theme.colors.text.secondary};
+  font-size: ${(props) => props.theme.fontSizes.caption};
+`;
+
+const SettingsItemRow = styled(TouchableOpacity)`
+  flex-direction: row;
+  align-items: center;
+  padding-vertical: ${(props) => props.theme.space[3]};
+  padding-horizontal: ${(props) => props.theme.space[3]};
+  background-color: ${(props) => props.theme.colors.bg.primary};
+`;
+
+const SettingsItemText = styled.View`
+  flex: 1;
+  margin-left: ${(props) => props.theme.space[3]};
+`;
+
+const SectionContainer = styled.View`
+  margin-bottom: ${(props) => props.theme.space[3]};
 `;
 
 export const MerchantSettingsScreen = ({ navigation }) => {
   const { onLogout } = useAuthentication();
 
+  // Account section items
+  const accountItems = [
+    {
+      title: "Profile Settings",
+      subtitle: "Edit your personal information",
+      icon: "person",
+      onPress: () => {},
+    },
+    {
+      title: "Restaurant Information",
+      subtitle: "Update restaurant details",
+      icon: "store",
+      onPress: () => navigation.navigate("RestaurantEdit"),
+    },
+    {
+      title: "Menu Management",
+      subtitle: "Add, edit, or remove menu items",
+      icon: "restaurant-menu",
+      onPress: () => {},
+    },
+  ];
+
+  // Business settings section items
+  const businessItems = [
+    {
+      title: "Seating Layout",
+      subtitle: "Manage tables and seating arrangement",
+      icon: "chair",
+      onPress: () => navigation.navigate("Home"),
+    },
+    {
+      title: "Reservation Settings",
+      subtitle: "Configure reservation rules and availability",
+      icon: "event",
+      onPress: () => navigation.navigate("Reservations"),
+    },
+    {
+      title: "Business Hours",
+      subtitle: "Set your restaurant opening hours",
+      icon: "schedule",
+      onPress: () => {},
+    },
+  ];
+
+  // System section items
+  const systemItems = [
+    {
+      title: "Notifications",
+      subtitle: "Manage notification preferences",
+      icon: "notifications",
+      onPress: () => {},
+    },
+    {
+      title: "Payment Methods",
+      subtitle: "Configure payment options",
+      icon: "payment",
+      onPress: () => {},
+    },
+    {
+      title: "Help & Support",
+      subtitle: "Contact customer support",
+      icon: "help",
+      onPress: () => {},
+    },
+    {
+      title: "Logout",
+      subtitle: "Sign out from your account",
+      icon: "logout",
+      iconColor: (props) => props.theme.colors.text.error,
+      onPress: onLogout,
+    },
+  ];
+
+  const renderSettingsItems = (items) => {
+    return items.map((item, index) => (
+      <SettingsItemRow key={index} onPress={item.onPress}>
+        <MaterialIcons
+          name={item.icon}
+          size={24}
+          color={item.iconColor || "#262626"}
+        />
+        <SettingsItemText>
+          <CustomText variant="body" style={{ fontWeight: "bold" }}>
+            {item.title}
+          </CustomText>
+          <CustomText variant="body" style={{ color: "#757575" }}>
+            {item.subtitle}
+          </CustomText>
+        </SettingsItemText>
+        <MaterialIcons name="chevron-right" size={24} color="#757575" />
+      </SettingsItemRow>
+    ));
+  };
+
   return (
     <SafeArea>
       <SettingsContainer>
-        {/* Profile Section */}
+        {/* Profile section */}
         <ProfileContainer>
           <UserInfoContainer>
             <CustomText variant="h3">{merchantProfile.name}</CustomText>
@@ -105,143 +212,24 @@ export const MerchantSettingsScreen = ({ navigation }) => {
             </TouchableOpacity>
           </AvatarContainer>
         </ProfileContainer>
-        <Separator type="full" />
 
-        {/* Account Section */}
-        <SectionTitle variant="body">ACCOUNT</SectionTitle>
-        <List.Section>
-          <SettingsItem
-            title="Profile Settings"
-            description="Edit your personal information"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="account-cog"
-              />
-            )}
-            onPress={() => {}}
-          />
-          <SettingsItem
-            title="Restaurant Information"
-            description="Update restaurant details"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="store"
-              />
-            )}
-            onPress={() => {}}
-          />
-          <SettingsItem
-            title="Menu Management"
-            description="Add, edit, or remove menu items"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="food"
-              />
-            )}
-            onPress={() => {}}
-          />
-        </List.Section>
+        {/* Account section */}
+        <SectionContainer>
+          <SectionTitle variant="body">ACCOUNT</SectionTitle>
+          {renderSettingsItems(accountItems)}
+        </SectionContainer>
 
-        {/* Business Settings Section */}
-        <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
-        <List.Section>
-          <SettingsItem
-            title="Seating Layout"
-            description="Manage tables and seating arrangement"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="table-furniture"
-              />
-            )}
-            onPress={() => navigation.navigate("Home")}
-          />
-          <SettingsItem
-            title="Reservation Settings"
-            description="Configure reservation rules and availability"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="calendar-clock"
-              />
-            )}
-            onPress={() => navigation.navigate("Reservations")}
-          />
-          <SettingsItem
-            title="Business Hours"
-            description="Set your restaurant opening hours"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="clock-outline"
-              />
-            )}
-            onPress={() => {}}
-          />
-        </List.Section>
+        {/* Business settings section */}
+        <SectionContainer>
+          <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
+          {renderSettingsItems(businessItems)}
+        </SectionContainer>
 
-        {/* System Section */}
-        <SectionTitle variant="body">SYSTEM</SectionTitle>
-        <List.Section>
-          <SettingsItem
-            title="Notifications"
-            description="Manage notification preferences"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="bell"
-              />
-            )}
-            onPress={() => {}}
-          />
-          <SettingsItem
-            title="Payment Methods"
-            description="Configure payment options"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="credit-card"
-              />
-            )}
-            onPress={() => {}}
-          />
-          <SettingsItem
-            title="Help & Support"
-            description="Contact customer support"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.primary}
-                icon="help-circle"
-              />
-            )}
-            onPress={() => {}}
-          />
-          <SettingsItem
-            title="Logout"
-            description="Sign out from your account"
-            left={(props) => (
-              <List.Icon
-                {...props}
-                color={(props) => props.theme.colors.text.error}
-                icon="logout"
-              />
-            )}
-            onPress={onLogout}
-          />
-        </List.Section>
-        <Spacer position="bottom" size="large" />
+        {/* System section */}
+        <SectionContainer>
+          <SectionTitle variant="body">SYSTEM</SectionTitle>
+          {renderSettingsItems(systemItems)}
+        </SectionContainer>
       </SettingsContainer>
     </SafeArea>
   );

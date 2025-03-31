@@ -1,15 +1,26 @@
 // src/infrastructure/navigation/MerchantNavigator.js
-
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "styled-components/native";
 
 import { MerchantHomeScreen } from "../../features/merchant/dashboard/screens/MerchantHomeScreen";
 import { MerchantSettingsScreen } from "../../features/merchant/settings/screens/MerchantSettingsScreen";
 import { MerchantReservationsScreen } from "../../features/merchant/reservations/screens/MerchantReservationsScreen";
+import { RestaurantEditScreen } from "../../features/merchant/settings/screens/RestaurantEditScreen";
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+const SettingsStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SettingsMain" component={MerchantSettingsScreen} />
+      <Stack.Screen name="RestaurantEdit" component={RestaurantEditScreen} />
+    </Stack.Navigator>
+  );
+};
 
 export const MerchantNavigator = () => {
   const theme = useTheme();
@@ -37,7 +48,7 @@ export const MerchantNavigator = () => {
     >
       <Tab.Screen name="Home" component={MerchantHomeScreen} />
       <Tab.Screen name="Reservations" component={MerchantReservationsScreen} />
-      <Tab.Screen name="Settings" component={MerchantSettingsScreen} />
+      <Tab.Screen name="Settings" component={SettingsStack} />
     </Tab.Navigator>
   );
 };
