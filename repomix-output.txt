@@ -3091,204 +3091,283 @@ File: src/features/customer/restaurants/hooks/useScrollHandler.js
 File: src/features/customer/restaurants/screens/RestaurantDetailScreen.js
 ================
   1: import React, { useState, useRef, useEffect } from "react";
-  2: import { Animated, Dimensions, View } from "react-native";
-  3: import styled from "styled-components/native";
-  4: import { IconButton } from "react-native-paper";
-  5: 
-  6: import { CustomText } from "../../../../components/CustomText/CustomText";
-  7: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
-  8: import SwitchContainer from "../../../../components/Switch/Switch";
-  9: import WebApp from "../../../../components/WebApp/WebApp";
- 10: import ErrorBoundary from "../../../../components/ErrorBoundary/ErrorBoundary";
- 11: 
- 12: import { RestaurantInfoCard } from "../components/RestaurantInfoCard";
- 13: import RestaurantMenu from "../components/RestaurantMenu";
- 14: import Reviews from "../components/Reviews";
- 15: import Others from "../components/Others";
- 16: import TabNavigation from "../components/TabNavigation";
- 17: import useScrollHandler from "../hooks/useScrollHandler";
- 18: import useReservationHandler from "../hooks/useReservationHandler";
- 19: 
- 20: const Spacing = styled.View`
- 21:   padding-bottom: ${(props) => props.theme.space[2]};
- 22: `;
- 23: 
- 24: export const Header = styled.View`
- 25:   flex-direction: row;
- 26:   align-items: center;
- 27:   justify-content: center;
- 28:   padding: ${(props) => props.theme.space[2]};
- 29:   position: relative;
- 30:   background-color: ${(props) => props.theme.colors.bg.primary};
- 31: `;
- 32: 
- 33: export const CloseButtonWrapper = styled.View`
- 34:   position: absolute;
- 35:   left: ${(props) => props.theme.space[2]};
- 36: `;
- 37: 
- 38: const RestaurantDetailScreen = ({ route, navigation }) => {
- 39:   const { restaurant, openReservationView } = route.params;
- 40:   const layout = useRef(Dimensions.get("window")).current;
- 41:   const [index, setIndex] = useState(0);
- 42:   const [routes] = useState([
- 43:     { key: "menu", title: "Menu" },
- 44:     { key: "reviews", title: "Reviews" },
- 45:     { key: "others", title: "Others" },
- 46:   ]);
- 47: 
- 48:   const scrollY = useRef(new Animated.Value(0)).current;
- 49:   const scrollViewRef = useRef(null);
- 50: 
- 51:   const [heights, setHeights] = useState({
- 52:     restaurantInfoCard: 0,
- 53:     switch: 0,
- 54:     content: {},
- 55:   });
+  2: import {
+  3:   Animated,
+  4:   Dimensions,
+  5:   View,
+  6:   TouchableOpacity,
+  7:   Alert,
+  8: } from "react-native";
+  9: import styled from "styled-components/native";
+ 10: import { IconButton } from "react-native-paper";
+ 11: import { MaterialIcons } from "@expo/vector-icons";
+ 12: 
+ 13: import { CustomText } from "../../../../components/CustomText/CustomText";
+ 14: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+ 15: import SwitchContainer from "../../../../components/Switch/Switch";
+ 16: import WebApp from "../../../../components/WebApp/WebApp";
+ 17: import ErrorBoundary from "../../../../components/ErrorBoundary/ErrorBoundary";
+ 18: 
+ 19: import { RestaurantInfoCard } from "../components/RestaurantInfoCard";
+ 20: import RestaurantMenu from "../components/RestaurantMenu";
+ 21: import Reviews from "../components/Reviews";
+ 22: import Others from "../components/Others";
+ 23: import TabNavigation from "../components/TabNavigation";
+ 24: import useScrollHandler from "../hooks/useScrollHandler";
+ 25: import useReservationHandler from "../hooks/useReservationHandler";
+ 26: import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
+ 27: 
+ 28: const Spacing = styled.View`
+ 29:   padding-bottom: ${(props) => props.theme.space[2]};
+ 30: `;
+ 31: 
+ 32: export const Header = styled.View`
+ 33:   flex-direction: row;
+ 34:   align-items: center;
+ 35:   justify-content: center;
+ 36:   padding: ${(props) => props.theme.space[2]};
+ 37:   position: relative;
+ 38:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 39: `;
+ 40: 
+ 41: export const CloseButtonWrapper = styled.View`
+ 42:   position: absolute;
+ 43:   left: ${(props) => props.theme.space[2]};
+ 44: `;
+ 45: 
+ 46: const EditButton = styled.TouchableOpacity`
+ 47:   position: absolute;
+ 48:   right: ${(props) => props.theme.space[2]};
+ 49:   background-color: ${(props) => props.theme.colors.ui.primary};
+ 50:   padding-vertical: ${(props) => props.theme.space[2]};
+ 51:   padding-horizontal: ${(props) => props.theme.space[3]};
+ 52:   margin-right: ${(props) => props.theme.space[3]};
+ 53:   margin-bottom: ${(props) => props.theme.space[2]};
+ 54:   border-radius: 5px;
+ 55: `;
  56: 
- 57:   useEffect(() => {
- 58:     if (openReservationView) {
- 59:       animateAndSwitch(true);
- 60:     }
- 61:   }, [openReservationView]);
+ 57: const EditButtonText = styled(CustomText)`
+ 58:   color: ${(props) => props.theme.colors.text.inverse};
+ 59:   font-size: ${(props) => props.theme.fontSizes.button};
+ 60: `;
+ 61: 
  62: 
- 63:   const { isReservation, isShowReservationContent, opacity, animateAndSwitch } =
- 64:     useReservationHandler();
- 65: 
- 66:   const [scrollEnabled, setScrollEnabled] = useState(true);
- 67: 
- 68:   const handleScroll = useScrollHandler(routes, heights, setIndex);
+ 63: const formatAddressToString = (address) => {
+ 64:   if (!address) return "";
+ 65:   const { street, city, state, postalCode, country } = address;
+ 66:   const parts = [street, city, state, postalCode, country].filter(Boolean);
+ 67:   return parts.join(", ");
+ 68: };
  69: 
- 70:   const scrollToTab = (tabKey, newIndex) => {
- 71:     let yPosition = heights.restaurantInfoCard + heights.switch;
- 72:     for (let i = 0; i < routes.length; i++) {
- 73:       if (routes[i].key === tabKey) break;
- 74:       yPosition += heights.content[routes[i].key] || 0;
- 75:     }
- 76:     scrollViewRef.current.scrollTo({ y: yPosition, animated: true });
- 77:     setIndex(newIndex);
- 78:   };
- 79: 
- 80: 
- 81:   const handleInteractionStart = () => {
- 82:     setScrollEnabled(false);
- 83:   };
- 84: 
- 85: 
- 86:   const handleInteractionEnd = () => {
- 87:     setScrollEnabled(true);
- 88:   };
- 89: 
- 90:   return (
- 91:     <SafeArea>
- 92:       <Header>
- 93:         {}
- 94:         <CloseButtonWrapper>
- 95:           <IconButton
- 96:             icon="arrow-left"
- 97:             size={24}
- 98:             onPress={() => navigation.goBack()}
- 99:             accessibilityLabel="Close"
-100:           />
-101:         </CloseButtonWrapper>
-102: 
-103:         {}
-104:         <CustomText variant="title">RestaurantDetail</CustomText>
-105:       </Header>
-106:       <View style={{ flex: 1 }}>
-107:         <Animated.ScrollView
-108:           scrollEnabled={scrollEnabled}
-109:           ref={scrollViewRef}
-110:           scrollEventThrottle={16}
-111:           onScroll={Animated.event(
-112:             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-113:             { listener: handleScroll, useNativeDriver: false }
-114:           )}
-115:           stickyHeaderIndices={isReservation ? [] : [2]}
-116:         >
-117:           <Spacing
-118:             onLayout={(event) =>
-119:               setHeights({
-120:                 ...heights,
-121:                 restaurantInfoCard: event.nativeEvent.layout.height,
-122:               })
-123:             }
-124:           >
-125:             <RestaurantInfoCard restaurant={restaurant} elevation={0} />
-126:           </Spacing>
-127: 
-128:           <View
-129:             onLayout={(event) =>
-130:               setHeights({
-131:                 ...heights,
-132:                 switch: event.nativeEvent.layout.height,
-133:               })
-134:             }
-135:           >
-136:             <SwitchContainer
-137:               isOn={isReservation}
-138:               setIsOn={(newValue) => animateAndSwitch(newValue)}
-139:               leftLabel="General"
-140:               rightLabel="Reservation"
-141:               variant="default"
-142:             />
-143:           </View>
-144: 
-145:           {!isShowReservationContent && !isReservation && (
-146:             <TabNavigation
-147:               index={index}
-148:               setIndex={setIndex}
-149:               routes={routes}
-150:               layout={layout}
-151:               renderOpacity={opacity}
-152:               scrollToTab={scrollToTab}
-153:               heights={heights}
-154:             />
-155:           )}
-156: 
-157:           {!isShowReservationContent &&
-158:             !isReservation &&
-159:             routes.map((route) => (
-160:               <Animated.View key={route.key} style={{ opacity }}>
-161:                 <View
-162:                   onLayout={(event) =>
-163:                     setHeights({
-164:                       ...heights,
-165:                       content: {
-166:                         ...heights.content,
-167:                         [route.key]: event.nativeEvent.layout.height,
-168:                       },
-169:                     })
-170:                   }
-171:                 >
-172:                   {React.createElement(
-173:                     route.key === "menu"
-174:                       ? RestaurantMenu
-175:                       : route.key === "reviews"
-176:                       ? Reviews
-177:                       : Others
-178:                   )}
-179:                 </View>
-180:               </Animated.View>
-181:             ))}
-182: 
-183:           {isShowReservationContent && isReservation && (
-184:             <Animated.View style={{ opacity, flex: 1 }}>
-185:               <ErrorBoundary>
-186:                 <WebApp
-187:                   onInteractionStart={handleInteractionStart}
-188:                   onInteractionEnd={handleInteractionEnd}
-189:                 />
-190:               </ErrorBoundary>
-191:             </Animated.View>
-192:           )}
-193:         </Animated.ScrollView>
-194:       </View>
-195:     </SafeArea>
-196:   );
-197: };
-198: 
-199: export { RestaurantDetailScreen };
+ 70: export const RestaurantDetailScreen = ({ route, navigation }) => {
+ 71:   // Get restaurant data from route params or use default
+ 72:   const initialRestaurant = route.params?.restaurant || {};
+ 73:   const [restaurant, setRestaurant] = useState(initialRestaurant);
+ 74:   const isMerchantView = route.params?.isMerchantView || false;
+ 75: 
+ 76:   // Handle null or undefined restaurant properties safely
+ 77:   useEffect(() => {
+ 78:     // Ensure restaurant has all necessary properties to avoid rendering errors
+ 79:     if (!restaurant.address) {
+ 80:       setRestaurant((prev) => ({
+ 81:         ...prev,
+ 82:         address: {
+ 83:           street: "",
+ 84:           city: "",
+ 85:           state: "",
+ 86:           postalCode: "",
+ 87:         },
+ 88:       }));
+ 89:     }
+ 90:   }, []);
+ 91: 
+ 92:   // Update restaurant if coming back from edit screen
+ 93:   useEffect(() => {
+ 94:     if (route.params?.updatedRestaurant) {
+ 95:       setRestaurant(route.params.updatedRestaurant);
+ 96:     }
+ 97:   }, [route.params?.updatedRestaurant]);
+ 98: 
+ 99:   const layout = useRef(Dimensions.get("window")).current;
+100:   const [index, setIndex] = useState(0);
+101:   const [routes] = useState([
+102:     { key: "menu", title: "Menu" },
+103:     { key: "reviews", title: "Reviews" },
+104:     { key: "others", title: "Others" },
+105:   ]);
+106: 
+107:   const scrollY = useRef(new Animated.Value(0)).current;
+108:   const scrollViewRef = useRef(null);
+109: 
+110:   const [heights, setHeights] = useState({
+111:     restaurantInfoCard: 0,
+112:     switch: 0,
+113:     content: {},
+114:   });
+115: 
+116:   const { isReservation, isShowReservationContent, opacity, animateAndSwitch } =
+117:     useReservationHandler();
+118: 
+119:   const [scrollEnabled, setScrollEnabled] = useState(true);
+120: 
+121:   const handleScroll = useScrollHandler(routes, heights, setIndex);
+122: 
+123:   const scrollToTab = (tabKey, newIndex) => {
+124:     let yPosition = heights.restaurantInfoCard + heights.switch;
+125:     for (let i = 0; i < routes.length; i++) {
+126:       if (routes[i].key === tabKey) break;
+127:       yPosition += heights.content[routes[i].key] || 0;
+128:     }
+129:     scrollViewRef.current.scrollTo({ y: yPosition, animated: true });
+130:     setIndex(newIndex);
+131:   };
+132: 
+133:   const handleInteractionStart = () => {
+134:     setScrollEnabled(false);
+135:   };
+136: 
+137:   const handleInteractionEnd = () => {
+138:     setScrollEnabled(true);
+139:   };
+140: 
+141:   const handleEditPress = () => {
+142:     navigation.navigate("RestaurantEdit", {
+143:       restaurant: restaurant,
+144:     });
+145:   };
+146: 
+147:   return (
+148:     <SafeArea>
+149:       <Header>
+150:         <CloseButtonWrapper>
+151:           <IconButton
+152:             icon="arrow-left"
+153:             size={24}
+154:             onPress={() => navigation.goBack()}
+155:             accessibilityLabel="Close"
+156:           />
+157:         </CloseButtonWrapper>
+158: 
+159:         <CustomText variant="title">
+160:           {isMerchantView ? "Restaurant Details" : "Restaurant"}
+161:         </CustomText>
+162: 
+163:         {isMerchantView && (
+164:           <EditButton onPress={handleEditPress}>
+165:             <EditButtonText>Edit</EditButtonText>
+166:           </EditButton>
+167:         )}
+168:       </Header>
+169:       <View style={{ flex: 1 }}>
+170:         <Animated.ScrollView
+171:           scrollEnabled={scrollEnabled}
+172:           ref={scrollViewRef}
+173:           scrollEventThrottle={16}
+174:           onScroll={Animated.event(
+175:             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+176:             { listener: handleScroll, useNativeDriver: false }
+177:           )}
+178:           stickyHeaderIndices={isReservation ? [] : [2]}
+179:         >
+180:           <Spacing
+181:             onLayout={(event) =>
+182:               setHeights({
+183:                 ...heights,
+184:                 restaurantInfoCard: event.nativeEvent.layout.height,
+185:               })
+186:             }
+187:           >
+188:             <RestaurantInfoCard
+189:               restaurant={{
+190:                 ...restaurant,
+191: 
+192:                 address: formatAddressToString(restaurant.address),
+193: 
+194:                 icon:
+195:                   restaurant.icon ||
+196:                   "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",
+197:                 isOpenNow:
+198:                   restaurant.isOpenNow !== undefined
+199:                     ? restaurant.isOpenNow
+200:                     : true,
+201:                 rating: restaurant.rating || 4,
+202:                 isClosedTemporarily: restaurant.isClosedTemporarily || false,
+203:                 placeId: restaurant.id || restaurant.placeId || "1",
+204:               }}
+205:               elevation={0}
+206:             />
+207:           </Spacing>
+208: 
+209:           <View
+210:             onLayout={(event) =>
+211:               setHeights({
+212:                 ...heights,
+213:                 switch: event.nativeEvent.layout.height,
+214:               })
+215:             }
+216:           >
+217:             <SwitchContainer
+218:               isOn={isReservation}
+219:               setIsOn={(newValue) => animateAndSwitch(newValue)}
+220:               leftLabel="General"
+221:               rightLabel="Reservation"
+222:               variant="default"
+223:             />
+224:           </View>
+225: 
+226:           {!isShowReservationContent && !isReservation && (
+227:             <TabNavigation
+228:               index={index}
+229:               setIndex={setIndex}
+230:               routes={routes}
+231:               layout={layout}
+232:               renderOpacity={opacity}
+233:               scrollToTab={scrollToTab}
+234:               heights={heights}
+235:             />
+236:           )}
+237: 
+238:           {!isShowReservationContent &&
+239:             !isReservation &&
+240:             routes.map((route) => (
+241:               <Animated.View key={route.key} style={{ opacity }}>
+242:                 <View
+243:                   onLayout={(event) =>
+244:                     setHeights({
+245:                       ...heights,
+246:                       content: {
+247:                         ...heights.content,
+248:                         [route.key]: event.nativeEvent.layout.height,
+249:                       },
+250:                     })
+251:                   }
+252:                 >
+253:                   {React.createElement(
+254:                     route.key === "menu"
+255:                       ? RestaurantMenu
+256:                       : route.key === "reviews"
+257:                       ? Reviews
+258:                       : Others
+259:                   )}
+260:                 </View>
+261:               </Animated.View>
+262:             ))}
+263: 
+264:           {isShowReservationContent && isReservation && (
+265:             <Animated.View style={{ opacity, flex: 1 }}>
+266:               <ErrorBoundary>
+267:                 <WebApp
+268:                   onInteractionStart={handleInteractionStart}
+269:                   onInteractionEnd={handleInteractionEnd}
+270:                 />
+271:               </ErrorBoundary>
+272:             </Animated.View>
+273:           )}
+274:         </Animated.ScrollView>
+275:       </View>
+276:     </SafeArea>
+277:   );
+278: };
 
 ================
 File: src/features/customer/restaurants/screens/RestaurantsScreen.js
@@ -6007,91 +6086,91 @@ File: src/features/merchant/settings/screens/MerchantSettingsScreen.js
   7: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
   8: import { CustomText } from "../../../../components/CustomText/CustomText";
   9: import { useAuthentication } from "../../../../services/AuthenticationContext";
- 10: 
- 11: const merchantProfile = {
- 12:   name: "Restaurant Owner",
- 13:   email: "restaurant@example.com",
- 14:   restaurantName: "Gourmet Delights",
- 15:   profileImage: require("../../../../../assets/images/user_profile.jpg"),
- 16:   phoneNumber: "+81 80 6748 5678",
- 17: };
- 18: 
- 19: const SettingsContainer = styled.ScrollView`
- 20:   background-color: ${(props) => props.theme.colors.bg.primary};
- 21:   flex: 1;
- 22:   margin: ${(props) => props.theme.space[1]};
- 23: `;
- 24: 
- 25: const ProfileContainer = styled.View`
- 26:   flex-direction: row;
- 27:   justify-content: space-between;
- 28:   align-items: center;
- 29:   padding: ${(props) => props.theme.space[3]};
- 30:   background-color: ${(props) => props.theme.colors.bg.primary};
- 31:   margin-bottom: ${(props) => props.theme.space[2]};
- 32: `;
- 33: 
- 34: const UserInfoContainer = styled.View`
- 35:   flex: 1;
- 36:   margin-right: ${(props) => props.theme.space[2]};
- 37:   align-items: flex-start;
- 38: `;
- 39: 
- 40: const AvatarContainer = styled.View`
- 41:   align-items: center;
- 42:   justify-content: center;
- 43: `;
- 44: 
- 45: const EmailText = styled(CustomText)`
- 46:   color: ${(props) => props.theme.colors.text.secondary};
- 47: `;
- 48: 
- 49: const RestaurantNameText = styled(CustomText)`
- 50:   color: ${(props) => props.theme.colors.text.primary};
- 51:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 52: `;
- 53: 
- 54: const StatusBadge = styled.View`
- 55:   background-color: #4caf50;
- 56:   padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
- 57:   border-radius: 12px;
- 58:   margin-top: ${(props) => props.theme.space[2]};
- 59:   align-self: flex-start;
- 60: `;
- 61: 
- 62: const StatusText = styled(CustomText)`
- 63:   color: ${(props) => props.theme.colors.text.inverse};
- 64:   font-size: ${(props) => props.theme.fontSizes.caption};
- 65:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 66: `;
- 67: 
- 68: const SectionTitle = styled(CustomText)`
- 69:   padding: ${(props) => props.theme.space[3]};
- 70:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 71:   color: ${(props) => props.theme.colors.text.secondary};
- 72:   font-size: ${(props) => props.theme.fontSizes.caption};
- 73: `;
- 74: 
- 75: const SettingsItemRow = styled(TouchableOpacity)`
- 76:   flex-direction: row;
- 77:   align-items: center;
- 78:   padding-vertical: ${(props) => props.theme.space[3]};
- 79:   padding-horizontal: ${(props) => props.theme.space[3]};
- 80:   background-color: ${(props) => props.theme.colors.bg.primary};
- 81: `;
- 82: 
- 83: const SettingsItemText = styled.View`
- 84:   flex: 1;
- 85:   margin-left: ${(props) => props.theme.space[3]};
- 86: `;
- 87: 
- 88: const SectionContainer = styled.View`
- 89:   margin-bottom: ${(props) => props.theme.space[3]};
- 90: `;
- 91: 
- 92: export const MerchantSettingsScreen = ({ navigation }) => {
- 93:   const { onLogout } = useAuthentication();
- 94: 
+ 10: import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
+ 11: 
+ 12: const merchantProfile = {
+ 13:   name: "Restaurant Owner",
+ 14:   email: "restaurant@example.com",
+ 15:   restaurantName: "Gourmet Delights",
+ 16:   profileImage: require("../../../../../assets/images/user_profile.jpg"),
+ 17:   phoneNumber: "+81 80 6748 5678",
+ 18: };
+ 19: 
+ 20: const SettingsContainer = styled.ScrollView`
+ 21:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 22:   flex: 1;
+ 23:   margin: ${(props) => props.theme.space[1]};
+ 24: `;
+ 25: 
+ 26: const ProfileContainer = styled.View`
+ 27:   flex-direction: row;
+ 28:   justify-content: space-between;
+ 29:   align-items: center;
+ 30:   padding: ${(props) => props.theme.space[3]};
+ 31:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 32:   margin-bottom: ${(props) => props.theme.space[2]};
+ 33: `;
+ 34: 
+ 35: const UserInfoContainer = styled.View`
+ 36:   flex: 1;
+ 37:   margin-right: ${(props) => props.theme.space[2]};
+ 38:   align-items: flex-start;
+ 39: `;
+ 40: 
+ 41: const AvatarContainer = styled.View`
+ 42:   align-items: center;
+ 43:   justify-content: center;
+ 44: `;
+ 45: 
+ 46: const EmailText = styled(CustomText)`
+ 47:   color: ${(props) => props.theme.colors.text.secondary};
+ 48: `;
+ 49: 
+ 50: const RestaurantNameText = styled(CustomText)`
+ 51:   color: ${(props) => props.theme.colors.text.primary};
+ 52:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 53: `;
+ 54: 
+ 55: const StatusBadge = styled.View`
+ 56:   background-color: #4caf50;
+ 57:   padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
+ 58:   border-radius: 12px;
+ 59:   margin-top: ${(props) => props.theme.space[2]};
+ 60:   align-self: flex-start;
+ 61: `;
+ 62: 
+ 63: const StatusText = styled(CustomText)`
+ 64:   color: ${(props) => props.theme.colors.text.inverse};
+ 65:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 66:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 67: `;
+ 68: 
+ 69: const SectionTitle = styled(CustomText)`
+ 70:   padding: ${(props) => props.theme.space[3]};
+ 71:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 72:   color: ${(props) => props.theme.colors.text.secondary};
+ 73:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 74: `;
+ 75: 
+ 76: const SettingsItemRow = styled(TouchableOpacity)`
+ 77:   flex-direction: row;
+ 78:   align-items: center;
+ 79:   padding-vertical: ${(props) => props.theme.space[3]};
+ 80:   padding-horizontal: ${(props) => props.theme.space[3]};
+ 81:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 82: `;
+ 83: 
+ 84: const SettingsItemText = styled.View`
+ 85:   flex: 1;
+ 86:   margin-left: ${(props) => props.theme.space[3]};
+ 87: `;
+ 88: 
+ 89: const SectionContainer = styled.View`
+ 90:   margin-bottom: ${(props) => props.theme.space[3]};
+ 91: `;
+ 92: 
+ 93: export const MerchantSettingsScreen = ({ navigation }) => {
+ 94:   const { onLogout } = useAuthentication();
  95: 
  96:   const accountItems = [
  97:     {
@@ -6102,137 +6181,135 @@ File: src/features/merchant/settings/screens/MerchantSettingsScreen.js
 102:     },
 103:     {
 104:       title: "Restaurant Information",
-105:       subtitle: "Update restaurant details",
+105:       subtitle: "View and update restaurant details",
 106:       icon: "store",
-107:       onPress: () => navigation.navigate("RestaurantEdit"),
-108:     },
-109:     {
-110:       title: "Menu Management",
-111:       subtitle: "Add, edit, or remove menu items",
-112:       icon: "restaurant-menu",
-113:       onPress: () => {},
-114:     },
-115:   ];
-116: 
-117: 
-118:   const businessItems = [
-119:     {
-120:       title: "Seating Layout",
-121:       subtitle: "Manage tables and seating arrangement",
-122:       icon: "chair",
-123:       onPress: () => navigation.navigate("Home"),
-124:     },
-125:     {
-126:       title: "Reservation Settings",
-127:       subtitle: "Configure reservation rules and availability",
-128:       icon: "event",
-129:       onPress: () => navigation.navigate("Reservations"),
-130:     },
-131:     {
-132:       title: "Business Hours",
-133:       subtitle: "Set your restaurant opening hours",
-134:       icon: "schedule",
-135:       onPress: () => {},
-136:     },
-137:   ];
-138: 
-139: 
-140:   const systemItems = [
-141:     {
-142:       title: "Notifications",
-143:       subtitle: "Manage notification preferences",
-144:       icon: "notifications",
-145:       onPress: () => {},
-146:     },
-147:     {
-148:       title: "Payment Methods",
-149:       subtitle: "Configure payment options",
-150:       icon: "payment",
-151:       onPress: () => {},
-152:     },
-153:     {
-154:       title: "Help & Support",
-155:       subtitle: "Contact customer support",
-156:       icon: "help",
-157:       onPress: () => {},
-158:     },
-159:     {
-160:       title: "Logout",
-161:       subtitle: "Sign out from your account",
-162:       icon: "logout",
-163:       iconColor: (props) => props.theme.colors.text.error,
-164:       onPress: onLogout,
-165:     },
-166:   ];
-167: 
-168:   const renderSettingsItems = (items) => {
-169:     return items.map((item, index) => (
-170:       <SettingsItemRow key={index} onPress={item.onPress}>
-171:         <MaterialIcons
-172:           name={item.icon}
-173:           size={24}
-174:           color={item.iconColor || "#262626"}
-175:         />
-176:         <SettingsItemText>
-177:           <CustomText variant="body" style={{ fontWeight: "bold" }}>
-178:             {item.title}
-179:           </CustomText>
-180:           <CustomText variant="body" style={{ color: "#757575" }}>
-181:             {item.subtitle}
-182:           </CustomText>
-183:         </SettingsItemText>
-184:         <MaterialIcons name="chevron-right" size={24} color="#757575" />
-185:       </SettingsItemRow>
-186:     ));
-187:   };
-188: 
-189:   return (
-190:     <SafeArea>
-191:       <SettingsContainer>
-192:         {}
-193:         <ProfileContainer>
-194:           <UserInfoContainer>
-195:             <CustomText variant="h3">{merchantProfile.name}</CustomText>
-196:             <EmailText variant="caption">{merchantProfile.email}</EmailText>
-197:             <RestaurantNameText variant="body">
-198:               {merchantProfile.restaurantName}
-199:             </RestaurantNameText>
-200:             <StatusBadge>
-201:               <StatusText>ACTIVE</StatusText>
-202:             </StatusBadge>
-203:           </UserInfoContainer>
-204:           <AvatarContainer>
-205:             <TouchableOpacity onPress={() => {}}>
-206:               <Avatar.Image
-207:                 size={80}
-208:                 source={merchantProfile.profileImage}
-209:                 backgroundColor={(props) => props.theme.colors.brand.primary}
-210:               />
-211:             </TouchableOpacity>
-212:           </AvatarContainer>
-213:         </ProfileContainer>
-214: 
-215:         {}
+107:       onPress: () =>
+108:         navigation.navigate("RestaurantDetail", {
+109:           restaurant: sampleRestaurantData,
+110:           isMerchantView: true,
+111:         }),
+112:     },
+113:     {
+114:       title: "Menu Management",
+115:       subtitle: "Add, edit, or remove menu items",
+116:       icon: "restaurant-menu",
+117:       onPress: () => {},
+118:     },
+119:   ];
+120: 
+121:   const businessItems = [
+122:     {
+123:       title: "Seating Layout",
+124:       subtitle: "Manage tables and seating arrangement",
+125:       icon: "chair",
+126:       onPress: () => navigation.navigate("Home"),
+127:     },
+128:     {
+129:       title: "Reservation Settings",
+130:       subtitle: "Configure reservation rules and availability",
+131:       icon: "event",
+132:       onPress: () => navigation.navigate("Reservations"),
+133:     },
+134:     {
+135:       title: "Business Hours",
+136:       subtitle: "Set your restaurant opening hours",
+137:       icon: "schedule",
+138:       onPress: () => {},
+139:     },
+140:   ];
+141: 
+142:   const systemItems = [
+143:     {
+144:       title: "Notifications",
+145:       subtitle: "Manage notification preferences",
+146:       icon: "notifications",
+147:       onPress: () => {},
+148:     },
+149:     {
+150:       title: "Payment Methods",
+151:       subtitle: "Configure payment options",
+152:       icon: "payment",
+153:       onPress: () => {},
+154:     },
+155:     {
+156:       title: "Help & Support",
+157:       subtitle: "Contact customer support",
+158:       icon: "help",
+159:       onPress: () => {},
+160:     },
+161:     {
+162:       title: "Logout",
+163:       subtitle: "Sign out from your account",
+164:       icon: "logout",
+165:       iconColor: (props) => props.theme.colors.text.error,
+166:       onPress: onLogout,
+167:     },
+168:   ];
+169: 
+170:   const renderSettingsItems = (items) => {
+171:     return items.map((item, index) => (
+172:       <SettingsItemRow key={index} onPress={item.onPress}>
+173:         <MaterialIcons
+174:           name={item.icon}
+175:           size={24}
+176:           color={item.iconColor || "#262626"}
+177:         />
+178:         <SettingsItemText>
+179:           <CustomText variant="body" style={{ fontWeight: "bold" }}>
+180:             {item.title}
+181:           </CustomText>
+182:           <CustomText variant="body" style={{ color: "#757575" }}>
+183:             {item.subtitle}
+184:           </CustomText>
+185:         </SettingsItemText>
+186:         <MaterialIcons name="chevron-right" size={24} color="#757575" />
+187:       </SettingsItemRow>
+188:     ));
+189:   };
+190: 
+191:   return (
+192:     <SafeArea>
+193:       <SettingsContainer>
+194:         <ProfileContainer>
+195:           <UserInfoContainer>
+196:             <CustomText variant="h3">{merchantProfile.name}</CustomText>
+197:             <EmailText variant="caption">{merchantProfile.email}</EmailText>
+198:             <RestaurantNameText variant="body">
+199:               {merchantProfile.restaurantName}
+200:             </RestaurantNameText>
+201:             <StatusBadge>
+202:               <StatusText>ACTIVE</StatusText>
+203:             </StatusBadge>
+204:           </UserInfoContainer>
+205:           <AvatarContainer>
+206:             <TouchableOpacity onPress={() => {}}>
+207:               <Avatar.Image
+208:                 size={80}
+209:                 source={merchantProfile.profileImage}
+210:                 backgroundColor={(props) => props.theme.colors.brand.primary}
+211:               />
+212:             </TouchableOpacity>
+213:           </AvatarContainer>
+214:         </ProfileContainer>
+215: 
 216:         <SectionContainer>
 217:           <SectionTitle variant="body">ACCOUNT</SectionTitle>
 218:           {renderSettingsItems(accountItems)}
 219:         </SectionContainer>
 220: 
-221:         {}
-222:         <SectionContainer>
-223:           <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
-224:           {renderSettingsItems(businessItems)}
-225:         </SectionContainer>
-226: 
-227:         {}
-228:         <SectionContainer>
-229:           <SectionTitle variant="body">SYSTEM</SectionTitle>
-230:           {renderSettingsItems(systemItems)}
-231:         </SectionContainer>
-232:       </SettingsContainer>
-233:     </SafeArea>
-234:   );
-235: };
+221:         <SectionContainer>
+222:           <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
+223:           {renderSettingsItems(businessItems)}
+224:         </SectionContainer>
+225: 
+226:         <SectionContainer>
+227:           <SectionTitle variant="body">SYSTEM</SectionTitle>
+228:           {renderSettingsItems(systemItems)}
+229:         </SectionContainer>
+230:       </SettingsContainer>
+231:     </SafeArea>
+232:   );
+233: };
 
 ================
 File: src/features/merchant/settings/screens/RestaurantEditScreen.js
@@ -6252,604 +6329,647 @@ File: src/features/merchant/settings/screens/RestaurantEditScreen.js
  13: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
  14: import { CustomText } from "../../../../components/CustomText/CustomText";
  15: 
- 16: 
- 17: import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
- 18: 
- 19: import {
- 20:   Container,
- 21:   Header,
- 22:   HeaderTitle,
- 23:   SaveButton,
- 24:   SaveButtonText,
- 25:   Section,
- 26:   SectionTitle,
- 27:   FormGroup,
- 28:   Label,
- 29:   Input,
- 30:   TextArea,
- 31:   PhotoContainer,
- 32:   PhotoItem,
- 33:   PhotoImage,
- 34:   AddPhotoButton,
- 35:   RemovePhotoButton,
- 36:   FeatureRow,
- 37:   FeatureSwitch,
- 38:   BusinessHoursRow,
- 39:   DayLabel,
- 40:   TimeInput,
- 41:   ClosedCheckbox,
- 42:   CuisineTag,
- 43:   CuisineTagsContainer,
- 44:   AddCuisineButton,
- 45: } from "./RestaurantEditScreen.styles";
+ 16: import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
+ 17: import {
+ 18:   Container,
+ 19:   Header,
+ 20:   HeaderTitle,
+ 21:   SaveButton,
+ 22:   SaveButtonText,
+ 23:   Section,
+ 24:   SectionTitle,
+ 25:   FormGroup,
+ 26:   Label,
+ 27:   Input,
+ 28:   TextArea,
+ 29:   PhotoContainer,
+ 30:   PhotoItem,
+ 31:   PhotoImage,
+ 32:   AddPhotoButton,
+ 33:   RemovePhotoButton,
+ 34:   FeatureRow,
+ 35:   FeatureSwitch,
+ 36:   BusinessHoursRow,
+ 37:   DayLabel,
+ 38:   TimeInput,
+ 39:   ClosedCheckbox,
+ 40:   CuisineTag,
+ 41:   CuisineTagsContainer,
+ 42:   AddCuisineButton,
+ 43: } from "./RestaurantEditScreen.styles";
+ 44: 
+ 45: export const RestaurantEditScreen = ({ route, navigation }) => {
  46: 
- 47: 
- 48: export const RestaurantEditScreen = ({ navigation }) => {
- 49:   const [restaurant, setRestaurant] = useState(null);
+ 47:   const [restaurant, setRestaurant] = useState(
+ 48:     route.params?.restaurant || sampleRestaurantData
+ 49:   );
  50:   const [loading, setLoading] = useState(true);
  51:   const [newCuisine, setNewCuisine] = useState("");
  52: 
  53:   // Load restaurant data
  54:   useEffect(() => {
  55:     // In a real app, this would be a fetch call to your API
- 56:     setRestaurant(sampleRestaurantData);
- 57:     setLoading(false);
- 58:   }, []);
- 59: 
- 60:   const handleSave = () => {
- 61:     // In a real app, this would send the updated data to your API
- 62:     Alert.alert("Success", "Restaurant information saved successfully");
- 63:   };
- 64: 
- 65:   const handleAddPhoto = async () => {
- 66:     try {
- 67:       const permissionResult =
- 68:         await ImagePicker.requestMediaLibraryPermissionsAsync();
- 69:       if (!permissionResult.granted) {
- 70:         Alert.alert(
- 71:           "Permission Required",
- 72:           "Please allow access to your photo library"
- 73:         );
- 74:         return;
- 75:       }
- 76: 
- 77:       const pickerResult = await ImagePicker.launchImageLibraryAsync({
- 78:         allowsEditing: true,
- 79:         aspect: [4, 3],
- 80:         quality: 1,
- 81:       });
- 82: 
- 83:       if (
- 84:         !pickerResult.cancelled &&
- 85:         pickerResult.assets &&
- 86:         pickerResult.assets.length > 0
- 87:       ) {
- 88:         setRestaurant((prev) => ({
- 89:           ...prev,
- 90:           photos: [...prev.photos, pickerResult.assets[0].uri],
- 91:         }));
- 92:       }
- 93:     } catch (error) {
- 94:       console.error("Error picking image:", error);
- 95:       Alert.alert("Error", "There was a problem selecting your image");
- 96:     }
- 97:   };
- 98: 
- 99:   const handleRemovePhoto = (index) => {
-100:     setRestaurant((prev) => ({
-101:       ...prev,
-102:       photos: prev.photos.filter((_, i) => i !== index),
-103:     }));
-104:   };
-105: 
-106:   const updateTextValue = (field, value) => {
-107:     setRestaurant((prev) => ({
-108:       ...prev,
-109:       [field]: value,
-110:     }));
-111:   };
-112: 
-113:   const updateNestedValue = (parent, field, value) => {
-114:     setRestaurant((prev) => ({
-115:       ...prev,
-116:       [parent]: {
-117:         ...prev[parent],
-118:         [field]: value,
-119:       },
-120:     }));
-121:   };
-122: 
-123:   const toggleFeature = (feature) => {
-124:     setRestaurant((prev) => ({
-125:       ...prev,
-126:       features: {
-127:         ...prev.features,
-128:         [feature]: !prev.features[feature],
-129:       },
-130:     }));
-131:   };
-132: 
-133:   const updateBusinessHours = (day, field, value) => {
-134:     setRestaurant((prev) => ({
-135:       ...prev,
-136:       businessHours: {
-137:         ...prev.businessHours,
-138:         [day]: {
-139:           ...prev.businessHours[day],
-140:           [field]: value,
-141:         },
-142:       },
-143:     }));
-144:   };
-145: 
-146:   const toggleDayClosed = (day) => {
-147:     const isClosed = restaurant.businessHours[day].isClosed;
-148:     setRestaurant((prev) => ({
-149:       ...prev,
-150:       businessHours: {
-151:         ...prev.businessHours,
-152:         [day]: {
-153:           ...prev.businessHours[day],
-154:           isClosed: !isClosed,
-155:         },
-156:       },
-157:     }));
-158:   };
-159: 
-160:   const handleAddCuisine = () => {
-161:     if (newCuisine.trim() === "") return;
-162: 
-163:     setRestaurant((prev) => ({
-164:       ...prev,
-165:       cuisine: [...prev.cuisine, newCuisine.trim()],
-166:     }));
-167:     setNewCuisine("");
-168:   };
-169: 
-170:   const handleRemoveCuisine = (index) => {
-171:     setRestaurant((prev) => ({
-172:       ...prev,
-173:       cuisine: prev.cuisine.filter((_, i) => i !== index),
-174:     }));
-175:   };
-176: 
-177:   if (loading || !restaurant) {
-178:     return (
-179:       <SafeArea>
-180:         <Container>
-181:           <CustomText>Loading restaurant information...</CustomText>
-182:         </Container>
-183:       </SafeArea>
-184:     );
-185:   }
-186: 
-187:   const daysOfWeek = [
-188:     "monday",
-189:     "tuesday",
-190:     "wednesday",
-191:     "thursday",
-192:     "friday",
-193:     "saturday",
-194:     "sunday",
-195:   ];
-196: 
-197:   return (
-198:     <SafeArea>
-199:       <Container>
-200:         <Header>
-201:           <TouchableOpacity onPress={() => navigation.goBack()}>
-202:             <MaterialIcons name="arrow-back" size={24} color="#262626" />
-203:           </TouchableOpacity>
-204:           <HeaderTitle>Edit Restaurant</HeaderTitle>
-205:           <SaveButton onPress={handleSave}>
-206:             <SaveButtonText>Save</SaveButtonText>
-207:           </SaveButton>
-208:         </Header>
-209: 
-210:         {}
-211:         <Section>
-212:           <SectionTitle>BASIC INFORMATION</SectionTitle>
-213: 
-214:           <FormGroup>
-215:             <Label>Restaurant Name</Label>
-216:             <Input
-217:               value={restaurant.name}
-218:               onChangeText={(text) => updateTextValue("name", text)}
-219:               placeholder="Enter restaurant name"
-220:             />
-221:           </FormGroup>
-222: 
-223:           <FormGroup>
-224:             <Label>Description</Label>
-225:             <TextArea
-226:               value={restaurant.description}
-227:               onChangeText={(text) => updateTextValue("description", text)}
-228:               placeholder="Enter restaurant description"
-229:               multiline={true}
-230:               numberOfLines={4}
-231:             />
-232:           </FormGroup>
-233: 
-234:           <FormGroup>
-235:             <Label>Cuisine Types</Label>
-236:             <CuisineTagsContainer>
-237:               {restaurant.cuisine.map((cuisine, index) => (
-238:                 <CuisineTag key={index}>
-239:                   <CustomText>{cuisine}</CustomText>
-240:                   <TouchableOpacity
-241:                     onPress={() => handleRemoveCuisine(index)}
-242:                     style={{ marginLeft: 5 }}
-243:                   >
-244:                     <MaterialIcons name="close" size={16} color="#757575" />
-245:                   </TouchableOpacity>
-246:                 </CuisineTag>
-247:               ))}
-248:             </CuisineTagsContainer>
-249: 
-250:             <View style={{ flexDirection: "row", alignItems: "center" }}>
-251:               <Input
-252:                 value={newCuisine}
-253:                 onChangeText={setNewCuisine}
-254:                 placeholder="Add new cuisine type"
-255:                 style={{ flex: 1, marginRight: 10 }}
-256:               />
-257:               <AddCuisineButton onPress={handleAddCuisine}>
-258:                 <MaterialIcons name="add" size={16} color="#262626" />
-259:                 <CustomText>Add</CustomText>
-260:               </AddCuisineButton>
-261:             </View>
-262:           </FormGroup>
-263:         </Section>
+ 56:     const initialData = route.params?.restaurant || sampleRestaurantData;
+ 57: 
+ 58:     // Ensure all required properties exist to prevent rendering errors
+ 59:     const completeData = {
+ 60:       ...sampleRestaurantData,
+ 61:       ...initialData,
+ 62:       // Ensure nested objects exist
+ 63:       address: {
+ 64:         ...sampleRestaurantData.address,
+ 65:         ...(initialData.address || {}),
+ 66:       },
+ 67:       businessHours: {
+ 68:         ...sampleRestaurantData.businessHours,
+ 69:         ...(initialData.businessHours || {}),
+ 70:       },
+ 71:       features: {
+ 72:         ...sampleRestaurantData.features,
+ 73:         ...(initialData.features || {}),
+ 74:       },
+ 75:       settings: {
+ 76:         ...sampleRestaurantData.settings,
+ 77:         ...(initialData.settings || {}),
+ 78:       },
+ 79:       socialMedia: {
+ 80:         ...sampleRestaurantData.socialMedia,
+ 81:         ...(initialData.socialMedia || {}),
+ 82:       },
+ 83:     };
+ 84: 
+ 85:     setRestaurant(completeData);
+ 86:     setLoading(false);
+ 87:   }, [route.params?.restaurant]);
+ 88: 
+ 89:   const handleSave = () => {
+ 90:     // In a real app, this would send the updated data to your API
+ 91:     Alert.alert("Success", "Restaurant information saved successfully", [
+ 92:       {
+ 93:         text: "OK",
+ 94:         onPress: () => {
+ 95: 
+ 96: 
+ 97: 
+ 98:           navigation.navigate("RestaurantDetail", {
+ 99:             updatedRestaurant: restaurant,
+100:             isMerchantView: true,
+101:           });
+102:         },
+103:       },
+104:     ]);
+105:   };
+106: 
+107:   const handleAddPhoto = async () => {
+108:     try {
+109:       const permissionResult =
+110:         await ImagePicker.requestMediaLibraryPermissionsAsync();
+111:       if (!permissionResult.granted) {
+112:         Alert.alert(
+113:           "Permission Required",
+114:           "Please allow access to your photo library"
+115:         );
+116:         return;
+117:       }
+118: 
+119:       const pickerResult = await ImagePicker.launchImageLibraryAsync({
+120:         allowsEditing: true,
+121:         aspect: [4, 3],
+122:         quality: 1,
+123:       });
+124: 
+125:       if (
+126:         !pickerResult.canceled &&
+127:         pickerResult.assets &&
+128:         pickerResult.assets.length > 0
+129:       ) {
+130:         setRestaurant((prev) => ({
+131:           ...prev,
+132:           photos: [...prev.photos, pickerResult.assets[0].uri],
+133:         }));
+134:       }
+135:     } catch (error) {
+136:       console.error("Error picking image:", error);
+137:       Alert.alert("Error", "There was a problem selecting your image");
+138:     }
+139:   };
+140: 
+141:   const handleRemovePhoto = (index) => {
+142:     setRestaurant((prev) => ({
+143:       ...prev,
+144:       photos: prev.photos.filter((_, i) => i !== index),
+145:     }));
+146:   };
+147: 
+148:   const updateTextValue = (field, value) => {
+149:     setRestaurant((prev) => ({
+150:       ...prev,
+151:       [field]: value,
+152:     }));
+153:   };
+154: 
+155:   const updateNestedValue = (parent, field, value) => {
+156:     setRestaurant((prev) => ({
+157:       ...prev,
+158:       [parent]: {
+159:         ...prev[parent],
+160:         [field]: value,
+161:       },
+162:     }));
+163:   };
+164: 
+165:   const toggleFeature = (feature) => {
+166:     setRestaurant((prev) => ({
+167:       ...prev,
+168:       features: {
+169:         ...prev.features,
+170:         [feature]: !prev.features[feature],
+171:       },
+172:     }));
+173:   };
+174: 
+175:   const updateBusinessHours = (day, field, value) => {
+176:     setRestaurant((prev) => ({
+177:       ...prev,
+178:       businessHours: {
+179:         ...prev.businessHours,
+180:         [day]: {
+181:           ...prev.businessHours[day],
+182:           [field]: value,
+183:         },
+184:       },
+185:     }));
+186:   };
+187: 
+188:   const toggleDayClosed = (day) => {
+189:     const isClosed = restaurant.businessHours[day].isClosed;
+190:     setRestaurant((prev) => ({
+191:       ...prev,
+192:       businessHours: {
+193:         ...prev.businessHours,
+194:         [day]: {
+195:           ...prev.businessHours[day],
+196:           isClosed: !isClosed,
+197:         },
+198:       },
+199:     }));
+200:   };
+201: 
+202:   const handleAddCuisine = () => {
+203:     if (newCuisine.trim() === "") return;
+204: 
+205:     setRestaurant((prev) => ({
+206:       ...prev,
+207:       cuisine: [...prev.cuisine, newCuisine.trim()],
+208:     }));
+209:     setNewCuisine("");
+210:   };
+211: 
+212:   const handleRemoveCuisine = (index) => {
+213:     setRestaurant((prev) => ({
+214:       ...prev,
+215:       cuisine: prev.cuisine.filter((_, i) => i !== index),
+216:     }));
+217:   };
+218: 
+219:   if (loading || !restaurant) {
+220:     return (
+221:       <SafeArea>
+222:         <Container>
+223:           <CustomText>Loading restaurant information...</CustomText>
+224:         </Container>
+225:       </SafeArea>
+226:     );
+227:   }
+228: 
+229:   const daysOfWeek = [
+230:     "monday",
+231:     "tuesday",
+232:     "wednesday",
+233:     "thursday",
+234:     "friday",
+235:     "saturday",
+236:     "sunday",
+237:   ];
+238: 
+239:   return (
+240:     <SafeArea>
+241:       <Container>
+242:         <Header>
+243:           <TouchableOpacity onPress={() => navigation.goBack()}>
+244:             <MaterialIcons name="arrow-back" size={24} color="#262626" />
+245:           </TouchableOpacity>
+246:           <HeaderTitle>Edit Restaurant</HeaderTitle>
+247:           <SaveButton onPress={handleSave}>
+248:             <SaveButtonText>Save</SaveButtonText>
+249:           </SaveButton>
+250:         </Header>
+251: 
+252:         {}
+253:         <Section>
+254:           <SectionTitle>BASIC INFORMATION</SectionTitle>
+255: 
+256:           <FormGroup>
+257:             <Label>Restaurant Name</Label>
+258:             <Input
+259:               value={restaurant.name}
+260:               onChangeText={(text) => updateTextValue("name", text)}
+261:               placeholder="Enter restaurant name"
+262:             />
+263:           </FormGroup>
 264: 
-265:         {}
-266:         <Section>
-267:           <SectionTitle>CONTACT & LOCATION</SectionTitle>
-268: 
-269:           <FormGroup>
-270:             <Label>Street Address</Label>
-271:             <Input
-272:               value={restaurant.address.street}
-273:               onChangeText={(text) =>
-274:                 updateNestedValue("address", "street", text)
-275:               }
-276:               placeholder="Enter street address"
-277:             />
-278:           </FormGroup>
-279: 
-280:           <FormGroup>
-281:             <Label>City</Label>
-282:             <Input
-283:               value={restaurant.address.city}
-284:               onChangeText={(text) =>
-285:                 updateNestedValue("address", "city", text)
-286:               }
-287:               placeholder="Enter city"
-288:             />
-289:           </FormGroup>
-290: 
-291:           <FormGroup>
-292:             <Label>State/Province</Label>
-293:             <Input
-294:               value={restaurant.address.state}
-295:               onChangeText={(text) =>
-296:                 updateNestedValue("address", "state", text)
-297:               }
-298:               placeholder="Enter state/province"
-299:             />
-300:           </FormGroup>
-301: 
-302:           <FormGroup>
-303:             <Label>Postal Code</Label>
-304:             <Input
-305:               value={restaurant.address.postalCode}
-306:               onChangeText={(text) =>
-307:                 updateNestedValue("address", "postalCode", text)
-308:               }
-309:               placeholder="Enter postal code"
-310:             />
-311:           </FormGroup>
-312: 
-313:           <FormGroup>
-314:             <Label>Phone Number</Label>
-315:             <Input
-316:               value={restaurant.phoneNumber}
-317:               onChangeText={(text) => updateTextValue("phoneNumber", text)}
-318:               placeholder="Enter phone number"
-319:               keyboardType="phone-pad"
-320:             />
-321:           </FormGroup>
-322: 
-323:           <FormGroup>
-324:             <Label>Email</Label>
-325:             <Input
-326:               value={restaurant.email}
-327:               onChangeText={(text) => updateTextValue("email", text)}
-328:               placeholder="Enter email address"
-329:               keyboardType="email-address"
-330:               autoCapitalize="none"
-331:             />
-332:           </FormGroup>
-333: 
-334:           <FormGroup>
-335:             <Label>Website</Label>
-336:             <Input
-337:               value={restaurant.website}
-338:               onChangeText={(text) => updateTextValue("website", text)}
-339:               placeholder="Enter website URL"
-340:               keyboardType="url"
-341:               autoCapitalize="none"
-342:             />
-343:           </FormGroup>
-344:         </Section>
-345: 
-346:         {}
-347:         <Section>
-348:           <SectionTitle>PHOTOS</SectionTitle>
-349: 
-350:           <FormGroup>
-351:             <Label>Restaurant Photos</Label>
-352:             <PhotoContainer>
-353:               {restaurant.photos.map((photo, index) => (
-354:                 <PhotoItem key={index}>
-355:                   <PhotoImage source={{ uri: photo }} />
-356:                   <RemovePhotoButton onPress={() => handleRemovePhoto(index)}>
-357:                     <MaterialIcons name="close" size={16} color="white" />
-358:                   </RemovePhotoButton>
-359:                 </PhotoItem>
-360:               ))}
-361:               <AddPhotoButton onPress={handleAddPhoto}>
-362:                 <MaterialIcons
-363:                   name="add-photo-alternate"
-364:                   size={24}
-365:                   color="#757575"
-366:                 />
-367:               </AddPhotoButton>
-368:             </PhotoContainer>
-369:           </FormGroup>
-370:         </Section>
-371: 
-372:         {}
-373:         <Section>
-374:           <SectionTitle>BUSINESS HOURS</SectionTitle>
+265:           <FormGroup>
+266:             <Label>Description</Label>
+267:             <TextArea
+268:               value={restaurant.description}
+269:               onChangeText={(text) => updateTextValue("description", text)}
+270:               placeholder="Enter restaurant description"
+271:               multiline={true}
+272:               numberOfLines={4}
+273:             />
+274:           </FormGroup>
+275: 
+276:           <FormGroup>
+277:             <Label>Cuisine Types</Label>
+278:             <CuisineTagsContainer>
+279:               {restaurant.cuisine.map((cuisine, index) => (
+280:                 <CuisineTag key={index}>
+281:                   <CustomText>{cuisine}</CustomText>
+282:                   <TouchableOpacity
+283:                     onPress={() => handleRemoveCuisine(index)}
+284:                     style={{ marginLeft: 5 }}
+285:                   >
+286:                     <MaterialIcons name="close" size={16} color="#757575" />
+287:                   </TouchableOpacity>
+288:                 </CuisineTag>
+289:               ))}
+290:             </CuisineTagsContainer>
+291: 
+292:             <View style={{ flexDirection: "row", alignItems: "center" }}>
+293:               <Input
+294:                 value={newCuisine}
+295:                 onChangeText={setNewCuisine}
+296:                 placeholder="Add new cuisine type"
+297:                 style={{ flex: 1, marginRight: 10 }}
+298:               />
+299:               <AddCuisineButton onPress={handleAddCuisine}>
+300:                 <MaterialIcons name="add" size={16} color="#262626" />
+301:                 <CustomText>Add</CustomText>
+302:               </AddCuisineButton>
+303:             </View>
+304:           </FormGroup>
+305:         </Section>
+306: 
+307:         {}
+308:         <Section>
+309:           <SectionTitle>CONTACT & LOCATION</SectionTitle>
+310: 
+311:           <FormGroup>
+312:             <Label>Street Address</Label>
+313:             <Input
+314:               value={restaurant.address.street}
+315:               onChangeText={(text) =>
+316:                 updateNestedValue("address", "street", text)
+317:               }
+318:               placeholder="Enter street address"
+319:             />
+320:           </FormGroup>
+321: 
+322:           <FormGroup>
+323:             <Label>City</Label>
+324:             <Input
+325:               value={restaurant.address.city}
+326:               onChangeText={(text) =>
+327:                 updateNestedValue("address", "city", text)
+328:               }
+329:               placeholder="Enter city"
+330:             />
+331:           </FormGroup>
+332: 
+333:           <FormGroup>
+334:             <Label>State/Province</Label>
+335:             <Input
+336:               value={restaurant.address.state}
+337:               onChangeText={(text) =>
+338:                 updateNestedValue("address", "state", text)
+339:               }
+340:               placeholder="Enter state/province"
+341:             />
+342:           </FormGroup>
+343: 
+344:           <FormGroup>
+345:             <Label>Postal Code</Label>
+346:             <Input
+347:               value={restaurant.address.postalCode}
+348:               onChangeText={(text) =>
+349:                 updateNestedValue("address", "postalCode", text)
+350:               }
+351:               placeholder="Enter postal code"
+352:             />
+353:           </FormGroup>
+354: 
+355:           <FormGroup>
+356:             <Label>Phone Number</Label>
+357:             <Input
+358:               value={restaurant.phoneNumber}
+359:               onChangeText={(text) => updateTextValue("phoneNumber", text)}
+360:               placeholder="Enter phone number"
+361:               keyboardType="phone-pad"
+362:             />
+363:           </FormGroup>
+364: 
+365:           <FormGroup>
+366:             <Label>Email</Label>
+367:             <Input
+368:               value={restaurant.email}
+369:               onChangeText={(text) => updateTextValue("email", text)}
+370:               placeholder="Enter email address"
+371:               keyboardType="email-address"
+372:               autoCapitalize="none"
+373:             />
+374:           </FormGroup>
 375: 
-376:           {daysOfWeek.map((day) => (
-377:             <BusinessHoursRow key={day}>
-378:               <DayLabel style={{ textTransform: "capitalize" }}>{day}</DayLabel>
-379:               <TimeInput
-380:                 value={restaurant.businessHours[day].open}
-381:                 onChangeText={(text) => updateBusinessHours(day, "open", text)}
-382:                 placeholder="09:00"
-383:                 editable={!restaurant.businessHours[day].isClosed}
-384:               />
-385:               <CustomText>to</CustomText>
-386:               <TimeInput
-387:                 value={restaurant.businessHours[day].close}
-388:                 onChangeText={(text) => updateBusinessHours(day, "close", text)}
-389:                 placeholder="22:00"
-390:                 editable={!restaurant.businessHours[day].isClosed}
-391:               />
-392:               <ClosedCheckbox onPress={() => toggleDayClosed(day)}>
-393:                 <MaterialIcons
-394:                   name={
-395:                     restaurant.businessHours[day].isClosed
-396:                       ? "check-box"
-397:                       : "check-box-outline-blank"
-398:                   }
-399:                   size={24}
-400:                   color="#262626"
-401:                 />
-402:                 <CustomText>Closed</CustomText>
-403:               </ClosedCheckbox>
-404:             </BusinessHoursRow>
-405:           ))}
-406: 
-407:           <FormGroup style={{ marginTop: 10 }}>
-408:             <FeatureRow>
-409:               <FeatureSwitch
-410:                 value={restaurant.isClosedTemporarily}
-411:                 onValueChange={() =>
-412:                   updateTextValue(
-413:                     "isClosedTemporarily",
-414:                     !restaurant.isClosedTemporarily
-415:                   )
-416:                 }
-417:               />
-418:               <Label>Temporarily Closed</Label>
-419:             </FeatureRow>
-420:           </FormGroup>
-421:         </Section>
-422: 
-423:         {}
-424:         <Section>
-425:           <SectionTitle>FEATURES & AMENITIES</SectionTitle>
-426: 
-427:           <FormGroup>
-428:             <FeatureRow>
-429:               <FeatureSwitch
-430:                 value={restaurant.features.hasWifi}
-431:                 onValueChange={() => toggleFeature("hasWifi")}
-432:               />
-433:               <Label>Wi-Fi Available</Label>
-434:             </FeatureRow>
-435: 
-436:             <FeatureRow>
-437:               <FeatureSwitch
-438:                 value={restaurant.features.hasParking}
-439:                 onValueChange={() => toggleFeature("hasParking")}
-440:               />
-441:               <Label>Parking Available</Label>
-442:             </FeatureRow>
-443: 
-444:             <FeatureRow>
-445:               <FeatureSwitch
-446:                 value={restaurant.features.isWheelchairAccessible}
-447:                 onValueChange={() => toggleFeature("isWheelchairAccessible")}
-448:               />
-449:               <Label>Wheelchair Accessible</Label>
-450:             </FeatureRow>
-451: 
-452:             <FeatureRow>
-453:               <FeatureSwitch
-454:                 value={restaurant.features.allowsPets}
-455:                 onValueChange={() => toggleFeature("allowsPets")}
-456:               />
-457:               <Label>Pet Friendly</Label>
-458:             </FeatureRow>
-459: 
-460:             <FeatureRow>
-461:               <FeatureSwitch
-462:                 value={restaurant.features.hasOutdoorSeating}
-463:                 onValueChange={() => toggleFeature("hasOutdoorSeating")}
-464:               />
-465:               <Label>Outdoor Seating</Label>
-466:             </FeatureRow>
-467: 
-468:             <FeatureRow>
-469:               <FeatureSwitch
-470:                 value={restaurant.features.hasTakeout}
-471:                 onValueChange={() => toggleFeature("hasTakeout")}
-472:               />
-473:               <Label>Takeout Available</Label>
-474:             </FeatureRow>
-475: 
-476:             <FeatureRow>
-477:               <FeatureSwitch
-478:                 value={restaurant.features.hasDelivery}
-479:                 onValueChange={() => toggleFeature("hasDelivery")}
-480:               />
-481:               <Label>Delivery Available</Label>
-482:             </FeatureRow>
-483: 
-484:             <FeatureRow>
-485:               <FeatureSwitch
-486:                 value={restaurant.features.acceptsReservations}
-487:                 onValueChange={() => toggleFeature("acceptsReservations")}
-488:               />
-489:               <Label>Accepts Reservations</Label>
-490:             </FeatureRow>
-491:           </FormGroup>
-492:         </Section>
-493: 
-494:         {}
-495:         <Section>
-496:           <SectionTitle>SOCIAL MEDIA</SectionTitle>
-497: 
-498:           <FormGroup>
-499:             <Label>Instagram</Label>
-500:             <Input
-501:               value={restaurant.socialMedia.instagram}
-502:               onChangeText={(text) =>
-503:                 updateNestedValue("socialMedia", "instagram", text)
-504:               }
-505:               placeholder="Instagram URL"
-506:               autoCapitalize="none"
-507:             />
-508:           </FormGroup>
-509: 
-510:           <FormGroup>
-511:             <Label>Facebook</Label>
-512:             <Input
-513:               value={restaurant.socialMedia.facebook}
-514:               onChangeText={(text) =>
-515:                 updateNestedValue("socialMedia", "facebook", text)
-516:               }
-517:               placeholder="Facebook URL"
-518:               autoCapitalize="none"
-519:             />
-520:           </FormGroup>
-521: 
-522:           <FormGroup>
-523:             <Label>Twitter</Label>
-524:             <Input
-525:               value={restaurant.socialMedia.twitter}
-526:               onChangeText={(text) =>
-527:                 updateNestedValue("socialMedia", "twitter", text)
-528:               }
-529:               placeholder="Twitter URL"
-530:               autoCapitalize="none"
-531:             />
-532:           </FormGroup>
-533: 
-534:           <FormGroup>
-535:             <Label>Yelp</Label>
-536:             <Input
-537:               value={restaurant.socialMedia.yelp}
-538:               onChangeText={(text) =>
-539:                 updateNestedValue("socialMedia", "yelp", text)
-540:               }
-541:               placeholder="Yelp URL"
-542:               autoCapitalize="none"
-543:             />
-544:           </FormGroup>
-545:         </Section>
-546: 
-547:         {}
-548:         <Section>
-549:           <SectionTitle>RESERVATION SETTINGS</SectionTitle>
-550: 
-551:           <FormGroup>
-552:             <Label>Time Slot Duration (minutes)</Label>
-553:             <Input
-554:               value={restaurant.settings.reservationTimeSlotDuration.toString()}
-555:               onChangeText={(text) => {
-556:                 const value = parseInt(text) || 0;
-557:                 updateNestedValue(
-558:                   "settings",
-559:                   "reservationTimeSlotDuration",
-560:                   value
-561:                 );
-562:               }}
-563:               placeholder="30"
-564:               keyboardType="number-pad"
-565:             />
-566:           </FormGroup>
-567: 
-568:           <FormGroup>
-569:             <Label>Maximum Party Size</Label>
-570:             <Input
-571:               value={restaurant.settings.maxReservationSize.toString()}
-572:               onChangeText={(text) => {
-573:                 const value = parseInt(text) || 0;
-574:                 updateNestedValue("settings", "maxReservationSize", value);
-575:               }}
-576:               placeholder="20"
-577:               keyboardType="number-pad"
-578:             />
-579:           </FormGroup>
-580: 
-581:           <FormGroup>
-582:             <Label>Minimum Advance Notice (hours)</Label>
-583:             <Input
-584:               value={restaurant.settings.reservationLeadTime.toString()}
-585:               onChangeText={(text) => {
-586:                 const value = parseInt(text) || 0;
-587:                 updateNestedValue("settings", "reservationLeadTime", value);
-588:               }}
-589:               placeholder="1"
-590:               keyboardType="number-pad"
-591:             />
-592:           </FormGroup>
+376:           <FormGroup>
+377:             <Label>Website</Label>
+378:             <Input
+379:               value={restaurant.website}
+380:               onChangeText={(text) => updateTextValue("website", text)}
+381:               placeholder="Enter website URL"
+382:               keyboardType="url"
+383:               autoCapitalize="none"
+384:             />
+385:           </FormGroup>
+386:         </Section>
+387: 
+388:         {}
+389:         <Section>
+390:           <SectionTitle>PHOTOS</SectionTitle>
+391: 
+392:           <FormGroup>
+393:             <Label>Restaurant Photos</Label>
+394:             <PhotoContainer>
+395:               {Array.isArray(restaurant.photos) &&
+396:                 restaurant.photos.map((photo, index) => (
+397:                   <PhotoItem key={index}>
+398:                     <PhotoImage source={{ uri: photo }} />
+399:                     <RemovePhotoButton onPress={() => handleRemovePhoto(index)}>
+400:                       <MaterialIcons name="close" size={16} color="white" />
+401:                     </RemovePhotoButton>
+402:                   </PhotoItem>
+403:                 ))}
+404:               <AddPhotoButton onPress={handleAddPhoto}>
+405:                 <MaterialIcons
+406:                   name="add-photo-alternate"
+407:                   size={24}
+408:                   color="#757575"
+409:                 />
+410:               </AddPhotoButton>
+411:             </PhotoContainer>
+412:           </FormGroup>
+413:         </Section>
+414: 
+415:         {}
+416:         <Section>
+417:           <SectionTitle>BUSINESS HOURS</SectionTitle>
+418: 
+419:           {daysOfWeek.map((day) => (
+420:             <BusinessHoursRow key={day}>
+421:               <DayLabel style={{ textTransform: "capitalize" }}>{day}</DayLabel>
+422:               <TimeInput
+423:                 value={restaurant.businessHours[day].open}
+424:                 onChangeText={(text) => updateBusinessHours(day, "open", text)}
+425:                 placeholder="09:00"
+426:                 editable={!restaurant.businessHours[day].isClosed}
+427:               />
+428:               <CustomText>to</CustomText>
+429:               <TimeInput
+430:                 value={restaurant.businessHours[day].close}
+431:                 onChangeText={(text) => updateBusinessHours(day, "close", text)}
+432:                 placeholder="22:00"
+433:                 editable={!restaurant.businessHours[day].isClosed}
+434:               />
+435:               <ClosedCheckbox onPress={() => toggleDayClosed(day)}>
+436:                 <MaterialIcons
+437:                   name={
+438:                     restaurant.businessHours[day].isClosed
+439:                       ? "check-box"
+440:                       : "check-box-outline-blank"
+441:                   }
+442:                   size={24}
+443:                   color="#262626"
+444:                 />
+445:                 <CustomText>Closed</CustomText>
+446:               </ClosedCheckbox>
+447:             </BusinessHoursRow>
+448:           ))}
+449: 
+450:           <FormGroup style={{ marginTop: 10 }}>
+451:             <FeatureRow>
+452:               <FeatureSwitch
+453:                 value={restaurant.isClosedTemporarily}
+454:                 onValueChange={() =>
+455:                   updateTextValue(
+456:                     "isClosedTemporarily",
+457:                     !restaurant.isClosedTemporarily
+458:                   )
+459:                 }
+460:               />
+461:               <Label>Temporarily Closed</Label>
+462:             </FeatureRow>
+463:           </FormGroup>
+464:         </Section>
+465: 
+466:         {}
+467:         <Section>
+468:           <SectionTitle>FEATURES & AMENITIES</SectionTitle>
+469: 
+470:           <FormGroup>
+471:             <FeatureRow>
+472:               <FeatureSwitch
+473:                 value={restaurant.features.hasWifi}
+474:                 onValueChange={() => toggleFeature("hasWifi")}
+475:               />
+476:               <Label>Wi-Fi Available</Label>
+477:             </FeatureRow>
+478: 
+479:             <FeatureRow>
+480:               <FeatureSwitch
+481:                 value={restaurant.features.hasParking}
+482:                 onValueChange={() => toggleFeature("hasParking")}
+483:               />
+484:               <Label>Parking Available</Label>
+485:             </FeatureRow>
+486: 
+487:             <FeatureRow>
+488:               <FeatureSwitch
+489:                 value={restaurant.features.isWheelchairAccessible}
+490:                 onValueChange={() => toggleFeature("isWheelchairAccessible")}
+491:               />
+492:               <Label>Wheelchair Accessible</Label>
+493:             </FeatureRow>
+494: 
+495:             <FeatureRow>
+496:               <FeatureSwitch
+497:                 value={restaurant.features.allowsPets}
+498:                 onValueChange={() => toggleFeature("allowsPets")}
+499:               />
+500:               <Label>Pet Friendly</Label>
+501:             </FeatureRow>
+502: 
+503:             <FeatureRow>
+504:               <FeatureSwitch
+505:                 value={restaurant.features.hasOutdoorSeating}
+506:                 onValueChange={() => toggleFeature("hasOutdoorSeating")}
+507:               />
+508:               <Label>Outdoor Seating</Label>
+509:             </FeatureRow>
+510: 
+511:             <FeatureRow>
+512:               <FeatureSwitch
+513:                 value={restaurant.features.hasTakeout}
+514:                 onValueChange={() => toggleFeature("hasTakeout")}
+515:               />
+516:               <Label>Takeout Available</Label>
+517:             </FeatureRow>
+518: 
+519:             <FeatureRow>
+520:               <FeatureSwitch
+521:                 value={restaurant.features.hasDelivery}
+522:                 onValueChange={() => toggleFeature("hasDelivery")}
+523:               />
+524:               <Label>Delivery Available</Label>
+525:             </FeatureRow>
+526: 
+527:             <FeatureRow>
+528:               <FeatureSwitch
+529:                 value={restaurant.features.acceptsReservations}
+530:                 onValueChange={() => toggleFeature("acceptsReservations")}
+531:               />
+532:               <Label>Accepts Reservations</Label>
+533:             </FeatureRow>
+534:           </FormGroup>
+535:         </Section>
+536: 
+537:         {}
+538:         <Section>
+539:           <SectionTitle>SOCIAL MEDIA</SectionTitle>
+540: 
+541:           <FormGroup>
+542:             <Label>Instagram</Label>
+543:             <Input
+544:               value={restaurant.socialMedia.instagram}
+545:               onChangeText={(text) =>
+546:                 updateNestedValue("socialMedia", "instagram", text)
+547:               }
+548:               placeholder="Instagram URL"
+549:               autoCapitalize="none"
+550:             />
+551:           </FormGroup>
+552: 
+553:           <FormGroup>
+554:             <Label>Facebook</Label>
+555:             <Input
+556:               value={restaurant.socialMedia.facebook}
+557:               onChangeText={(text) =>
+558:                 updateNestedValue("socialMedia", "facebook", text)
+559:               }
+560:               placeholder="Facebook URL"
+561:               autoCapitalize="none"
+562:             />
+563:           </FormGroup>
+564: 
+565:           <FormGroup>
+566:             <Label>Twitter</Label>
+567:             <Input
+568:               value={restaurant.socialMedia.twitter}
+569:               onChangeText={(text) =>
+570:                 updateNestedValue("socialMedia", "twitter", text)
+571:               }
+572:               placeholder="Twitter URL"
+573:               autoCapitalize="none"
+574:             />
+575:           </FormGroup>
+576: 
+577:           <FormGroup>
+578:             <Label>Yelp</Label>
+579:             <Input
+580:               value={restaurant.socialMedia.yelp}
+581:               onChangeText={(text) =>
+582:                 updateNestedValue("socialMedia", "yelp", text)
+583:               }
+584:               placeholder="Yelp URL"
+585:               autoCapitalize="none"
+586:             />
+587:           </FormGroup>
+588:         </Section>
+589: 
+590:         {}
+591:         <Section>
+592:           <SectionTitle>RESERVATION SETTINGS</SectionTitle>
 593: 
 594:           <FormGroup>
-595:             <FeatureRow>
-596:               <FeatureSwitch
-597:                 value={restaurant.settings.automaticConfirmation}
-598:                 onValueChange={() =>
-599:                   updateNestedValue(
-600:                     "settings",
-601:                     "automaticConfirmation",
-602:                     !restaurant.settings.automaticConfirmation
-603:                   )
-604:                 }
-605:               />
-606:               <Label>Automatic Reservation Confirmation</Label>
-607:             </FeatureRow>
-608:           </FormGroup>
-609:         </Section>
-610:       </Container>
-611:     </SafeArea>
-612:   );
-613: };
+595:             <Label>Time Slot Duration (minutes)</Label>
+596:             <Input
+597:               value={restaurant.settings.reservationTimeSlotDuration.toString()}
+598:               onChangeText={(text) => {
+599:                 const value = parseInt(text) || 0;
+600:                 updateNestedValue(
+601:                   "settings",
+602:                   "reservationTimeSlotDuration",
+603:                   value
+604:                 );
+605:               }}
+606:               placeholder="30"
+607:               keyboardType="number-pad"
+608:             />
+609:           </FormGroup>
+610: 
+611:           <FormGroup>
+612:             <Label>Maximum Party Size</Label>
+613:             <Input
+614:               value={restaurant.settings.maxReservationSize.toString()}
+615:               onChangeText={(text) => {
+616:                 const value = parseInt(text) || 0;
+617:                 updateNestedValue("settings", "maxReservationSize", value);
+618:               }}
+619:               placeholder="20"
+620:               keyboardType="number-pad"
+621:             />
+622:           </FormGroup>
+623: 
+624:           <FormGroup>
+625:             <Label>Minimum Advance Notice (hours)</Label>
+626:             <Input
+627:               value={restaurant.settings.reservationLeadTime.toString()}
+628:               onChangeText={(text) => {
+629:                 const value = parseInt(text) || 0;
+630:                 updateNestedValue("settings", "reservationLeadTime", value);
+631:               }}
+632:               placeholder="1"
+633:               keyboardType="number-pad"
+634:             />
+635:           </FormGroup>
+636: 
+637:           <FormGroup>
+638:             <FeatureRow>
+639:               <FeatureSwitch
+640:                 value={restaurant.settings.automaticConfirmation}
+641:                 onValueChange={() =>
+642:                   updateNestedValue(
+643:                     "settings",
+644:                     "automaticConfirmation",
+645:                     !restaurant.settings.automaticConfirmation
+646:                   )
+647:                 }
+648:               />
+649:               <Label>Automatic Reservation Confirmation</Label>
+650:             </FeatureRow>
+651:           </FormGroup>
+652:         </Section>
+653:       </Container>
+654:     </SafeArea>
+655:   );
+656: };
 
 ================
 File: src/features/merchant/settings/screens/RestaurantEditScreen.styles.js
@@ -7211,49 +7331,55 @@ File: src/infrastructure/navigation/MerchantNavigator.js
  8: import { MerchantSettingsScreen } from "../../features/merchant/settings/screens/MerchantSettingsScreen";
  9: import { MerchantReservationsScreen } from "../../features/merchant/reservations/screens/MerchantReservationsScreen";
 10: import { RestaurantEditScreen } from "../../features/merchant/settings/screens/RestaurantEditScreen";
-11: 
-12: const Tab = createBottomTabNavigator();
-13: const Stack = createStackNavigator();
-14: 
-15: const SettingsStack = () => {
-16:   return (
-17:     <Stack.Navigator screenOptions={{ headerShown: false }}>
-18:       <Stack.Screen name="SettingsMain" component={MerchantSettingsScreen} />
-19:       <Stack.Screen name="RestaurantEdit" component={RestaurantEditScreen} />
-20:     </Stack.Navigator>
-21:   );
-22: };
-23: 
-24: export const MerchantNavigator = () => {
-25:   const theme = useTheme();
-26:   return (
-27:     <Tab.Navigator
-28:       screenOptions={({ route }) => ({
-29:         headerShown: false,
-30:         tabBarIcon: ({ color, size }) => {
-31:           let iconName;
-32:           if (route.name === "Home") {
-33:             iconName = "home";
-34:           } else if (route.name === "Settings") {
-35:             iconName = "settings";
-36:           } else if (route.name === "Reservations") {
-37:             iconName = "calendar";
-38:           }
-39:           return <Ionicons name={iconName} size={size} color={color} />;
-40:         },
-41:         tabBarActiveTintColor: theme.colors.text.primary,
-42:         tabBarInactiveTintColor: theme.colors.text.secondary,
-43:         tabBarStyle: {
-44:           backgroundColor: theme.colors.bg.primary,
-45:         },
-46:       })}
-47:     >
-48:       <Tab.Screen name="Home" component={MerchantHomeScreen} />
-49:       <Tab.Screen name="Reservations" component={MerchantReservationsScreen} />
-50:       <Tab.Screen name="Settings" component={SettingsStack} />
-51:     </Tab.Navigator>
-52:   );
-53: };
+11: import { RestaurantDetailScreen } from "../../features/customer/restaurants/screens/RestaurantDetailScreen";
+12: 
+13: const Tab = createBottomTabNavigator();
+14: const Stack = createStackNavigator();
+15: 
+16: const SettingsStack = () => {
+17:   return (
+18:     <Stack.Navigator screenOptions={{ headerShown: false }}>
+19:       <Stack.Screen name="SettingsMain" component={MerchantSettingsScreen} />
+20:       <Stack.Screen
+21:         name="RestaurantDetail"
+22:         component={RestaurantDetailScreen}
+23:         initialParams={{ isMerchantView: true }}
+24:       />
+25:       <Stack.Screen name="RestaurantEdit" component={RestaurantEditScreen} />
+26:     </Stack.Navigator>
+27:   );
+28: };
+29: 
+30: export const MerchantNavigator = () => {
+31:   const theme = useTheme();
+32:   return (
+33:     <Tab.Navigator
+34:       screenOptions={({ route }) => ({
+35:         headerShown: false,
+36:         tabBarIcon: ({ color, size }) => {
+37:           let iconName;
+38:           if (route.name === "Home") {
+39:             iconName = "home";
+40:           } else if (route.name === "Settings") {
+41:             iconName = "settings";
+42:           } else if (route.name === "Reservations") {
+43:             iconName = "calendar";
+44:           }
+45:           return <Ionicons name={iconName} size={size} color={color} />;
+46:         },
+47:         tabBarActiveTintColor: theme.colors.text.primary,
+48:         tabBarInactiveTintColor: theme.colors.text.secondary,
+49:         tabBarStyle: {
+50:           backgroundColor: theme.colors.bg.primary,
+51:         },
+52:       })}
+53:     >
+54:       <Tab.Screen name="Home" component={MerchantHomeScreen} />
+55:       <Tab.Screen name="Reservations" component={MerchantReservationsScreen} />
+56:       <Tab.Screen name="Settings" component={SettingsStack} />
+57:     </Tab.Navigator>
+58:   );
+59: };
 
 ================
 File: src/infrastructure/navigation/ReservationsNavigator.js

@@ -1,14 +1,14 @@
 // src/features/customer/settings/screens/AccountSettingsScreen.js
 import React from "react";
-import { IconButton, Avatar } from "react-native-paper";
+import { Avatar } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import { CustomText } from "../../../../components/CustomText/CustomText";
+import { BackButton } from "../../../../components/BackButton/BackButton";
 import { users } from "../../../../data/mockData";
 import {
   SettingsContainer,
   Header,
-  CloseButtonWrapper,
   SectionTitle,
   ProfileContainer,
   SettingsItemRow,
@@ -16,63 +16,63 @@ import {
   SectionContainer,
 } from "./AccountSettingsScreen.styles";
 
-export const AccountSettingsScreen = ({ navigation }) => {
+export const AccountSettingsScreen = () => {
   const user = users[0];
 
   const basicInfoItems = [
-    { 
-      title: "Name", 
-      value: user.username, 
+    {
+      title: "Name",
+      value: user.username,
       icon: "account-circle",
-      onPress: () => console.log("Navigate to edit name") 
+      onPress: () => console.log("Navigate to edit name"),
     },
-    { 
-      title: "Phone Number", 
-      value: user.phoneNumber, 
+    {
+      title: "Phone Number",
+      value: user.phoneNumber,
       icon: "phone",
-      onPress: () => console.log("Navigate to edit phone") 
+      onPress: () => console.log("Navigate to edit phone"),
     },
-    { 
-      title: "Email", 
-      value: user.email, 
+    {
+      title: "Email",
+      value: user.email,
       icon: "email",
-      onPress: () => console.log("Navigate to edit email") 
+      onPress: () => console.log("Navigate to edit email"),
     },
   ];
 
   const privacyItems = [
-    { 
-      title: "Password", 
-      value: "Change your password", 
-      icon: "lock", 
-      onPress: () => console.log("Navigate to change password")
+    {
+      title: "Password",
+      value: "Change your password",
+      icon: "lock",
+      onPress: () => console.log("Navigate to change password"),
     },
-    { 
-      title: "Privacy Settings", 
-      value: "Manage your data", 
-      icon: "security", 
-      onPress: () => console.log("Navigate to privacy settings")
+    {
+      title: "Privacy Settings",
+      value: "Manage your data",
+      icon: "security",
+      onPress: () => console.log("Navigate to privacy settings"),
     },
   ];
 
   const preferencesItems = [
-    { 
-      title: "Notifications", 
-      value: "Customize your alerts", 
-      icon: "notifications", 
-      onPress: () => console.log("Navigate to notifications")
+    {
+      title: "Notifications",
+      value: "Customize your alerts",
+      icon: "notifications",
+      onPress: () => console.log("Navigate to notifications"),
     },
-    { 
-      title: "Language", 
-      value: "English", 
-      icon: "language", 
-      onPress: () => console.log("Navigate to language settings")
+    {
+      title: "Language",
+      value: "English",
+      icon: "language",
+      onPress: () => console.log("Navigate to language settings"),
     },
-    { 
-      title: "Appearance", 
-      value: "Light mode", 
-      icon: "palette", 
-      onPress: () => console.log("Navigate to appearance settings")
+    {
+      title: "Appearance",
+      value: "Light mode",
+      icon: "palette",
+      onPress: () => console.log("Navigate to appearance settings"),
     },
   ];
 
@@ -96,36 +96,29 @@ export const AccountSettingsScreen = ({ navigation }) => {
   return (
     <SafeArea>
       <SettingsContainer showsVerticalScrollIndicator={false}>
-        {/* Header with back button */}
         <Header>
-          <CloseButtonWrapper>
-            <IconButton
-              icon="arrow-left"
-              size={24}
-              onPress={() => navigation.goBack()}
-            />
-          </CloseButtonWrapper>
+          <BackButton />
           <CustomText variant="title">Account Settings</CustomText>
         </Header>
 
-        {/* Profile picture section */}
+        {/* Profile Image */}
         <ProfileContainer>
           <Avatar.Image size={80} source={user.profileImage} />
         </ProfileContainer>
 
-        {/* Basic info section */}
+        {/* Basic Info Section */}
         <SectionContainer>
           <SectionTitle variant="body">BASIC INFO</SectionTitle>
           {renderSettingsItems(basicInfoItems)}
         </SectionContainer>
 
-        {/* Privacy section */}
+        {/* Privacy Section */}
         <SectionContainer>
           <SectionTitle variant="body">PRIVACY & SECURITY</SectionTitle>
           {renderSettingsItems(privacyItems)}
         </SectionContainer>
 
-        {/* Preferences section */}
+        {/* Preferences Section */}
         <SectionContainer>
           <SectionTitle variant="body">PREFERENCES</SectionTitle>
           {renderSettingsItems(preferencesItems)}

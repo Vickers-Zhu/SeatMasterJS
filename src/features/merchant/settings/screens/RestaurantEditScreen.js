@@ -11,6 +11,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 
+import { BackButton } from "../../../../components/BackButton/BackButton";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 
@@ -241,9 +242,7 @@ export const RestaurantEditScreen = ({ route, navigation }) => {
     <SafeArea>
       <Container>
         <Header>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={24} color="#262626" />
-          </TouchableOpacity>
+          <BackButton position="relative" />
           <HeaderTitle>Edit Restaurant</HeaderTitle>
           <SaveButton onPress={handleSave}>
             <SaveButtonText>Save</SaveButtonText>

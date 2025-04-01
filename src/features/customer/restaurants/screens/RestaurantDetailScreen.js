@@ -8,14 +8,13 @@ import {
   Alert,
 } from "react-native";
 import styled from "styled-components/native";
-import { IconButton } from "react-native-paper";
-import { MaterialIcons } from "@expo/vector-icons";
 
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import SwitchContainer from "../../../../components/Switch/Switch";
 import WebApp from "../../../../components/WebApp/WebApp";
 import ErrorBoundary from "../../../../components/ErrorBoundary/ErrorBoundary";
+import { BackButton } from "../../../../components/BackButton/BackButton";
 
 import { RestaurantInfoCard } from "../components/RestaurantInfoCard";
 import RestaurantMenu from "../components/RestaurantMenu";
@@ -26,10 +25,6 @@ import useScrollHandler from "../hooks/useScrollHandler";
 import useReservationHandler from "../hooks/useReservationHandler";
 import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
 
-const Spacing = styled.View`
-  padding-bottom: ${(props) => props.theme.space[2]};
-`;
-
 export const Header = styled.View`
   flex-direction: row;
   align-items: center;
@@ -37,11 +32,6 @@ export const Header = styled.View`
   padding: ${(props) => props.theme.space[2]};
   position: relative;
   background-color: ${(props) => props.theme.colors.bg.primary};
-`;
-
-export const CloseButtonWrapper = styled.View`
-  position: absolute;
-  left: ${(props) => props.theme.space[2]};
 `;
 
 const EditButton = styled.TouchableOpacity`
@@ -60,7 +50,10 @@ const EditButtonText = styled(CustomText)`
   font-size: ${(props) => props.theme.fontSizes.button};
 `;
 
-// Helper function to format address object to string
+const Spacing = styled.View`
+  padding-bottom: ${(props) => props.theme.space[2]};
+`;
+
 const formatAddressToString = (address) => {
   if (!address) return "";
   const { street, city, state, postalCode, country } = address;
@@ -148,15 +141,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
   return (
     <SafeArea>
       <Header>
-        <CloseButtonWrapper>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={() => navigation.goBack()}
-            accessibilityLabel="Close"
-          />
-        </CloseButtonWrapper>
-
+        <BackButton />
         <CustomText variant="title">
           {isMerchantView ? "Restaurant Details" : "Restaurant"}
         </CustomText>
@@ -189,9 +174,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
             <RestaurantInfoCard
               restaurant={{
                 ...restaurant,
-                // Format address object to string for RestaurantInfoCard
                 address: formatAddressToString(restaurant.address),
-                // Ensure other required props exist
                 icon:
                   restaurant.icon ||
                   "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",

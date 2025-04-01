@@ -9,14 +9,7 @@ import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import { useAuthentication } from "../../../../services/AuthenticationContext";
 import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
-
-const merchantProfile = {
-  name: "Restaurant Owner",
-  email: "restaurant@example.com",
-  restaurantName: "Gourmet Delights",
-  profileImage: require("../../../../../assets/images/user_profile.jpg"),
-  phoneNumber: "+81 80 6748 5678",
-};
+import { merchantProfile } from "../../../../data/mockData";
 
 const SettingsContainer = styled.ScrollView`
   background-color: ${(props) => props.theme.colors.bg.primary};

@@ -459,3 +459,11 @@ export const timeSlots = [
   "22:00",
   "22:30",
 ];
+
+export const merchantProfile = {
+  name: "Restaurant Owner",
+  email: "restaurant@example.com",
+  restaurantName: "Gourmet Delights",
+  profileImage: require("../../assets/images/user_profile.jpg"),
+  phoneNumber: "+81 80 6748 5678",
+};
