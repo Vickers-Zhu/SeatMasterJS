@@ -1,4 +1,4 @@
-// src/features/merchant/settings/screens/MerchantSettingsScreen.js
+// src/features/merchant/settings/screens/MerchantSettingsScreen.js - update to add profile navigation
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Avatar } from "react-native-paper";
@@ -7,6 +7,7 @@ import styled from "styled-components/native";
 
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import { CustomText } from "../../../../components/CustomText/CustomText";
+import { EditButton } from "../components/EditButton";
 import { useAuthentication } from "../../../../services/AuthenticationContext";
 import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
 import { merchantProfile } from "../../../../data/mockData";
@@ -92,7 +93,7 @@ export const MerchantSettingsScreen = ({ navigation }) => {
       title: "Profile Settings",
       subtitle: "Edit your personal information",
       icon: "person",
-      onPress: () => {},
+      onPress: () => navigation.navigate("MerchantProfile"),
     },
     {
       title: "Restaurant Information",
@@ -185,27 +186,29 @@ export const MerchantSettingsScreen = ({ navigation }) => {
   return (
     <SafeArea>
       <SettingsContainer>
-        <ProfileContainer>
-          <UserInfoContainer>
-            <CustomText variant="h3">{merchantProfile.name}</CustomText>
-            <EmailText variant="caption">{merchantProfile.email}</EmailText>
-            <RestaurantNameText variant="body">
-              {merchantProfile.restaurantName}
-            </RestaurantNameText>
-            <StatusBadge>
-              <StatusText>ACTIVE</StatusText>
-            </StatusBadge>
-          </UserInfoContainer>
-          <AvatarContainer>
-            <TouchableOpacity onPress={() => {}}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("MerchantProfile")}
+        >
+          <ProfileContainer>
+            <UserInfoContainer>
+              <CustomText variant="h3">{merchantProfile.name}</CustomText>
+              <EmailText variant="caption">{merchantProfile.email}</EmailText>
+              <RestaurantNameText variant="body">
+                {merchantProfile.restaurantName}
+              </RestaurantNameText>
+              <StatusBadge>
+                <StatusText>ACTIVE</StatusText>
+              </StatusBadge>
+            </UserInfoContainer>
+            <AvatarContainer>
               <Avatar.Image
                 size={80}
                 source={merchantProfile.profileImage}
                 backgroundColor={(props) => props.theme.colors.brand.primary}
               />
-            </TouchableOpacity>
-          </AvatarContainer>
-        </ProfileContainer>
+            </AvatarContainer>
+          </ProfileContainer>
+        </TouchableOpacity>
 
         <SectionContainer>
           <SectionTitle variant="body">ACCOUNT</SectionTitle>

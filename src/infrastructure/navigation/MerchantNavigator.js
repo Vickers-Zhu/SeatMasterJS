@@ -10,6 +10,7 @@ import { MerchantSettingsScreen } from "../../features/merchant/settings/screens
 import { MerchantReservationsScreen } from "../../features/merchant/reservations/screens/MerchantReservationsScreen";
 import { RestaurantEditScreen } from "../../features/merchant/settings/screens/RestaurantEditScreen";
 import { RestaurantDetailScreen } from "../../features/customer/restaurants/screens/RestaurantDetailScreen";
+import { MerchantProfileScreen } from "../../features/merchant/settings/screens/MerchantProfileScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -18,6 +19,7 @@ const SettingsStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SettingsMain" component={MerchantSettingsScreen} />
+      <Stack.Screen name="MerchantProfile" component={MerchantProfileScreen} />
       <Stack.Screen
         name="RestaurantDetail"
         component={RestaurantDetailScreen}

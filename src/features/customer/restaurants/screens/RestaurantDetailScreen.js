@@ -24,6 +24,7 @@ import TabNavigation from "../components/TabNavigation";
 import useScrollHandler from "../hooks/useScrollHandler";
 import useReservationHandler from "../hooks/useReservationHandler";
 import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
+import { EditButton } from "../../../merchant/settings/components/EditButton";
 
 export const Header = styled.View`
   flex-direction: row;
@@ -32,22 +33,7 @@ export const Header = styled.View`
   padding: ${(props) => props.theme.space[2]};
   position: relative;
   background-color: ${(props) => props.theme.colors.bg.primary};
-`;
-
-const EditButton = styled.TouchableOpacity`
-  position: absolute;
-  right: ${(props) => props.theme.space[2]};
-  background-color: ${(props) => props.theme.colors.ui.primary};
-  padding-vertical: ${(props) => props.theme.space[2]};
-  padding-horizontal: ${(props) => props.theme.space[3]};
-  margin-right: ${(props) => props.theme.space[3]};
   margin-bottom: ${(props) => props.theme.space[2]};
-  border-radius: 5px;
-`;
-
-const EditButtonText = styled(CustomText)`
-  color: ${(props) => props.theme.colors.text.inverse};
-  font-size: ${(props) => props.theme.fontSizes.button};
 `;
 
 const Spacing = styled.View`
@@ -147,9 +133,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
         </CustomText>
 
         {isMerchantView && (
-          <EditButton onPress={handleEditPress}>
-            <EditButtonText>Edit</EditButtonText>
-          </EditButton>
+          <EditButton position="absolute" onPress={handleEditPress} />
         )}
       </Header>
       <View style={{ flex: 1 }}>
