@@ -8,6 +8,7 @@ import styled from "styled-components/native";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import { useAuthentication } from "../../../../services/AuthenticationContext";
+import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
 
 const merchantProfile = {
   name: "Restaurant Owner",
@@ -93,7 +94,6 @@ const SectionContainer = styled.View`
 export const MerchantSettingsScreen = ({ navigation }) => {
   const { onLogout } = useAuthentication();
 
-  // Account section items
   const accountItems = [
     {
       title: "Profile Settings",
@@ -103,9 +103,13 @@ export const MerchantSettingsScreen = ({ navigation }) => {
     },
     {
       title: "Restaurant Information",
-      subtitle: "Update restaurant details",
+      subtitle: "View and update restaurant details",
       icon: "store",
-      onPress: () => navigation.navigate("RestaurantEdit"),
+      onPress: () =>
+        navigation.navigate("RestaurantDetail", {
+          restaurant: sampleRestaurantData,
+          isMerchantView: true,
+        }),
     },
     {
       title: "Menu Management",
@@ -115,7 +119,6 @@ export const MerchantSettingsScreen = ({ navigation }) => {
     },
   ];
 
-  // Business settings section items
   const businessItems = [
     {
       title: "Seating Layout",
@@ -137,7 +140,6 @@ export const MerchantSettingsScreen = ({ navigation }) => {
     },
   ];
 
-  // System section items
   const systemItems = [
     {
       title: "Notifications",
@@ -190,7 +192,6 @@ export const MerchantSettingsScreen = ({ navigation }) => {
   return (
     <SafeArea>
       <SettingsContainer>
-        {/* Profile section */}
         <ProfileContainer>
           <UserInfoContainer>
             <CustomText variant="h3">{merchantProfile.name}</CustomText>
@@ -213,19 +214,16 @@ export const MerchantSettingsScreen = ({ navigation }) => {
           </AvatarContainer>
         </ProfileContainer>
 
-        {/* Account section */}
         <SectionContainer>
           <SectionTitle variant="body">ACCOUNT</SectionTitle>
           {renderSettingsItems(accountItems)}
         </SectionContainer>
 
-        {/* Business settings section */}
         <SectionContainer>
           <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
           {renderSettingsItems(businessItems)}
         </SectionContainer>
 
-        {/* System section */}
         <SectionContainer>
           <SectionTitle variant="body">SYSTEM</SectionTitle>
           {renderSettingsItems(systemItems)}

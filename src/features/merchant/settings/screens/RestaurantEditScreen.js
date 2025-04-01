@@ -10,199 +10,99 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import styled from "styled-components/native";
 
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 
-// Sample data - in a real app, this would come from an API or context
 import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
+import {
+  Container,
+  Header,
+  HeaderTitle,
+  SaveButton,
+  SaveButtonText,
+  Section,
+  SectionTitle,
+  FormGroup,
+  Label,
+  Input,
+  TextArea,
+  PhotoContainer,
+  PhotoItem,
+  PhotoImage,
+  AddPhotoButton,
+  RemovePhotoButton,
+  FeatureRow,
+  FeatureSwitch,
+  BusinessHoursRow,
+  DayLabel,
+  TimeInput,
+  ClosedCheckbox,
+  CuisineTag,
+  CuisineTagsContainer,
+  AddCuisineButton,
+} from "./RestaurantEditScreen.styles";
 
-// Styled components
-const Container = styled.ScrollView`
-  background-color: ${(props) => props.theme.colors.bg.primary};
-  flex: 1;
-  margin: ${(props) => props.theme.space[1]};
-`;
-
-const Header = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: ${(props) => props.theme.space[3]};
-`;
-
-const HeaderTitle = styled(CustomText)`
-  font-size: ${(props) => props.theme.fontSizes.title};
-  font-weight: ${(props) => props.theme.fontWeights.bold};
-`;
-
-const SaveButton = styled.TouchableOpacity`
-  background-color: ${(props) => props.theme.colors.ui.primary};
-  padding-vertical: ${(props) => props.theme.space[2]};
-  padding-horizontal: ${(props) => props.theme.space[3]};
-  border-radius: 5px;
-`;
-
-const SaveButtonText = styled(CustomText)`
-  color: ${(props) => props.theme.colors.bg.primary};
-`;
-
-const Section = styled.View`
-  margin-bottom: ${(props) => props.theme.space[4]};
-`;
-
-const SectionTitle = styled(CustomText)`
-  font-size: ${(props) => props.theme.fontSizes.body};
-  font-weight: ${(props) => props.theme.fontWeights.bold};
-  margin-bottom: ${(props) => props.theme.space[3]};
-  padding-horizontal: ${(props) => props.theme.space[3]};
-`;
-
-const FormGroup = styled.View`
-  margin-bottom: ${(props) => props.theme.space[3]};
-  padding-horizontal: ${(props) => props.theme.space[3]};
-`;
-
-const Label = styled(CustomText)`
-  font-size: ${(props) => props.theme.fontSizes.body};
-  margin-bottom: ${(props) => props.theme.space[1]};
-`;
-
-const Input = styled.TextInput`
-  background-color: ${(props) => props.theme.colors.bg.secondary};
-  padding: ${(props) => props.theme.space[2]};
-  border-radius: 5px;
-  font-size: ${(props) => props.theme.fontSizes.body};
-`;
-
-const TextArea = styled(Input)`
-  min-height: 100px;
-  text-align-vertical: top;
-`;
-
-const PhotoContainer = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding: ${(props) => props.theme.space[2]};
-`;
-
-const PhotoItem = styled.View`
-  width: 100px;
-  height: 100px;
-  margin: ${(props) => props.theme.space[1]};
-  border-radius: 5px;
-  overflow: hidden;
-  position: relative;
-`;
-
-const PhotoImage = styled.Image`
-  width: 100%;
-  height: 100%;
-`;
-
-const AddPhotoButton = styled.TouchableOpacity`
-  width: 100px;
-  height: 100px;
-  background-color: ${(props) => props.theme.colors.bg.secondary};
-  justify-content: center;
-  align-items: center;
-  margin: ${(props) => props.theme.space[1]};
-  border-radius: 5px;
-  border: 1px dashed ${(props) => props.theme.colors.ui.secondary};
-`;
-
-const RemovePhotoButton = styled.TouchableOpacity`
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: rgba(0, 0, 0, 0.5);
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  justify-content: center;
-  align-items: center;
-`;
-
-const FeatureRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: ${(props) => props.theme.space[2]};
-`;
-
-const FeatureSwitch = styled.Switch`
-  margin-right: ${(props) => props.theme.space[2]};
-`;
-
-const BusinessHoursRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-left: ${(props) => props.theme.space[3]};
-  margin-right: ${(props) => props.theme.space[3]};
-`;
-
-const DayLabel = styled(CustomText)`
-  width: 100px;
-`;
-
-const TimeInput = styled.TextInput`
-  background-color: ${(props) => props.theme.colors.bg.secondary};
-  padding: ${(props) => props.theme.space[1]};
-  border-radius: 5px;
-  width: 80px;
-  font-size: ${(props) => props.theme.fontSizes.body};
-  text-align: center;
-`;
-
-const ClosedCheckbox = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-`;
-
-const CuisineTag = styled.TouchableOpacity`
-  background-color: ${(props) => props.theme.colors.ui.tertiary};
-  padding-vertical: ${(props) => props.theme.space[1]};
-  padding-horizontal: ${(props) => props.theme.space[2]};
-  border-radius: 20px;
-  margin-right: ${(props) => props.theme.space[1]};
-  margin-bottom: ${(props) => props.theme.space[1]};
-  flex-direction: row;
-  align-items: center;
-`;
-
-const CuisineTagsContainer = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-bottom: ${(props) => props.theme.space[2]};
-`;
-
-const AddCuisineButton = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  background-color: ${(props) => props.theme.colors.ui.tertiary};
-  padding-vertical: ${(props) => props.theme.space[1]};
-  padding-horizontal: ${(props) => props.theme.space[2]};
-  border-radius: 20px;
-  margin-bottom: ${(props) => props.theme.space[1]};
-`;
-
-// Main component
-export const RestaurantEditScreen = ({ navigation }) => {
-  const [restaurant, setRestaurant] = useState(null);
+export const RestaurantEditScreen = ({ route, navigation }) => {
+  // Get restaurant data from route params or use sample data
+  const [restaurant, setRestaurant] = useState(
+    route.params?.restaurant || sampleRestaurantData
+  );
   const [loading, setLoading] = useState(true);
   const [newCuisine, setNewCuisine] = useState("");
 
   // Load restaurant data
   useEffect(() => {
     // In a real app, this would be a fetch call to your API
-    setRestaurant(sampleRestaurantData);
+    const initialData = route.params?.restaurant || sampleRestaurantData;
+
+    // Ensure all required properties exist to prevent rendering errors
+    const completeData = {
+      ...sampleRestaurantData,
+      ...initialData,
+      // Ensure nested objects exist
+      address: {
+        ...sampleRestaurantData.address,
+        ...(initialData.address || {}),
+      },
+      businessHours: {
+        ...sampleRestaurantData.businessHours,
+        ...(initialData.businessHours || {}),
+      },
+      features: {
+        ...sampleRestaurantData.features,
+        ...(initialData.features || {}),
+      },
+      settings: {
+        ...sampleRestaurantData.settings,
+        ...(initialData.settings || {}),
+      },
+      socialMedia: {
+        ...sampleRestaurantData.socialMedia,
+        ...(initialData.socialMedia || {}),
+      },
+    };
+
+    setRestaurant(completeData);
     setLoading(false);
-  }, []);
+  }, [route.params?.restaurant]);
 
   const handleSave = () => {
     // In a real app, this would send the updated data to your API
-    Alert.alert("Success", "Restaurant information saved successfully");
+    Alert.alert("Success", "Restaurant information saved successfully", [
+      {
+        text: "OK",
+        onPress: () => {
+          // Call the callback function if it exists
+
+          // Use the correct screen name based on the navigator structure
+          navigation.navigate("RestaurantDetail", {
+            updatedRestaurant: restaurant,
+            isMerchantView: true,
+          });
+        },
+      },
+    ]);
   };
 
   const handleAddPhoto = async () => {
@@ -224,7 +124,7 @@ export const RestaurantEditScreen = ({ navigation }) => {
       });
 
       if (
-        !pickerResult.cancelled &&
+        !pickerResult.canceled && // Note: Changed from 'cancelled' to 'canceled' for newer Expo
         pickerResult.assets &&
         pickerResult.assets.length > 0
       ) {
@@ -350,7 +250,7 @@ export const RestaurantEditScreen = ({ navigation }) => {
           </SaveButton>
         </Header>
 
-        {/* Basic Information Section */}
+        {/* BASIC INFORMATION */}
         <Section>
           <SectionTitle>BASIC INFORMATION</SectionTitle>
 
@@ -405,7 +305,7 @@ export const RestaurantEditScreen = ({ navigation }) => {
           </FormGroup>
         </Section>
 
-        {/* Contact & Location Section */}
+        {/* CONTACT & LOCATION */}
         <Section>
           <SectionTitle>CONTACT & LOCATION</SectionTitle>
 
@@ -486,21 +386,22 @@ export const RestaurantEditScreen = ({ navigation }) => {
           </FormGroup>
         </Section>
 
-        {/* Photos Section */}
+        {/* PHOTOS */}
         <Section>
           <SectionTitle>PHOTOS</SectionTitle>
 
           <FormGroup>
             <Label>Restaurant Photos</Label>
             <PhotoContainer>
-              {restaurant.photos.map((photo, index) => (
-                <PhotoItem key={index}>
-                  <PhotoImage source={{ uri: photo }} />
-                  <RemovePhotoButton onPress={() => handleRemovePhoto(index)}>
-                    <MaterialIcons name="close" size={16} color="white" />
-                  </RemovePhotoButton>
-                </PhotoItem>
-              ))}
+              {Array.isArray(restaurant.photos) &&
+                restaurant.photos.map((photo, index) => (
+                  <PhotoItem key={index}>
+                    <PhotoImage source={{ uri: photo }} />
+                    <RemovePhotoButton onPress={() => handleRemovePhoto(index)}>
+                      <MaterialIcons name="close" size={16} color="white" />
+                    </RemovePhotoButton>
+                  </PhotoItem>
+                ))}
               <AddPhotoButton onPress={handleAddPhoto}>
                 <MaterialIcons
                   name="add-photo-alternate"
@@ -512,7 +413,7 @@ export const RestaurantEditScreen = ({ navigation }) => {
           </FormGroup>
         </Section>
 
-        {/* Business Hours Section */}
+        {/* BUSINESS HOURS */}
         <Section>
           <SectionTitle>BUSINESS HOURS</SectionTitle>
 
@@ -563,7 +464,7 @@ export const RestaurantEditScreen = ({ navigation }) => {
           </FormGroup>
         </Section>
 
-        {/* Features & Amenities Section */}
+        {/* FEATURES & AMENITIES */}
         <Section>
           <SectionTitle>FEATURES & AMENITIES</SectionTitle>
 
@@ -634,7 +535,7 @@ export const RestaurantEditScreen = ({ navigation }) => {
           </FormGroup>
         </Section>
 
-        {/* Social Media Section */}
+        {/* SOCIAL MEDIA */}
         <Section>
           <SectionTitle>SOCIAL MEDIA</SectionTitle>
 
@@ -687,7 +588,7 @@ export const RestaurantEditScreen = ({ navigation }) => {
           </FormGroup>
         </Section>
 
-        {/* Reservation Settings Section */}
+        {/* RESERVATION SETTINGS */}
         <Section>
           <SectionTitle>RESERVATION SETTINGS</SectionTitle>
 
