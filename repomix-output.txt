@@ -146,7 +146,11 @@ src/
         utils/
           timeUtils.js
       settings/
+        components/
+          EditButton.js
         screens/
+          MerchantProfileScreen.js
+          MerchantProfileScreen.styles.js
           MerchantSettingsScreen.js
           RestaurantEditScreen.js
           RestaurantEditScreen.styles.js
@@ -3178,242 +3182,226 @@ File: src/features/customer/restaurants/screens/RestaurantDetailScreen.js
  23: import useScrollHandler from "../hooks/useScrollHandler";
  24: import useReservationHandler from "../hooks/useReservationHandler";
  25: import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
- 26: 
- 27: export const Header = styled.View`
- 28:   flex-direction: row;
- 29:   align-items: center;
- 30:   justify-content: center;
- 31:   padding: ${(props) => props.theme.space[2]};
- 32:   position: relative;
- 33:   background-color: ${(props) => props.theme.colors.bg.primary};
- 34: `;
- 35: 
- 36: const EditButton = styled.TouchableOpacity`
- 37:   position: absolute;
- 38:   right: ${(props) => props.theme.space[2]};
- 39:   background-color: ${(props) => props.theme.colors.ui.primary};
- 40:   padding-vertical: ${(props) => props.theme.space[2]};
- 41:   padding-horizontal: ${(props) => props.theme.space[3]};
- 42:   margin-right: ${(props) => props.theme.space[3]};
- 43:   margin-bottom: ${(props) => props.theme.space[2]};
- 44:   border-radius: 5px;
- 45: `;
- 46: 
- 47: const EditButtonText = styled(CustomText)`
- 48:   color: ${(props) => props.theme.colors.text.inverse};
- 49:   font-size: ${(props) => props.theme.fontSizes.button};
- 50: `;
- 51: 
- 52: const Spacing = styled.View`
- 53:   padding-bottom: ${(props) => props.theme.space[2]};
- 54: `;
- 55: 
- 56: const formatAddressToString = (address) => {
- 57:   if (!address) return "";
- 58:   const { street, city, state, postalCode, country } = address;
- 59:   const parts = [street, city, state, postalCode, country].filter(Boolean);
- 60:   return parts.join(", ");
- 61: };
- 62: 
- 63: export const RestaurantDetailScreen = ({ route, navigation }) => {
- 64:   // Get restaurant data from route params or use default
- 65:   const initialRestaurant = route.params?.restaurant || {};
- 66:   const [restaurant, setRestaurant] = useState(initialRestaurant);
- 67:   const isMerchantView = route.params?.isMerchantView || false;
- 68: 
- 69:   // Handle null or undefined restaurant properties safely
- 70:   useEffect(() => {
- 71:     // Ensure restaurant has all necessary properties to avoid rendering errors
- 72:     if (!restaurant.address) {
- 73:       setRestaurant((prev) => ({
- 74:         ...prev,
- 75:         address: {
- 76:           street: "",
- 77:           city: "",
- 78:           state: "",
- 79:           postalCode: "",
- 80:         },
- 81:       }));
- 82:     }
- 83:   }, []);
- 84: 
- 85:   // Update restaurant if coming back from edit screen
- 86:   useEffect(() => {
- 87:     if (route.params?.updatedRestaurant) {
- 88:       setRestaurant(route.params.updatedRestaurant);
- 89:     }
- 90:   }, [route.params?.updatedRestaurant]);
- 91: 
- 92:   const layout = useRef(Dimensions.get("window")).current;
- 93:   const [index, setIndex] = useState(0);
- 94:   const [routes] = useState([
- 95:     { key: "menu", title: "Menu" },
- 96:     { key: "reviews", title: "Reviews" },
- 97:     { key: "others", title: "Others" },
- 98:   ]);
+ 26: import { EditButton } from "../../../merchant/settings/components/EditButton";
+ 27: 
+ 28: export const Header = styled.View`
+ 29:   flex-direction: row;
+ 30:   align-items: center;
+ 31:   justify-content: center;
+ 32:   padding: ${(props) => props.theme.space[2]};
+ 33:   position: relative;
+ 34:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 35:   margin-bottom: ${(props) => props.theme.space[2]};
+ 36: `;
+ 37: 
+ 38: const Spacing = styled.View`
+ 39:   padding-bottom: ${(props) => props.theme.space[2]};
+ 40: `;
+ 41: 
+ 42: const formatAddressToString = (address) => {
+ 43:   if (!address) return "";
+ 44:   const { street, city, state, postalCode, country } = address;
+ 45:   const parts = [street, city, state, postalCode, country].filter(Boolean);
+ 46:   return parts.join(", ");
+ 47: };
+ 48: 
+ 49: export const RestaurantDetailScreen = ({ route, navigation }) => {
+ 50:   // Get restaurant data from route params or use default
+ 51:   const initialRestaurant = route.params?.restaurant || {};
+ 52:   const [restaurant, setRestaurant] = useState(initialRestaurant);
+ 53:   const isMerchantView = route.params?.isMerchantView || false;
+ 54: 
+ 55:   // Handle null or undefined restaurant properties safely
+ 56:   useEffect(() => {
+ 57:     // Ensure restaurant has all necessary properties to avoid rendering errors
+ 58:     if (!restaurant.address) {
+ 59:       setRestaurant((prev) => ({
+ 60:         ...prev,
+ 61:         address: {
+ 62:           street: "",
+ 63:           city: "",
+ 64:           state: "",
+ 65:           postalCode: "",
+ 66:         },
+ 67:       }));
+ 68:     }
+ 69:   }, []);
+ 70: 
+ 71:   // Update restaurant if coming back from edit screen
+ 72:   useEffect(() => {
+ 73:     if (route.params?.updatedRestaurant) {
+ 74:       setRestaurant(route.params.updatedRestaurant);
+ 75:     }
+ 76:   }, [route.params?.updatedRestaurant]);
+ 77: 
+ 78:   const layout = useRef(Dimensions.get("window")).current;
+ 79:   const [index, setIndex] = useState(0);
+ 80:   const [routes] = useState([
+ 81:     { key: "menu", title: "Menu" },
+ 82:     { key: "reviews", title: "Reviews" },
+ 83:     { key: "others", title: "Others" },
+ 84:   ]);
+ 85: 
+ 86:   const scrollY = useRef(new Animated.Value(0)).current;
+ 87:   const scrollViewRef = useRef(null);
+ 88: 
+ 89:   const [heights, setHeights] = useState({
+ 90:     restaurantInfoCard: 0,
+ 91:     switch: 0,
+ 92:     content: {},
+ 93:   });
+ 94: 
+ 95:   const { isReservation, isShowReservationContent, opacity, animateAndSwitch } =
+ 96:     useReservationHandler();
+ 97: 
+ 98:   const [scrollEnabled, setScrollEnabled] = useState(true);
  99: 
-100:   const scrollY = useRef(new Animated.Value(0)).current;
-101:   const scrollViewRef = useRef(null);
-102: 
-103:   const [heights, setHeights] = useState({
-104:     restaurantInfoCard: 0,
-105:     switch: 0,
-106:     content: {},
-107:   });
-108: 
-109:   const { isReservation, isShowReservationContent, opacity, animateAndSwitch } =
-110:     useReservationHandler();
+100:   const handleScroll = useScrollHandler(routes, heights, setIndex);
+101: 
+102:   const scrollToTab = (tabKey, newIndex) => {
+103:     let yPosition = heights.restaurantInfoCard + heights.switch;
+104:     for (let i = 0; i < routes.length; i++) {
+105:       if (routes[i].key === tabKey) break;
+106:       yPosition += heights.content[routes[i].key] || 0;
+107:     }
+108:     scrollViewRef.current.scrollTo({ y: yPosition, animated: true });
+109:     setIndex(newIndex);
+110:   };
 111: 
-112:   const [scrollEnabled, setScrollEnabled] = useState(true);
-113: 
-114:   const handleScroll = useScrollHandler(routes, heights, setIndex);
+112:   const handleInteractionStart = () => {
+113:     setScrollEnabled(false);
+114:   };
 115: 
-116:   const scrollToTab = (tabKey, newIndex) => {
-117:     let yPosition = heights.restaurantInfoCard + heights.switch;
-118:     for (let i = 0; i < routes.length; i++) {
-119:       if (routes[i].key === tabKey) break;
-120:       yPosition += heights.content[routes[i].key] || 0;
-121:     }
-122:     scrollViewRef.current.scrollTo({ y: yPosition, animated: true });
-123:     setIndex(newIndex);
+116:   const handleInteractionEnd = () => {
+117:     setScrollEnabled(true);
+118:   };
+119: 
+120:   const handleEditPress = () => {
+121:     navigation.navigate("RestaurantEdit", {
+122:       restaurant: restaurant,
+123:     });
 124:   };
 125: 
-126:   const handleInteractionStart = () => {
-127:     setScrollEnabled(false);
-128:   };
-129: 
-130:   const handleInteractionEnd = () => {
-131:     setScrollEnabled(true);
-132:   };
+126:   return (
+127:     <SafeArea>
+128:       <Header>
+129:         <BackButton />
+130:         <CustomText variant="title">
+131:           {isMerchantView ? "Restaurant Details" : "Restaurant"}
+132:         </CustomText>
 133: 
-134:   const handleEditPress = () => {
-135:     navigation.navigate("RestaurantEdit", {
-136:       restaurant: restaurant,
-137:     });
-138:   };
-139: 
-140:   return (
-141:     <SafeArea>
-142:       <Header>
-143:         <BackButton />
-144:         <CustomText variant="title">
-145:           {isMerchantView ? "Restaurant Details" : "Restaurant"}
-146:         </CustomText>
-147: 
-148:         {isMerchantView && (
-149:           <EditButton onPress={handleEditPress}>
-150:             <EditButtonText>Edit</EditButtonText>
-151:           </EditButton>
-152:         )}
-153:       </Header>
-154:       <View style={{ flex: 1 }}>
-155:         <Animated.ScrollView
-156:           scrollEnabled={scrollEnabled}
-157:           ref={scrollViewRef}
-158:           scrollEventThrottle={16}
-159:           onScroll={Animated.event(
-160:             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-161:             { listener: handleScroll, useNativeDriver: false }
-162:           )}
-163:           stickyHeaderIndices={isReservation ? [] : [2]}
-164:         >
-165:           <Spacing
-166:             onLayout={(event) =>
-167:               setHeights({
-168:                 ...heights,
-169:                 restaurantInfoCard: event.nativeEvent.layout.height,
-170:               })
-171:             }
-172:           >
-173:             <RestaurantInfoCard
-174:               restaurant={{
-175:                 ...restaurant,
-176:                 address: formatAddressToString(restaurant.address),
-177:                 icon:
-178:                   restaurant.icon ||
-179:                   "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",
-180:                 isOpenNow:
-181:                   restaurant.isOpenNow !== undefined
-182:                     ? restaurant.isOpenNow
-183:                     : true,
-184:                 rating: restaurant.rating || 4,
-185:                 isClosedTemporarily: restaurant.isClosedTemporarily || false,
-186:                 placeId: restaurant.id || restaurant.placeId || "1",
-187:               }}
-188:               elevation={0}
-189:             />
-190:           </Spacing>
-191: 
-192:           <View
-193:             onLayout={(event) =>
-194:               setHeights({
-195:                 ...heights,
-196:                 switch: event.nativeEvent.layout.height,
-197:               })
-198:             }
-199:           >
-200:             <SwitchContainer
-201:               isOn={isReservation}
-202:               setIsOn={(newValue) => animateAndSwitch(newValue)}
-203:               leftLabel="General"
-204:               rightLabel="Reservation"
-205:               variant="default"
-206:             />
-207:           </View>
-208: 
-209:           {!isShowReservationContent && !isReservation && (
-210:             <TabNavigation
-211:               index={index}
-212:               setIndex={setIndex}
-213:               routes={routes}
-214:               layout={layout}
-215:               renderOpacity={opacity}
-216:               scrollToTab={scrollToTab}
-217:               heights={heights}
-218:             />
-219:           )}
-220: 
-221:           {!isShowReservationContent &&
-222:             !isReservation &&
-223:             routes.map((route) => (
-224:               <Animated.View key={route.key} style={{ opacity }}>
-225:                 <View
-226:                   onLayout={(event) =>
-227:                     setHeights({
-228:                       ...heights,
-229:                       content: {
-230:                         ...heights.content,
-231:                         [route.key]: event.nativeEvent.layout.height,
-232:                       },
-233:                     })
-234:                   }
-235:                 >
-236:                   {React.createElement(
-237:                     route.key === "menu"
-238:                       ? RestaurantMenu
-239:                       : route.key === "reviews"
-240:                       ? Reviews
-241:                       : Others
-242:                   )}
-243:                 </View>
-244:               </Animated.View>
-245:             ))}
-246: 
-247:           {isShowReservationContent && isReservation && (
-248:             <Animated.View style={{ opacity, flex: 1 }}>
-249:               <ErrorBoundary>
-250:                 <WebApp
-251:                   onInteractionStart={handleInteractionStart}
-252:                   onInteractionEnd={handleInteractionEnd}
-253:                 />
-254:               </ErrorBoundary>
-255:             </Animated.View>
-256:           )}
-257:         </Animated.ScrollView>
-258:       </View>
-259:     </SafeArea>
-260:   );
-261: };
+134:         {isMerchantView && (
+135:           <EditButton position="absolute" onPress={handleEditPress} />
+136:         )}
+137:       </Header>
+138:       <View style={{ flex: 1 }}>
+139:         <Animated.ScrollView
+140:           scrollEnabled={scrollEnabled}
+141:           ref={scrollViewRef}
+142:           scrollEventThrottle={16}
+143:           onScroll={Animated.event(
+144:             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+145:             { listener: handleScroll, useNativeDriver: false }
+146:           )}
+147:           stickyHeaderIndices={isReservation ? [] : [2]}
+148:         >
+149:           <Spacing
+150:             onLayout={(event) =>
+151:               setHeights({
+152:                 ...heights,
+153:                 restaurantInfoCard: event.nativeEvent.layout.height,
+154:               })
+155:             }
+156:           >
+157:             <RestaurantInfoCard
+158:               restaurant={{
+159:                 ...restaurant,
+160:                 address: formatAddressToString(restaurant.address),
+161:                 icon:
+162:                   restaurant.icon ||
+163:                   "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",
+164:                 isOpenNow:
+165:                   restaurant.isOpenNow !== undefined
+166:                     ? restaurant.isOpenNow
+167:                     : true,
+168:                 rating: restaurant.rating || 4,
+169:                 isClosedTemporarily: restaurant.isClosedTemporarily || false,
+170:                 placeId: restaurant.id || restaurant.placeId || "1",
+171:               }}
+172:               elevation={0}
+173:             />
+174:           </Spacing>
+175: 
+176:           <View
+177:             onLayout={(event) =>
+178:               setHeights({
+179:                 ...heights,
+180:                 switch: event.nativeEvent.layout.height,
+181:               })
+182:             }
+183:           >
+184:             <SwitchContainer
+185:               isOn={isReservation}
+186:               setIsOn={(newValue) => animateAndSwitch(newValue)}
+187:               leftLabel="General"
+188:               rightLabel="Reservation"
+189:               variant="default"
+190:             />
+191:           </View>
+192: 
+193:           {!isShowReservationContent && !isReservation && (
+194:             <TabNavigation
+195:               index={index}
+196:               setIndex={setIndex}
+197:               routes={routes}
+198:               layout={layout}
+199:               renderOpacity={opacity}
+200:               scrollToTab={scrollToTab}
+201:               heights={heights}
+202:             />
+203:           )}
+204: 
+205:           {!isShowReservationContent &&
+206:             !isReservation &&
+207:             routes.map((route) => (
+208:               <Animated.View key={route.key} style={{ opacity }}>
+209:                 <View
+210:                   onLayout={(event) =>
+211:                     setHeights({
+212:                       ...heights,
+213:                       content: {
+214:                         ...heights.content,
+215:                         [route.key]: event.nativeEvent.layout.height,
+216:                       },
+217:                     })
+218:                   }
+219:                 >
+220:                   {React.createElement(
+221:                     route.key === "menu"
+222:                       ? RestaurantMenu
+223:                       : route.key === "reviews"
+224:                       ? Reviews
+225:                       : Others
+226:                   )}
+227:                 </View>
+228:               </Animated.View>
+229:             ))}
+230: 
+231:           {isShowReservationContent && isReservation && (
+232:             <Animated.View style={{ opacity, flex: 1 }}>
+233:               <ErrorBoundary>
+234:                 <WebApp
+235:                   onInteractionStart={handleInteractionStart}
+236:                   onInteractionEnd={handleInteractionEnd}
+237:                 />
+238:               </ErrorBoundary>
+239:             </Animated.View>
+240:           )}
+241:         </Animated.ScrollView>
+242:       </View>
+243:     </SafeArea>
+244:   );
+245: };
 
 ================
 File: src/features/customer/restaurants/screens/RestaurantsScreen.js
@@ -6114,6 +6102,253 @@ File: src/features/merchant/reservations/utils/timeUtils.js
 90: };
 
 ================
+File: src/features/merchant/settings/components/EditButton.js
+================
+ 1: import React from "react";
+ 2: import { TouchableOpacity } from "react-native";
+ 3: import styled from "styled-components/native";
+ 4: import { CustomText } from "../../../../components/CustomText/CustomText";
+ 5: 
+ 6: const Button = styled(TouchableOpacity)`
+ 7:   background-color: ${(props) => props.theme.colors.ui.primary};
+ 8:   padding-vertical: ${(props) => props.theme.space[2]};
+ 9:   padding-horizontal: ${(props) => props.theme.space[3]};
+10:   margin: ${(props) => props.theme.space[3]};
+11:   border-radius: 5px;
+12:   ${(props) =>
+13:     props.position === "absolute" &&
+14:     `
+15:     position: absolute;
+16:     right: ${props.theme.space[3]};
+17:   `}
+18: `;
+19: 
+20: const ButtonText = styled(CustomText)`
+21:   color: ${(props) => props.theme.colors.bg.primary};
+22:   font-size: ${(props) => props.theme.fontSizes.caption};
+23: `;
+24: 
+25: export const EditButton = ({ onPress, position, style, children = "Edit" }) => {
+26:   return (
+27:     <Button onPress={onPress} position={position} style={style}>
+28:       <ButtonText>{children}</ButtonText>
+29:     </Button>
+30:   );
+31: };
+32: 
+33: export default EditButton;
+
+================
+File: src/features/merchant/settings/screens/MerchantProfileScreen.js
+================
+  1: import React, { useState } from "react";
+  2: import { Avatar } from "react-native-paper";
+  3: import { MaterialIcons } from "@expo/vector-icons";
+  4: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
+  5: import { CustomText } from "../../../../components/CustomText/CustomText";
+  6: import { BackButton } from "../../../../components/BackButton/BackButton";
+  7: import { merchantProfile } from "../../../../data/mockData";
+  8: import {
+  9:   ProfileContainer,
+ 10:   Header,
+ 11:   SectionTitle,
+ 12:   ProfileImageContainer,
+ 13:   SettingsItemRow,
+ 14:   SettingsItemText,
+ 15:   SectionContainer,
+ 16: } from "./MerchantProfileScreen.styles";
+ 17: 
+ 18: export const MerchantProfileScreen = ({ navigation }) => {
+ 19: 
+ 20:   const [profile, setProfile] = useState(merchantProfile);
+ 21: 
+ 22: 
+ 23:   const basicInfoItems = [
+ 24:     {
+ 25:       title: "Name",
+ 26:       value: profile.name,
+ 27:       icon: "account-circle",
+ 28:       onPress: () => console.log("Navigate to edit name"),
+ 29:     },
+ 30:     {
+ 31:       title: "Email",
+ 32:       value: profile.email,
+ 33:       icon: "email",
+ 34:       onPress: () => console.log("Navigate to edit email"),
+ 35:     },
+ 36:     {
+ 37:       title: "Phone Number",
+ 38:       value: profile.phoneNumber,
+ 39:       icon: "phone",
+ 40:       onPress: () => console.log("Navigate to edit phone"),
+ 41:     },
+ 42:   ];
+ 43: 
+ 44: 
+ 45:   const restaurantInfoItems = [
+ 46:     {
+ 47:       title: "Restaurant Name",
+ 48:       value: profile.restaurantName,
+ 49:       icon: "store",
+ 50:       onPress: () =>
+ 51:         navigation.navigate("RestaurantEdit", {
+ 52:           restaurant: { name: profile.restaurantName },
+ 53:         }),
+ 54:     },
+ 55:     {
+ 56:       title: "Restaurant Address",
+ 57:       value: "123 Restaurant St, City",
+ 58:       icon: "place",
+ 59:       onPress: () => console.log("Navigate to edit address"),
+ 60:     },
+ 61:     {
+ 62:       title: "Business Hours",
+ 63:       value: "Mon-Fri: 9AM-10PM, Sat-Sun: 10AM-11PM",
+ 64:       icon: "schedule",
+ 65:       onPress: () => console.log("Navigate to edit hours"),
+ 66:     },
+ 67:   ];
+ 68: 
+ 69: 
+ 70:   const accountSettingsItems = [
+ 71:     {
+ 72:       title: "Password",
+ 73:       value: "Change your password",
+ 74:       icon: "lock",
+ 75:       onPress: () => console.log("Navigate to change password"),
+ 76:     },
+ 77:     {
+ 78:       title: "Notifications",
+ 79:       value: "Manage notification settings",
+ 80:       icon: "notifications",
+ 81:       onPress: () => console.log("Navigate to notifications"),
+ 82:     },
+ 83:     {
+ 84:       title: "Language",
+ 85:       value: "English",
+ 86:       icon: "language",
+ 87:       onPress: () => console.log("Navigate to language settings"),
+ 88:     },
+ 89:   ];
+ 90: 
+ 91:   const renderSettingsItems = (items) => {
+ 92:     return items.map((item, index) => (
+ 93:       <SettingsItemRow key={index} onPress={item.onPress}>
+ 94:         <MaterialIcons name={item.icon} size={24} color="#262626" />
+ 95:         <SettingsItemText>
+ 96:           <CustomText variant="body" style={{ fontWeight: "bold" }}>
+ 97:             {item.title}
+ 98:           </CustomText>
+ 99:           <CustomText variant="body" style={{ color: "#757575" }}>
+100:             {item.value}
+101:           </CustomText>
+102:         </SettingsItemText>
+103:         <MaterialIcons name="chevron-right" size={24} color="#757575" />
+104:       </SettingsItemRow>
+105:     ));
+106:   };
+107: 
+108:   return (
+109:     <SafeArea>
+110:       <ProfileContainer showsVerticalScrollIndicator={false}>
+111:         <Header>
+112:           <BackButton />
+113:           <CustomText variant="title">Merchant Profile</CustomText>
+114:         </Header>
+115: 
+116:         {}
+117:         <ProfileImageContainer>
+118:           <Avatar.Image size={80} source={profile.profileImage} />
+119:           <CustomText
+120:             variant="title"
+121:             style={{ marginTop: 10, marginBottom: 5 }}
+122:           >
+123:             {profile.name}
+124:           </CustomText>
+125:           <CustomText variant="caption" style={{ color: "#757575" }}>
+126:             {profile.restaurantName}
+127:           </CustomText>
+128:         </ProfileImageContainer>
+129: 
+130:         {}
+131:         <SectionContainer>
+132:           <SectionTitle variant="body">PERSONAL INFO</SectionTitle>
+133:           {renderSettingsItems(basicInfoItems)}
+134:         </SectionContainer>
+135: 
+136:         {}
+137:         <SectionContainer>
+138:           <SectionTitle variant="body">RESTAURANT DETAILS</SectionTitle>
+139:           {renderSettingsItems(restaurantInfoItems)}
+140:         </SectionContainer>
+141: 
+142:         {}
+143:         <SectionContainer>
+144:           <SectionTitle variant="body">ACCOUNT SETTINGS</SectionTitle>
+145:           {renderSettingsItems(accountSettingsItems)}
+146:         </SectionContainer>
+147:       </ProfileContainer>
+148:     </SafeArea>
+149:   );
+150: };
+151: 
+152: export default MerchantProfileScreen;
+
+================
+File: src/features/merchant/settings/screens/MerchantProfileScreen.styles.js
+================
+ 1: import styled from "styled-components/native";
+ 2: import { ScrollView, TouchableOpacity } from "react-native";
+ 3: import { CustomText } from "../../../../components/CustomText/CustomText";
+ 4: 
+ 5: export const ProfileContainer = styled(ScrollView)`
+ 6:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 7:   flex: 1;
+ 8:   margin: ${(props) => props.theme.space[1]};
+ 9: `;
+10: 
+11: export const Header = styled.View`
+12:   flex-direction: row;
+13:   align-items: center;
+14:   justify-content: center;
+15:   padding: ${(props) => props.theme.space[2]};
+16:   position: relative;
+17:   margin-bottom: ${(props) => props.theme.space[2]};
+18: `;
+19: 
+20: export const ProfileImageContainer = styled.View`
+21:   align-items: center;
+22:   padding: ${(props) => props.theme.space[3]};
+23:   margin-bottom: ${(props) => props.theme.space[3]};
+24: `;
+25: 
+26: export const SectionTitle = styled(CustomText)`
+27:   font-weight: ${(props) => props.theme.fontWeights.bold};
+28:   color: ${(props) => props.theme.colors.text.secondary};
+29:   font-size: ${(props) => props.theme.fontSizes.caption};
+30:   margin-bottom: ${(props) => props.theme.space[2]};
+31:   margin-left: ${(props) => props.theme.space[3]};
+32: `;
+33: 
+34: export const SectionContainer = styled.View`
+35:   margin-top: ${(props) => props.theme.space[2]};
+36:   margin-bottom: ${(props) => props.theme.space[3]};
+37: `;
+38: 
+39: export const SettingsItemRow = styled(TouchableOpacity)`
+40:   flex-direction: row;
+41:   align-items: center;
+42:   padding-vertical: ${(props) => props.theme.space[3]};
+43:   padding-horizontal: ${(props) => props.theme.space[3]};
+44:   background-color: ${(props) => props.theme.colors.bg.primary};
+45: `;
+46: 
+47: export const SettingsItemText = styled.View`
+48:   flex: 1;
+49:   margin-left: ${(props) => props.theme.space[3]};
+50: `;
+
+================
 File: src/features/merchant/settings/screens/MerchantSettingsScreen.js
 ================
   1: import React from "react";
@@ -6124,224 +6359,227 @@ File: src/features/merchant/settings/screens/MerchantSettingsScreen.js
   6: 
   7: import { SafeArea } from "../../../../components/SafeArea/SafeArea";
   8: import { CustomText } from "../../../../components/CustomText/CustomText";
-  9: import { useAuthentication } from "../../../../services/AuthenticationContext";
- 10: import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
- 11: import { merchantProfile } from "../../../../data/mockData";
- 12: 
- 13: const SettingsContainer = styled.ScrollView`
- 14:   background-color: ${(props) => props.theme.colors.bg.primary};
- 15:   flex: 1;
- 16:   margin: ${(props) => props.theme.space[1]};
- 17: `;
- 18: 
- 19: const ProfileContainer = styled.View`
- 20:   flex-direction: row;
- 21:   justify-content: space-between;
- 22:   align-items: center;
- 23:   padding: ${(props) => props.theme.space[3]};
- 24:   background-color: ${(props) => props.theme.colors.bg.primary};
- 25:   margin-bottom: ${(props) => props.theme.space[2]};
- 26: `;
- 27: 
- 28: const UserInfoContainer = styled.View`
- 29:   flex: 1;
- 30:   margin-right: ${(props) => props.theme.space[2]};
- 31:   align-items: flex-start;
- 32: `;
- 33: 
- 34: const AvatarContainer = styled.View`
- 35:   align-items: center;
- 36:   justify-content: center;
- 37: `;
- 38: 
- 39: const EmailText = styled(CustomText)`
- 40:   color: ${(props) => props.theme.colors.text.secondary};
- 41: `;
- 42: 
- 43: const RestaurantNameText = styled(CustomText)`
- 44:   color: ${(props) => props.theme.colors.text.primary};
- 45:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 46: `;
- 47: 
- 48: const StatusBadge = styled.View`
- 49:   background-color: #4caf50;
- 50:   padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
- 51:   border-radius: 12px;
- 52:   margin-top: ${(props) => props.theme.space[2]};
- 53:   align-self: flex-start;
- 54: `;
- 55: 
- 56: const StatusText = styled(CustomText)`
- 57:   color: ${(props) => props.theme.colors.text.inverse};
- 58:   font-size: ${(props) => props.theme.fontSizes.caption};
- 59:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 60: `;
- 61: 
- 62: const SectionTitle = styled(CustomText)`
- 63:   padding: ${(props) => props.theme.space[3]};
- 64:   font-weight: ${(props) => props.theme.fontWeights.bold};
- 65:   color: ${(props) => props.theme.colors.text.secondary};
- 66:   font-size: ${(props) => props.theme.fontSizes.caption};
- 67: `;
- 68: 
- 69: const SettingsItemRow = styled(TouchableOpacity)`
- 70:   flex-direction: row;
- 71:   align-items: center;
- 72:   padding-vertical: ${(props) => props.theme.space[3]};
- 73:   padding-horizontal: ${(props) => props.theme.space[3]};
- 74:   background-color: ${(props) => props.theme.colors.bg.primary};
- 75: `;
- 76: 
- 77: const SettingsItemText = styled.View`
- 78:   flex: 1;
- 79:   margin-left: ${(props) => props.theme.space[3]};
- 80: `;
- 81: 
- 82: const SectionContainer = styled.View`
- 83:   margin-bottom: ${(props) => props.theme.space[3]};
- 84: `;
- 85: 
- 86: export const MerchantSettingsScreen = ({ navigation }) => {
- 87:   const { onLogout } = useAuthentication();
- 88: 
- 89:   const accountItems = [
- 90:     {
- 91:       title: "Profile Settings",
- 92:       subtitle: "Edit your personal information",
- 93:       icon: "person",
- 94:       onPress: () => {},
- 95:     },
- 96:     {
- 97:       title: "Restaurant Information",
- 98:       subtitle: "View and update restaurant details",
- 99:       icon: "store",
-100:       onPress: () =>
-101:         navigation.navigate("RestaurantDetail", {
-102:           restaurant: sampleRestaurantData,
-103:           isMerchantView: true,
-104:         }),
-105:     },
-106:     {
-107:       title: "Menu Management",
-108:       subtitle: "Add, edit, or remove menu items",
-109:       icon: "restaurant-menu",
-110:       onPress: () => {},
-111:     },
-112:   ];
-113: 
-114:   const businessItems = [
-115:     {
-116:       title: "Seating Layout",
-117:       subtitle: "Manage tables and seating arrangement",
-118:       icon: "chair",
-119:       onPress: () => navigation.navigate("Home"),
-120:     },
-121:     {
-122:       title: "Reservation Settings",
-123:       subtitle: "Configure reservation rules and availability",
-124:       icon: "event",
-125:       onPress: () => navigation.navigate("Reservations"),
-126:     },
-127:     {
-128:       title: "Business Hours",
-129:       subtitle: "Set your restaurant opening hours",
-130:       icon: "schedule",
-131:       onPress: () => {},
-132:     },
-133:   ];
-134: 
-135:   const systemItems = [
-136:     {
-137:       title: "Notifications",
-138:       subtitle: "Manage notification preferences",
-139:       icon: "notifications",
-140:       onPress: () => {},
-141:     },
-142:     {
-143:       title: "Payment Methods",
-144:       subtitle: "Configure payment options",
-145:       icon: "payment",
-146:       onPress: () => {},
-147:     },
-148:     {
-149:       title: "Help & Support",
-150:       subtitle: "Contact customer support",
-151:       icon: "help",
-152:       onPress: () => {},
-153:     },
-154:     {
-155:       title: "Logout",
-156:       subtitle: "Sign out from your account",
-157:       icon: "logout",
-158:       iconColor: (props) => props.theme.colors.text.error,
-159:       onPress: onLogout,
-160:     },
-161:   ];
-162: 
-163:   const renderSettingsItems = (items) => {
-164:     return items.map((item, index) => (
-165:       <SettingsItemRow key={index} onPress={item.onPress}>
-166:         <MaterialIcons
-167:           name={item.icon}
-168:           size={24}
-169:           color={item.iconColor || "#262626"}
-170:         />
-171:         <SettingsItemText>
-172:           <CustomText variant="body" style={{ fontWeight: "bold" }}>
-173:             {item.title}
-174:           </CustomText>
-175:           <CustomText variant="body" style={{ color: "#757575" }}>
-176:             {item.subtitle}
-177:           </CustomText>
-178:         </SettingsItemText>
-179:         <MaterialIcons name="chevron-right" size={24} color="#757575" />
-180:       </SettingsItemRow>
-181:     ));
-182:   };
-183: 
-184:   return (
-185:     <SafeArea>
-186:       <SettingsContainer>
-187:         <ProfileContainer>
-188:           <UserInfoContainer>
-189:             <CustomText variant="h3">{merchantProfile.name}</CustomText>
-190:             <EmailText variant="caption">{merchantProfile.email}</EmailText>
-191:             <RestaurantNameText variant="body">
-192:               {merchantProfile.restaurantName}
-193:             </RestaurantNameText>
-194:             <StatusBadge>
-195:               <StatusText>ACTIVE</StatusText>
-196:             </StatusBadge>
-197:           </UserInfoContainer>
-198:           <AvatarContainer>
-199:             <TouchableOpacity onPress={() => {}}>
-200:               <Avatar.Image
-201:                 size={80}
-202:                 source={merchantProfile.profileImage}
-203:                 backgroundColor={(props) => props.theme.colors.brand.primary}
-204:               />
-205:             </TouchableOpacity>
-206:           </AvatarContainer>
-207:         </ProfileContainer>
-208: 
-209:         <SectionContainer>
-210:           <SectionTitle variant="body">ACCOUNT</SectionTitle>
-211:           {renderSettingsItems(accountItems)}
-212:         </SectionContainer>
-213: 
-214:         <SectionContainer>
-215:           <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
-216:           {renderSettingsItems(businessItems)}
-217:         </SectionContainer>
-218: 
-219:         <SectionContainer>
-220:           <SectionTitle variant="body">SYSTEM</SectionTitle>
-221:           {renderSettingsItems(systemItems)}
-222:         </SectionContainer>
-223:       </SettingsContainer>
-224:     </SafeArea>
-225:   );
-226: };
+  9: import { EditButton } from "../components/EditButton";
+ 10: import { useAuthentication } from "../../../../services/AuthenticationContext";
+ 11: import { sampleRestaurantData } from "../../../../data/mockEditRestaurantData";
+ 12: import { merchantProfile } from "../../../../data/mockData";
+ 13: 
+ 14: const SettingsContainer = styled.ScrollView`
+ 15:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 16:   flex: 1;
+ 17:   margin: ${(props) => props.theme.space[1]};
+ 18: `;
+ 19: 
+ 20: const ProfileContainer = styled.View`
+ 21:   flex-direction: row;
+ 22:   justify-content: space-between;
+ 23:   align-items: center;
+ 24:   padding: ${(props) => props.theme.space[3]};
+ 25:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 26:   margin-bottom: ${(props) => props.theme.space[2]};
+ 27: `;
+ 28: 
+ 29: const UserInfoContainer = styled.View`
+ 30:   flex: 1;
+ 31:   margin-right: ${(props) => props.theme.space[2]};
+ 32:   align-items: flex-start;
+ 33: `;
+ 34: 
+ 35: const AvatarContainer = styled.View`
+ 36:   align-items: center;
+ 37:   justify-content: center;
+ 38: `;
+ 39: 
+ 40: const EmailText = styled(CustomText)`
+ 41:   color: ${(props) => props.theme.colors.text.secondary};
+ 42: `;
+ 43: 
+ 44: const RestaurantNameText = styled(CustomText)`
+ 45:   color: ${(props) => props.theme.colors.text.primary};
+ 46:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 47: `;
+ 48: 
+ 49: const StatusBadge = styled.View`
+ 50:   background-color: #4caf50;
+ 51:   padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
+ 52:   border-radius: 12px;
+ 53:   margin-top: ${(props) => props.theme.space[2]};
+ 54:   align-self: flex-start;
+ 55: `;
+ 56: 
+ 57: const StatusText = styled(CustomText)`
+ 58:   color: ${(props) => props.theme.colors.text.inverse};
+ 59:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 60:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 61: `;
+ 62: 
+ 63: const SectionTitle = styled(CustomText)`
+ 64:   padding: ${(props) => props.theme.space[3]};
+ 65:   font-weight: ${(props) => props.theme.fontWeights.bold};
+ 66:   color: ${(props) => props.theme.colors.text.secondary};
+ 67:   font-size: ${(props) => props.theme.fontSizes.caption};
+ 68: `;
+ 69: 
+ 70: const SettingsItemRow = styled(TouchableOpacity)`
+ 71:   flex-direction: row;
+ 72:   align-items: center;
+ 73:   padding-vertical: ${(props) => props.theme.space[3]};
+ 74:   padding-horizontal: ${(props) => props.theme.space[3]};
+ 75:   background-color: ${(props) => props.theme.colors.bg.primary};
+ 76: `;
+ 77: 
+ 78: const SettingsItemText = styled.View`
+ 79:   flex: 1;
+ 80:   margin-left: ${(props) => props.theme.space[3]};
+ 81: `;
+ 82: 
+ 83: const SectionContainer = styled.View`
+ 84:   margin-bottom: ${(props) => props.theme.space[3]};
+ 85: `;
+ 86: 
+ 87: export const MerchantSettingsScreen = ({ navigation }) => {
+ 88:   const { onLogout } = useAuthentication();
+ 89: 
+ 90:   const accountItems = [
+ 91:     {
+ 92:       title: "Profile Settings",
+ 93:       subtitle: "Edit your personal information",
+ 94:       icon: "person",
+ 95:       onPress: () => navigation.navigate("MerchantProfile"),
+ 96:     },
+ 97:     {
+ 98:       title: "Restaurant Information",
+ 99:       subtitle: "View and update restaurant details",
+100:       icon: "store",
+101:       onPress: () =>
+102:         navigation.navigate("RestaurantDetail", {
+103:           restaurant: sampleRestaurantData,
+104:           isMerchantView: true,
+105:         }),
+106:     },
+107:     {
+108:       title: "Menu Management",
+109:       subtitle: "Add, edit, or remove menu items",
+110:       icon: "restaurant-menu",
+111:       onPress: () => {},
+112:     },
+113:   ];
+114: 
+115:   const businessItems = [
+116:     {
+117:       title: "Seating Layout",
+118:       subtitle: "Manage tables and seating arrangement",
+119:       icon: "chair",
+120:       onPress: () => navigation.navigate("Home"),
+121:     },
+122:     {
+123:       title: "Reservation Settings",
+124:       subtitle: "Configure reservation rules and availability",
+125:       icon: "event",
+126:       onPress: () => navigation.navigate("Reservations"),
+127:     },
+128:     {
+129:       title: "Business Hours",
+130:       subtitle: "Set your restaurant opening hours",
+131:       icon: "schedule",
+132:       onPress: () => {},
+133:     },
+134:   ];
+135: 
+136:   const systemItems = [
+137:     {
+138:       title: "Notifications",
+139:       subtitle: "Manage notification preferences",
+140:       icon: "notifications",
+141:       onPress: () => {},
+142:     },
+143:     {
+144:       title: "Payment Methods",
+145:       subtitle: "Configure payment options",
+146:       icon: "payment",
+147:       onPress: () => {},
+148:     },
+149:     {
+150:       title: "Help & Support",
+151:       subtitle: "Contact customer support",
+152:       icon: "help",
+153:       onPress: () => {},
+154:     },
+155:     {
+156:       title: "Logout",
+157:       subtitle: "Sign out from your account",
+158:       icon: "logout",
+159:       iconColor: (props) => props.theme.colors.text.error,
+160:       onPress: onLogout,
+161:     },
+162:   ];
+163: 
+164:   const renderSettingsItems = (items) => {
+165:     return items.map((item, index) => (
+166:       <SettingsItemRow key={index} onPress={item.onPress}>
+167:         <MaterialIcons
+168:           name={item.icon}
+169:           size={24}
+170:           color={item.iconColor || "#262626"}
+171:         />
+172:         <SettingsItemText>
+173:           <CustomText variant="body" style={{ fontWeight: "bold" }}>
+174:             {item.title}
+175:           </CustomText>
+176:           <CustomText variant="body" style={{ color: "#757575" }}>
+177:             {item.subtitle}
+178:           </CustomText>
+179:         </SettingsItemText>
+180:         <MaterialIcons name="chevron-right" size={24} color="#757575" />
+181:       </SettingsItemRow>
+182:     ));
+183:   };
+184: 
+185:   return (
+186:     <SafeArea>
+187:       <SettingsContainer>
+188:         <TouchableOpacity
+189:           onPress={() => navigation.navigate("MerchantProfile")}
+190:         >
+191:           <ProfileContainer>
+192:             <UserInfoContainer>
+193:               <CustomText variant="h3">{merchantProfile.name}</CustomText>
+194:               <EmailText variant="caption">{merchantProfile.email}</EmailText>
+195:               <RestaurantNameText variant="body">
+196:                 {merchantProfile.restaurantName}
+197:               </RestaurantNameText>
+198:               <StatusBadge>
+199:                 <StatusText>ACTIVE</StatusText>
+200:               </StatusBadge>
+201:             </UserInfoContainer>
+202:             <AvatarContainer>
+203:               <Avatar.Image
+204:                 size={80}
+205:                 source={merchantProfile.profileImage}
+206:                 backgroundColor={(props) => props.theme.colors.brand.primary}
+207:               />
+208:             </AvatarContainer>
+209:           </ProfileContainer>
+210:         </TouchableOpacity>
+211: 
+212:         <SectionContainer>
+213:           <SectionTitle variant="body">ACCOUNT</SectionTitle>
+214:           {renderSettingsItems(accountItems)}
+215:         </SectionContainer>
+216: 
+217:         <SectionContainer>
+218:           <SectionTitle variant="body">BUSINESS SETTINGS</SectionTitle>
+219:           {renderSettingsItems(businessItems)}
+220:         </SectionContainer>
+221: 
+222:         <SectionContainer>
+223:           <SectionTitle variant="body">SYSTEM</SectionTitle>
+224:           {renderSettingsItems(systemItems)}
+225:         </SectionContainer>
+226:       </SettingsContainer>
+227:     </SafeArea>
+228:   );
+229: };
 
 ================
 File: src/features/merchant/settings/screens/RestaurantEditScreen.js
@@ -7363,54 +7601,56 @@ File: src/infrastructure/navigation/MerchantNavigator.js
  9: import { MerchantReservationsScreen } from "../../features/merchant/reservations/screens/MerchantReservationsScreen";
 10: import { RestaurantEditScreen } from "../../features/merchant/settings/screens/RestaurantEditScreen";
 11: import { RestaurantDetailScreen } from "../../features/customer/restaurants/screens/RestaurantDetailScreen";
-12: 
-13: const Tab = createBottomTabNavigator();
-14: const Stack = createStackNavigator();
-15: 
-16: const SettingsStack = () => {
-17:   return (
-18:     <Stack.Navigator screenOptions={{ headerShown: false }}>
-19:       <Stack.Screen name="SettingsMain" component={MerchantSettingsScreen} />
-20:       <Stack.Screen
-21:         name="RestaurantDetail"
-22:         component={RestaurantDetailScreen}
-23:         initialParams={{ isMerchantView: true }}
-24:       />
-25:       <Stack.Screen name="RestaurantEdit" component={RestaurantEditScreen} />
-26:     </Stack.Navigator>
-27:   );
-28: };
-29: 
-30: export const MerchantNavigator = () => {
-31:   const theme = useTheme();
-32:   return (
-33:     <Tab.Navigator
-34:       screenOptions={({ route }) => ({
-35:         headerShown: false,
-36:         tabBarIcon: ({ color, size }) => {
-37:           let iconName;
-38:           if (route.name === "Home") {
-39:             iconName = "home";
-40:           } else if (route.name === "Settings") {
-41:             iconName = "settings";
-42:           } else if (route.name === "Reservations") {
-43:             iconName = "calendar";
-44:           }
-45:           return <Ionicons name={iconName} size={size} color={color} />;
-46:         },
-47:         tabBarActiveTintColor: theme.colors.text.primary,
-48:         tabBarInactiveTintColor: theme.colors.text.secondary,
-49:         tabBarStyle: {
-50:           backgroundColor: theme.colors.bg.primary,
-51:         },
-52:       })}
-53:     >
-54:       <Tab.Screen name="Home" component={MerchantHomeScreen} />
-55:       <Tab.Screen name="Reservations" component={MerchantReservationsScreen} />
-56:       <Tab.Screen name="Settings" component={SettingsStack} />
-57:     </Tab.Navigator>
-58:   );
-59: };
+12: import { MerchantProfileScreen } from "../../features/merchant/settings/screens/MerchantProfileScreen";
+13: 
+14: const Tab = createBottomTabNavigator();
+15: const Stack = createStackNavigator();
+16: 
+17: const SettingsStack = () => {
+18:   return (
+19:     <Stack.Navigator screenOptions={{ headerShown: false }}>
+20:       <Stack.Screen name="SettingsMain" component={MerchantSettingsScreen} />
+21:       <Stack.Screen name="MerchantProfile" component={MerchantProfileScreen} />
+22:       <Stack.Screen
+23:         name="RestaurantDetail"
+24:         component={RestaurantDetailScreen}
+25:         initialParams={{ isMerchantView: true }}
+26:       />
+27:       <Stack.Screen name="RestaurantEdit" component={RestaurantEditScreen} />
+28:     </Stack.Navigator>
+29:   );
+30: };
+31: 
+32: export const MerchantNavigator = () => {
+33:   const theme = useTheme();
+34:   return (
+35:     <Tab.Navigator
+36:       screenOptions={({ route }) => ({
+37:         headerShown: false,
+38:         tabBarIcon: ({ color, size }) => {
+39:           let iconName;
+40:           if (route.name === "Home") {
+41:             iconName = "home";
+42:           } else if (route.name === "Settings") {
+43:             iconName = "settings";
+44:           } else if (route.name === "Reservations") {
+45:             iconName = "calendar";
+46:           }
+47:           return <Ionicons name={iconName} size={size} color={color} />;
+48:         },
+49:         tabBarActiveTintColor: theme.colors.text.primary,
+50:         tabBarInactiveTintColor: theme.colors.text.secondary,
+51:         tabBarStyle: {
+52:           backgroundColor: theme.colors.bg.primary,
+53:         },
+54:       })}
+55:     >
+56:       <Tab.Screen name="Home" component={MerchantHomeScreen} />
+57:       <Tab.Screen name="Reservations" component={MerchantReservationsScreen} />
+58:       <Tab.Screen name="Settings" component={SettingsStack} />
+59:     </Tab.Navigator>
+60:   );
+61: };
 
 ================
 File: src/infrastructure/navigation/ReservationsNavigator.js
@@ -8742,21 +8982,23 @@ File: app.json
 39:           "photosPermission": "The app needs access to your photos to upload restaurant images.",
 40:           "cameraPermission": "The app needs access to your camera to take restaurant photos."
 41:         }
-42:       ]
-43:     ],
-44:     "experiments": {
-45:       "typedRoutes": true
-46:     },
-47:     "extra": {
-48:       "router": {
-49:         "origin": false
-50:       },
-51:       "eas": {
-52:         "projectId": "c6d8ffc4-9bc2-4f22-a564-ff0301c850a4"
-53:       }
-54:     }
-55:   }
-56: }
+42:       ],
+43:       "expo-asset",
+44:       "expo-font"
+45:     ],
+46:     "experiments": {
+47:       "typedRoutes": true
+48:     },
+49:     "extra": {
+50:       "router": {
+51:         "origin": false
+52:       },
+53:       "eas": {
+54:         "projectId": "c6d8ffc4-9bc2-4f22-a564-ff0301c850a4"
+55:       }
+56:     }
+57:   }
+58: }
 
 ================
 File: babel.config.js
@@ -8814,63 +9056,64 @@ File: package.json
 14:   },
 15:   "dependencies": {
 16:     "@expo/vector-icons": "^14.0.2",
-17:     "@react-native-async-storage/async-storage": "^2.1.2",
+17:     "@react-native-async-storage/async-storage": "1.23.1",
 18:     "@react-navigation/native": "^6.1.18",
 19:     "@react-navigation/stack": "^6.4.1",
-20:     "expo": "~51.0.22",
-21:     "expo-asset": "^10.0.10",
-22:     "expo-dev-client": "^4.0.22",
-23:     "expo-file-system": "^17.0.1",
-24:     "expo-font": "~12.0.9",
-25:     "expo-gl": "^14.0.2",
-26:     "expo-image-picker": "~15.1.0",
-27:     "expo-linear-gradient": "~13.0.2",
-28:     "expo-linking": "~6.3.1",
-29:     "expo-router": "~3.5.18",
-30:     "expo-splash-screen": "~0.27.5",
-31:     "expo-status-bar": "~1.12.1",
-32:     "expo-system-ui": "~3.0.7",
-33:     "expo-web-browser": "~13.0.3",
+20:     "expo": "^52.0.42",
+21:     "expo-asset": "~11.0.5",
+22:     "expo-dev-client": "~5.0.17",
+23:     "expo-file-system": "~18.0.12",
+24:     "expo-font": "~13.0.4",
+25:     "expo-gl": "~15.0.5",
+26:     "expo-image-picker": "~16.0.6",
+27:     "expo-linear-gradient": "~14.0.2",
+28:     "expo-linking": "~7.0.5",
+29:     "expo-router": "~4.0.19",
+30:     "expo-splash-screen": "~0.29.22",
+31:     "expo-status-bar": "~2.0.1",
+32:     "expo-system-ui": "~4.0.9",
+33:     "expo-web-browser": "~14.0.2",
 34:     "firebase": "^11.1.0",
 35:     "formik": "^2.4.6",
 36:     "i18next": "^24.2.3",
 37:     "i18next-intervalplural-postprocessor": "^3.0.0",
-38:     "react": "18.2.0",
-39:     "react-dom": "18.2.0",
+38:     "react": "18.3.1",
+39:     "react-dom": "18.3.1",
 40:     "react-i18next": "^15.4.1",
-41:     "react-native": "^0.74.5",
+41:     "react-native": "~0.77.1",
 42:     "react-native-asset": "^2.1.1",
 43:     "react-native-collapsible-tab-view": "^8.0.0",
 44:     "react-native-dropdown-picker": "^5.4.6",
 45:     "react-native-fs": "^2.20.0",
-46:     "react-native-gesture-handler": "^2.20.0",
+46:     "react-native-gesture-handler": "~2.22.0",
 47:     "react-native-localize": "^3.4.1",
-48:     "react-native-pager-view": "6.3.0",
+48:     "react-native-pager-view": "6.5.1",
 49:     "react-native-paper": "^5.12.3",
-50:     "react-native-reanimated": "~3.10.1",
-51:     "react-native-safe-area-context": "4.10.5",
-52:     "react-native-static-server": "^0.5.0",
-53:     "react-native-svg": "15.2.0",
-54:     "react-native-tab-view": "^3.5.2",
-55:     "react-native-web": "~0.19.10",
-56:     "react-native-webview": "13.8.6",
-57:     "react-native-webview-autoheight": "^1.0.6",
-58:     "react-promise-suspense": "^0.3.4",
-59:     "styled-components": "^6.1.12",
-60:     "yup": "^1.5.0"
-61:   },
-62:   "devDependencies": {
-63:     "@babel/core": "^7.20.0",
-64:     "@types/react": "~18.2.45",
-65:     "@types/react-native": "^0.73.0",
-66:     "depcheck": "^1.4.7",
-67:     "jest": "^29.2.1",
-68:     "jest-expo": "~51.0.3",
-69:     "react-test-renderer": "18.2.0",
-70:     "typescript": "~5.3.3"
-71:   },
-72:   "private": true
-73: }
+50:     "react-native-reanimated": "~3.16.7",
+51:     "react-native-safe-area-context": "~5.1.0",
+52:     "react-native-screens": "~4.8.0",
+53:     "react-native-static-server": "^0.5.0",
+54:     "react-native-svg": "15.8.0",
+55:     "react-native-tab-view": "^3.5.2",
+56:     "react-native-web": "~0.19.10",
+57:     "react-native-webview": "~13.13.1",
+58:     "react-native-webview-autoheight": "^1.0.6",
+59:     "react-promise-suspense": "^0.3.4",
+60:     "styled-components": "^6.1.12",
+61:     "yup": "^1.5.0"
+62:   },
+63:   "devDependencies": {
+64:     "@babel/core": "^7.20.0",
+65:     "@types/react": "~18.3.12",
+66:     "@types/react-native": "^0.73.0",
+67:     "depcheck": "^1.4.7",
+68:     "jest": "^29.2.1",
+69:     "jest-expo": "~52.0.6",
+70:     "react-test-renderer": "18.2.0",
+71:     "typescript": "~5.3.3"
+72:   },
+73:   "private": true
+74: }
 
 ================
 File: repomix.config.json

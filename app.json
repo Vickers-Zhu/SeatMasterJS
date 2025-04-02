@@ -39,7 +39,9 @@
           "photosPermission": "The app needs access to your photos to upload restaurant images.",
           "cameraPermission": "The app needs access to your camera to take restaurant photos."
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

@@ -3,7 +3,6 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
-import { NavigationContainer } from "@react-navigation/native";
 
 import { useAuthentication } from "../../services/AuthenticationContext";
 import { globalScreenOptions } from "../options/GlobalScreenOptions";
@@ -35,7 +34,7 @@ const createTabScreenOptions = ({ route }) => {
   };
 };
 
-// Home Tabs (contains tab navigators)
+// HomeTabs component for customer view
 const HomeTabs = () => (
   <Tab.Navigator screenOptions={createTabScreenOptions}>
     <Tab.Screen
@@ -55,33 +54,32 @@ const HomeTabs = () => (
     />
     <Tab.Screen
       name="Settings"
-      component={SettingsNavigator} // Settings is still a Tab Screen
+      component={SettingsNavigator}
       options={{ headerShown: false }}
     />
   </Tab.Navigator>
 );
 
-// App Navigator (contains stack navigators)
+// Main app navigation structure
 export const AppNavigator = () => {
   const { user } = useAuthentication();
   const role = user?.role;
+
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false, // Globally hide headers for simplicity
+        headerShown: false,
       }}
     >
       {role === "customer" ? (
         <>
-          {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
           <Stack.Screen name="Home" component={HomeTabs} />
-          {/* Tabs */}
 
           <Stack.Screen
             name="RestaurantDetailScreen"
             component={RestaurantDetailScreen}
             options={({ route }) => ({
-              ...globalScreenOptions.restaurantDetail, // Keep global options
+              ...globalScreenOptions.restaurantDetail,
               presentation:
                 route.params?.presentationStyle === "modal" ? "modal" : "card",
             })}
