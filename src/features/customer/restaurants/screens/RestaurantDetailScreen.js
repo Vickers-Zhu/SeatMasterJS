@@ -1,5 +1,5 @@
 // src/features/customer/restaurants/screens/RestaurantDetailScreen.js
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Animated,
   Dimensions,
@@ -100,16 +100,28 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
 
   const handleScroll = useScrollHandler(routes, heights, setIndex);
 
-  const scrollToTab = (tabKey, newIndex) => {
-    let yPosition = heights.restaurantInfoCard + heights.switch;
-    for (let i = 0; i < routes.length; i++) {
-      if (routes[i].key === tabKey) break;
-      yPosition += heights.content[routes[i].key] || 0;
-    }
-    scrollViewRef.current.scrollTo({ y: yPosition, animated: true });
-    setIndex(newIndex);
-  };
+  const scrollToTab = useCallback(
+    (tabKey, newIndex) => {
+      // Calculate the position to scroll to
+      let yPosition = heights.restaurantInfoCard + heights.switch;
 
+      // Add heights of all tabs before the target tab
+      for (let i = 0; i < routes.length; i++) {
+        if (routes[i].key === tabKey) break;
+        yPosition += heights.content[routes[i].key] || 0;
+      }
+
+      // Use scrollTo with immediate={true} for instant scrolling
+      scrollViewRef.current?.scrollTo({
+        y: yPosition,
+        animated: false, // Set to false for immediate scrolling without animation
+      });
+
+      // Update the index immediately
+      setIndex(newIndex);
+    },
+    [heights, routes]
+  );
   const handleInteractionStart = () => {
     setScrollEnabled(false);
   };
@@ -197,7 +209,6 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               setIndex={setIndex}
               routes={routes}
               layout={layout}
-              renderOpacity={opacity}
               scrollToTab={scrollToTab}
               heights={heights}
             />
