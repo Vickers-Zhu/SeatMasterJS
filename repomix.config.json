@@ -1,6 +1,8 @@
 {
   "include": ["src/**/*", "*.*"],
   "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
     "customPatterns": ["**/*.log", "node_modules/**/*"]
   },
   "output": {

@@ -12,9 +12,18 @@ const useStaticServer = () => {
     const startServer = async () => {
       const path = `${RNFS.MainBundlePath}/3d_build`; // Ensure this path exists and contains your web app
       console.log(`Inner webapp path verified: ${path}`);
-      server = new StaticServer(0, path, { localOnly: true });
+
+      // Generate a random port between 8000 and 9000 to avoid caching issues
+      const randomPort = Math.floor(Math.random() * 1000) + 8000;
+
+      // Add a cache-busting timestamp query parameter
+      const timestamp = Date.now();
+
+      server = new StaticServer(randomPort, path, { localOnly: true });
       try {
-        const serverUrl = await server.start();
+        let serverUrl = await server.start();
+        // Append cache-busting parameter
+        serverUrl = `${serverUrl}?t=${timestamp}`;
         setUrl(serverUrl);
         console.log(`Server hosting at: ${serverUrl}`);
       } catch (error) {

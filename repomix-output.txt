@@ -2948,7 +2948,7 @@ File: src/features/customer/restaurants/components/RestaurantMenu.js
 ================
 File: src/features/customer/restaurants/components/RestaurantTabBar.js
 ================
-  1: import React, { useEffect, useRef, useCallback, useState } from "react";
+  1: import React, { useRef, useEffect, useCallback, useState } from "react";
   2: import { View, TouchableOpacity, Animated, StyleSheet } from "react-native";
   3: import { useTheme } from "styled-components/native";
   4: 
@@ -2957,154 +2957,132 @@ File: src/features/customer/restaurants/components/RestaurantTabBar.js
   7:   const theme = useTheme();
   8: 
   9: 
- 10:   const indicatorPosition = useRef(new Animated.Value(0)).current;
- 11: 
- 12:   const [animatingToIndex, setAnimatingToIndex] = useState(null);
+ 10:   const indicatorPosition = useRef(
+ 11:     new Animated.Value(navigationState.index * (100 / routes.length))
+ 12:   ).current;
  13: 
- 14:   const animationRef = useRef(null);
- 15: 
- 16: 
- 17:   useEffect(() => {
+ 14: 
+ 15:   const [animationProgress, setAnimationProgress] = useState(
+ 16:     navigationState.index
+ 17:   );
  18: 
- 19:     if (animatingToIndex === null) {
- 20:       if (animationRef.current) {
- 21:         animationRef.current.stop();
- 22:       }
- 23: 
- 24:       animationRef.current = Animated.timing(indicatorPosition, {
- 25:         toValue: navigationState.index * (100 / routes.length),
- 26:         duration: 300,
- 27:         useNativeDriver: false,
- 28:       });
- 29: 
- 30:       animationRef.current.start();
- 31:     }
- 32:   }, [
- 33:     navigationState.index,
- 34:     routes.length,
- 35:     indicatorPosition,
- 36:     animatingToIndex,
- 37:   ]);
+ 19: 
+ 20:   const animationRef = useRef(null);
+ 21: 
+ 22: 
+ 23:   useEffect(() => {
+ 24:     if (animationRef.current) {
+ 25:       animationRef.current.stop();
+ 26:     }
+ 27: 
+ 28:     animationRef.current = Animated.timing(indicatorPosition, {
+ 29:       toValue: navigationState.index * (100 / routes.length),
+ 30:       duration: 100,
+ 31:       useNativeDriver: false,
+ 32:     });
+ 33: 
+ 34:     animationRef.current.start();
+ 35: 
+ 36: 
+ 37:     const listenerId = indicatorPosition.addListener(({ value }) => {
  38: 
- 39: 
- 40:   const handleTabPress = useCallback(
- 41:     (route, index) => {
- 42:       if (navigationState.index !== index && scrollToTab) {
- 43: 
- 44:         setAnimatingToIndex(index);
- 45: 
+ 39:       const currentSegmentValue = value / (100 / routes.length);
+ 40: 
+ 41:       const closestIndex = Math.round(currentSegmentValue);
+ 42:       if (closestIndex !== animationProgress) {
+ 43:         setAnimationProgress(closestIndex);
+ 44:       }
+ 45:     });
  46: 
- 47:         if (animationRef.current) {
- 48:           animationRef.current.stop();
- 49:         }
- 50: 
+ 47:     return () => {
+ 48:       indicatorPosition.removeListener(listenerId);
+ 49:     };
+ 50:   }, [navigationState.index, routes.length, indicatorPosition]);
  51: 
- 52:         scrollToTab(route.key, index);
- 53: 
- 54: 
- 55:         setTimeout(() => {
- 56:           animationRef.current = Animated.timing(indicatorPosition, {
- 57:             toValue: index * (100 / routes.length),
- 58:             duration: 300,
- 59:             useNativeDriver: false,
- 60:           });
- 61: 
- 62:           animationRef.current.start(({ finished }) => {
- 63:             if (finished) {
- 64: 
- 65:               setAnimatingToIndex(null);
+ 52: 
+ 53:   const handleTabPress = useCallback(
+ 54:     (route, index) => {
+ 55:       if (navigationState.index !== index && scrollToTab) {
+ 56: 
+ 57:         scrollToTab(route.key, index);
+ 58:       }
+ 59:     },
+ 60:     [scrollToTab, navigationState.index]
+ 61:   );
+ 62: 
+ 63:   return (
+ 64:     <View style={[styles.tabBar, { backgroundColor: theme.colors.bg.primary }]}>
+ 65:       {routes.map((route, i) => {
  66: 
- 67:               setIndex(index);
- 68:             }
- 69:           });
- 70:         }, 50);
- 71:       }
- 72:     },
- 73:     [
- 74:       scrollToTab,
- 75:       navigationState.index,
- 76:       routes.length,
- 77:       indicatorPosition,
- 78:       setIndex,
- 79:     ]
- 80:   );
- 81: 
- 82:   return (
- 83:     <View style={[styles.tabBar, { backgroundColor: theme.colors.bg.primary }]}>
- 84:       {routes.map((route, i) => {
- 85: 
- 86:         const isActive =
- 87:           animatingToIndex === i ||
- 88:           (animatingToIndex === null && navigationState.index === i);
- 89: 
- 90:         return (
- 91:           <TouchableOpacity
- 92:             key={route.key}
- 93:             style={styles.tabItem}
- 94:             onPress={() => handleTabPress(route, i)}
- 95:             activeOpacity={1}
- 96:             underlayColor="transparent"
- 97:           >
- 98:             <Animated.Text
- 99:               style={{
-100:                 color: isActive
-101:                   ? theme.colors.text.primary
-102:                   : theme.colors.text.secondary,
-103:                 fontFamily: theme.fonts.body,
-104:                 fontSize: parseInt(theme.fontSizes.body, 10),
-105:                 fontWeight: isActive ? "bold" : "normal",
-106:               }}
-107:             >
-108:               {route.title}
-109:             </Animated.Text>
-110:           </TouchableOpacity>
-111:         );
-112:       })}
-113: 
-114:       {}
-115:       <Animated.View
-116:         style={[
-117:           styles.indicator,
-118:           {
-119:             backgroundColor: theme.colors.text.primary,
-120:             left: indicatorPosition.interpolate({
-121:               inputRange: [0, 100],
-122:               outputRange: ["0%", "100%"],
-123:             }),
-124:             width: `${100 / routes.length}%`,
-125:           },
-126:         ]}
-127:       />
-128:     </View>
-129:   );
-130: };
-131: 
-132: const styles = StyleSheet.create({
-133:   tabBar: {
-134:     flexDirection: "row",
-135:     height: 48,
-136:     elevation: 0,
-137:     shadowOpacity: 0,
-138:     borderBottomWidth: 1,
-139:     borderBottomColor: "#F0F0F0",
-140:     position: "relative",
-141:     backgroundColor: "white",
-142:   },
-143:   tabItem: {
-144:     flex: 1,
-145:     alignItems: "center",
-146:     justifyContent: "center",
-147:     paddingVertical: 12,
-148:   },
-149:   indicator: {
-150:     position: "absolute",
-151:     bottom: 0,
-152:     height: 2,
-153:     borderRadius: 1,
-154:   },
-155: });
-156: 
-157: export default TabBar;
+ 67:         const isActive = animationProgress === i;
+ 68: 
+ 69:         return (
+ 70:           <TouchableOpacity
+ 71:             key={route.key}
+ 72:             style={styles.tabItem}
+ 73:             onPress={() => handleTabPress(route, i)}
+ 74:             activeOpacity={0.7}
+ 75:           >
+ 76:             <Animated.Text
+ 77:               style={{
+ 78:                 color: isActive
+ 79:                   ? theme.colors.text.primary
+ 80:                   : theme.colors.text.secondary,
+ 81:                 fontFamily: theme.fonts.body,
+ 82:                 fontSize: parseInt(theme.fontSizes.body, 10),
+ 83:                 fontWeight: isActive ? "bold" : "normal",
+ 84:               }}
+ 85:             >
+ 86:               {route.title}
+ 87:             </Animated.Text>
+ 88:           </TouchableOpacity>
+ 89:         );
+ 90:       })}
+ 91: 
+ 92:       {}
+ 93:       <Animated.View
+ 94:         style={[
+ 95:           styles.indicator,
+ 96:           {
+ 97:             backgroundColor: theme.colors.text.primary,
+ 98:             left: indicatorPosition.interpolate({
+ 99:               inputRange: [0, 100],
+100:               outputRange: ["0%", "100%"],
+101:             }),
+102:             width: `${100 / routes.length}%`,
+103:           },
+104:         ]}
+105:       />
+106:     </View>
+107:   );
+108: };
+109: 
+110: const styles = StyleSheet.create({
+111:   tabBar: {
+112:     flexDirection: "row",
+113:     height: 48,
+114:     elevation: 0,
+115:     shadowOpacity: 0,
+116:     borderBottomWidth: 1,
+117:     borderBottomColor: "#F0F0F0",
+118:     position: "relative",
+119:     backgroundColor: "white",
+120:   },
+121:   tabItem: {
+122:     flex: 1,
+123:     alignItems: "center",
+124:     justifyContent: "center",
+125:     paddingVertical: 12,
+126:   },
+127:   indicator: {
+128:     position: "absolute",
+129:     bottom: 0,
+130:     height: 2,
+131:     borderRadius: 1,
+132:   },
+133: });
+134: 
+135: export default TabBar;
 
 ================
 File: src/features/customer/restaurants/components/Reviews.js
@@ -3174,55 +3152,53 @@ File: src/features/customer/restaurants/components/TabNavigation.js
  6: import Others from "./Others";
  7: import TabBar from "./RestaurantTabBar";
  8: 
- 9: 
-10: const renderSceneMap = {
-11:   menu: RestaurantMenu,
-12:   reviews: Reviews,
-13:   others: Others,
-14: };
-15: 
-16: const TabNavigation = ({
-17:   index,
-18:   setIndex,
-19:   routes,
-20:   layout,
-21:   renderOpacity,
-22:   scrollToTab,
-23:   heights,
-24: }) => {
+ 9: const renderSceneMap = {
+10:   menu: RestaurantMenu,
+11:   reviews: Reviews,
+12:   others: Others,
+13: };
+14: 
+15: const TabNavigation = ({
+16:   index,
+17:   setIndex,
+18:   routes,
+19:   layout,
+20:   renderOpacity,
+21:   scrollToTab,
+22:   heights,
+23: }) => {
+24:   const renderScene = SceneMap(renderSceneMap);
 25: 
-26:   const renderScene = SceneMap(renderSceneMap);
+26:   const handleIndexChange = (newIndex) => {
 27: 
 28: 
-29:   const handleIndexChange = (newIndex) => {
-30: 
-31:     if (scrollToTab && routes[newIndex]) {
-32:       scrollToTab(routes[newIndex].key, newIndex);
-33:     }
-34:   };
-35: 
-36:   return (
-37:     <Animated.View style={{ opacity: renderOpacity }}>
-38:       <TabView
-39:         navigationState={{ index, routes }}
-40:         renderScene={renderScene}
-41:         renderTabBar={(props) => (
-42:           <TabBar
-43:             {...props}
-44:             routes={routes}
-45:             scrollToTab={scrollToTab}
-46:             setIndex={setIndex}
-47:           />
-48:         )}
-49:         onIndexChange={handleIndexChange}
-50:         initialLayout={{ width: layout.width }}
-51:         swipeEnabled={true}
-52:       />
-53:     </Animated.View>
-54:   );
-55: };
-56: 
-57: export default TabNavigation;
+29:     if (scrollToTab && routes[newIndex]) {
+30:       scrollToTab(routes[newIndex].key, newIndex);
+31:     }
+32:   };
+33: 
+34:   return (
+35:     <Animated.View style={{ opacity: renderOpacity }}>
+36:       <TabView
+37:         navigationState={{ index, routes }}
+38:         renderScene={renderScene}
+39:         renderTabBar={(props) => (
+40:           <TabBar
+41:             {...props}
+42:             routes={routes}
+43:             scrollToTab={scrollToTab}
+44:             setIndex={setIndex}
+45:           />
+46:         )}
+47:         onIndexChange={handleIndexChange}
+48:         initialLayout={{ width: layout.width }}
+49:         swipeEnabled={true}
+50:       />
+51:     </Animated.View>
+52:   );
+53: };
+54: 
+55: export default TabNavigation;
 
 ================
 File: src/features/customer/restaurants/hooks/useReservationHandler.js
@@ -3399,152 +3375,159 @@ File: src/features/customer/restaurants/screens/RestaurantDetailScreen.js
 101: 
 102:   const scrollToTab = useCallback(
 103:     (tabKey, newIndex) => {
-104:       let yPosition = heights.restaurantInfoCard + heights.switch;
-105:       for (let i = 0; i < routes.length; i++) {
-106:         if (routes[i].key === tabKey) break;
-107:         yPosition += heights.content[routes[i].key] || 0;
-108:       }
-109:       scrollViewRef.current?.scrollTo({ y: yPosition, animated: true });
-110: 
-111:       if (index !== newIndex) {
-112:         setIndex(newIndex);
-113:       }
-114:     },
-115:     [heights, routes, index]
-116:   );
-117:   const handleInteractionStart = () => {
-118:     setScrollEnabled(false);
-119:   };
-120: 
-121:   const handleInteractionEnd = () => {
-122:     setScrollEnabled(true);
-123:   };
-124: 
-125:   const handleEditPress = () => {
-126:     navigation.navigate("RestaurantEdit", {
-127:       restaurant: restaurant,
-128:     });
-129:   };
-130: 
-131:   return (
-132:     <SafeArea>
-133:       <Header>
-134:         <BackButton />
-135:         <CustomText variant="title">
-136:           {isMerchantView ? "Restaurant Details" : "Restaurant"}
-137:         </CustomText>
-138: 
-139:         {isMerchantView && (
-140:           <EditButton position="absolute" onPress={handleEditPress} />
-141:         )}
-142:       </Header>
-143:       <View style={{ flex: 1 }}>
-144:         <Animated.ScrollView
-145:           scrollEnabled={scrollEnabled}
-146:           ref={scrollViewRef}
-147:           scrollEventThrottle={16}
-148:           onScroll={Animated.event(
-149:             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-150:             { listener: handleScroll, useNativeDriver: false }
-151:           )}
-152:           stickyHeaderIndices={isReservation ? [] : [2]}
-153:         >
-154:           <Spacing
-155:             onLayout={(event) =>
-156:               setHeights({
-157:                 ...heights,
-158:                 restaurantInfoCard: event.nativeEvent.layout.height,
-159:               })
-160:             }
-161:           >
-162:             <RestaurantInfoCard
-163:               restaurant={{
-164:                 ...restaurant,
-165:                 address: formatAddressToString(restaurant.address),
-166:                 icon:
-167:                   restaurant.icon ||
-168:                   "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",
-169:                 isOpenNow:
-170:                   restaurant.isOpenNow !== undefined
-171:                     ? restaurant.isOpenNow
-172:                     : true,
-173:                 rating: restaurant.rating || 4,
-174:                 isClosedTemporarily: restaurant.isClosedTemporarily || false,
-175:                 placeId: restaurant.id || restaurant.placeId || "1",
-176:               }}
-177:               elevation={0}
-178:             />
-179:           </Spacing>
-180: 
-181:           <View
-182:             onLayout={(event) =>
-183:               setHeights({
-184:                 ...heights,
-185:                 switch: event.nativeEvent.layout.height,
-186:               })
-187:             }
-188:           >
-189:             <SwitchContainer
-190:               isOn={isReservation}
-191:               setIsOn={(newValue) => animateAndSwitch(newValue)}
-192:               leftLabel="General"
-193:               rightLabel="Reservation"
-194:               variant="default"
-195:             />
-196:           </View>
-197: 
-198:           {!isShowReservationContent && !isReservation && (
-199:             <TabNavigation
-200:               index={index}
-201:               setIndex={setIndex}
-202:               routes={routes}
-203:               layout={layout}
-204:               scrollToTab={scrollToTab}
-205:               heights={heights}
-206:             />
-207:           )}
-208: 
-209:           {!isShowReservationContent &&
-210:             !isReservation &&
-211:             routes.map((route) => (
-212:               <Animated.View key={route.key} style={{ opacity }}>
-213:                 <View
-214:                   onLayout={(event) =>
-215:                     setHeights({
-216:                       ...heights,
-217:                       content: {
-218:                         ...heights.content,
-219:                         [route.key]: event.nativeEvent.layout.height,
-220:                       },
-221:                     })
-222:                   }
-223:                 >
-224:                   {React.createElement(
-225:                     route.key === "menu"
-226:                       ? RestaurantMenu
-227:                       : route.key === "reviews"
-228:                       ? Reviews
-229:                       : Others
-230:                   )}
-231:                 </View>
-232:               </Animated.View>
-233:             ))}
-234: 
-235:           {isShowReservationContent && isReservation && (
-236:             <Animated.View style={{ opacity, flex: 1 }}>
-237:               <ErrorBoundary>
-238:                 <WebApp
-239:                   onInteractionStart={handleInteractionStart}
-240:                   onInteractionEnd={handleInteractionEnd}
-241:                 />
-242:               </ErrorBoundary>
-243:             </Animated.View>
-244:           )}
-245:         </Animated.ScrollView>
-246:       </View>
-247:     </SafeArea>
-248:   );
-249: };
+104: 
+105:       let yPosition = heights.restaurantInfoCard + heights.switch;
+106: 
+107: 
+108:       for (let i = 0; i < routes.length; i++) {
+109:         if (routes[i].key === tabKey) break;
+110:         yPosition += heights.content[routes[i].key] || 0;
+111:       }
+112: 
+113: 
+114:       scrollViewRef.current?.scrollTo({
+115:         y: yPosition,
+116:         animated: false,
+117:       });
+118: 
+119: 
+120:       setIndex(newIndex);
+121:     },
+122:     [heights, routes]
+123:   );
+124:   const handleInteractionStart = () => {
+125:     setScrollEnabled(false);
+126:   };
+127: 
+128:   const handleInteractionEnd = () => {
+129:     setScrollEnabled(true);
+130:   };
+131: 
+132:   const handleEditPress = () => {
+133:     navigation.navigate("RestaurantEdit", {
+134:       restaurant: restaurant,
+135:     });
+136:   };
+137: 
+138:   return (
+139:     <SafeArea>
+140:       <Header>
+141:         <BackButton />
+142:         <CustomText variant="title">
+143:           {isMerchantView ? "Restaurant Details" : "Restaurant"}
+144:         </CustomText>
+145: 
+146:         {isMerchantView && (
+147:           <EditButton position="absolute" onPress={handleEditPress} />
+148:         )}
+149:       </Header>
+150:       <View style={{ flex: 1 }}>
+151:         <Animated.ScrollView
+152:           scrollEnabled={scrollEnabled}
+153:           ref={scrollViewRef}
+154:           scrollEventThrottle={16}
+155:           onScroll={Animated.event(
+156:             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+157:             { listener: handleScroll, useNativeDriver: false }
+158:           )}
+159:           stickyHeaderIndices={isReservation ? [] : [2]}
+160:         >
+161:           <Spacing
+162:             onLayout={(event) =>
+163:               setHeights({
+164:                 ...heights,
+165:                 restaurantInfoCard: event.nativeEvent.layout.height,
+166:               })
+167:             }
+168:           >
+169:             <RestaurantInfoCard
+170:               restaurant={{
+171:                 ...restaurant,
+172:                 address: formatAddressToString(restaurant.address),
+173:                 icon:
+174:                   restaurant.icon ||
+175:                   "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",
+176:                 isOpenNow:
+177:                   restaurant.isOpenNow !== undefined
+178:                     ? restaurant.isOpenNow
+179:                     : true,
+180:                 rating: restaurant.rating || 4,
+181:                 isClosedTemporarily: restaurant.isClosedTemporarily || false,
+182:                 placeId: restaurant.id || restaurant.placeId || "1",
+183:               }}
+184:               elevation={0}
+185:             />
+186:           </Spacing>
+187: 
+188:           <View
+189:             onLayout={(event) =>
+190:               setHeights({
+191:                 ...heights,
+192:                 switch: event.nativeEvent.layout.height,
+193:               })
+194:             }
+195:           >
+196:             <SwitchContainer
+197:               isOn={isReservation}
+198:               setIsOn={(newValue) => animateAndSwitch(newValue)}
+199:               leftLabel="General"
+200:               rightLabel="Reservation"
+201:               variant="default"
+202:             />
+203:           </View>
+204: 
+205:           {!isShowReservationContent && !isReservation && (
+206:             <TabNavigation
+207:               index={index}
+208:               setIndex={setIndex}
+209:               routes={routes}
+210:               layout={layout}
+211:               scrollToTab={scrollToTab}
+212:               heights={heights}
+213:             />
+214:           )}
+215: 
+216:           {!isShowReservationContent &&
+217:             !isReservation &&
+218:             routes.map((route) => (
+219:               <Animated.View key={route.key} style={{ opacity }}>
+220:                 <View
+221:                   onLayout={(event) =>
+222:                     setHeights({
+223:                       ...heights,
+224:                       content: {
+225:                         ...heights.content,
+226:                         [route.key]: event.nativeEvent.layout.height,
+227:                       },
+228:                     })
+229:                   }
+230:                 >
+231:                   {React.createElement(
+232:                     route.key === "menu"
+233:                       ? RestaurantMenu
+234:                       : route.key === "reviews"
+235:                       ? Reviews
+236:                       : Others
+237:                   )}
+238:                 </View>
+239:               </Animated.View>
+240:             ))}
+241: 
+242:           {isShowReservationContent && isReservation && (
+243:             <Animated.View style={{ opacity, flex: 1 }}>
+244:               <ErrorBoundary>
+245:                 <WebApp
+246:                   onInteractionStart={handleInteractionStart}
+247:                   onInteractionEnd={handleInteractionEnd}
+248:                 />
+249:               </ErrorBoundary>
+250:             </Animated.View>
+251:           )}
+252:         </Animated.ScrollView>
+253:       </View>
+254:     </SafeArea>
+255:   );
+256: };
 
 ================
 File: src/features/customer/restaurants/screens/RestaurantsScreen.js

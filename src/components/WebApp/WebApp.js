@@ -18,9 +18,11 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
   const serverUrl = useStaticServer();
   const webViewRef = useRef(null);
   const [webViewHeight, setWebViewHeight] = useState(200);
-  const [selectedChairs, setSelectedChairs] = useState([]);
-  const [occupiedChairs, setOccupiedChairs] = useState(["CHAIR2", "CHAIR4"]);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [occupiedItems, setOccupiedItems] = useState(["CHAIR2", "CHAIR4"]);
   const [isServerReady, setIsServerReady] = useState(false);
+  const [currentModel, setCurrentModel] = useState("kitchen");
+  const [availableItems, setAvailableItems] = useState([]);
 
   // Monitor server readiness and only load the WebView when ready
   useEffect(() => {
@@ -29,14 +31,14 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
     }
   }, [serverUrl]);
 
-  const sendChairsToWebView = useCallback(() => {
+  const sendItemsToWebView = useCallback(() => {
     if (webViewRef.current) {
       const script = `
         (function() {
-          if (window.updateChairs) {
-            window.updateChairs({
-              selectedChairs: ${JSON.stringify(selectedChairs)},
-              occupiedChairs: ${JSON.stringify(occupiedChairs)}
+          if (window.updateItems) {
+            window.updateItems({
+              selectedItems: ${JSON.stringify(selectedItems)},
+              occupiedItems: ${JSON.stringify(occupiedItems)}
             });
           }
         })();
@@ -44,11 +46,29 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
       `;
       webViewRef.current.injectJavaScript(script);
     }
-  }, [selectedChairs, occupiedChairs]);
+  }, [selectedItems, occupiedItems]);
 
   useEffect(() => {
-    sendChairsToWebView();
-  }, [selectedChairs, occupiedChairs, sendChairsToWebView]);
+    sendItemsToWebView();
+  }, [selectedItems, occupiedItems, sendItemsToWebView]);
+
+  // Function to change restaurant model
+  const changeRestaurantModel = useCallback((modelKey) => {
+    if (webViewRef.current) {
+      const script = `
+        (function() {
+          if (window.changeRestaurantModel) {
+            window.changeRestaurantModel('${modelKey}');
+          }
+        })();
+        true;
+      `;
+      webViewRef.current.injectJavaScript(script);
+      setCurrentModel(modelKey);
+      // Reset selections when changing models
+      setSelectedItems([]);
+    }
+  }, []);
 
   const handleWebViewMessage = useCallback(
     (event) => {
@@ -56,15 +76,15 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
         const messageData = JSON.parse(event.nativeEvent.data);
 
         switch (messageData.type) {
-          case "chairClicked":
-            if (occupiedChairs.includes(messageData.name)) {
+          case "itemClicked":
+            if (occupiedItems.includes(messageData.id)) {
               return;
             }
-            setSelectedChairs((prevSelected) => {
-              if (prevSelected.includes(messageData.name)) {
-                return prevSelected.filter((name) => name !== messageData.name);
+            setSelectedItems((prevSelected) => {
+              if (prevSelected.includes(messageData.id)) {
+                return prevSelected.filter((id) => id !== messageData.id);
               } else {
-                return [...prevSelected, messageData.name];
+                return [...prevSelected, messageData.id];
               }
             });
             break;
@@ -88,6 +108,13 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
             }
             break;
 
+          case "modelChanged":
+            // Update available items when model changes
+            setAvailableItems(messageData.availableItems || []);
+            setCurrentModel(messageData.modelKey);
+            setSelectedItems([]);
+            break;
+
           default:
             console.warn("Unhandled message type:", messageData.type);
         }
@@ -95,11 +122,11 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
         console.error("Failed to parse message from WebView:", error);
       }
     },
-    [occupiedChairs, webViewHeight, onInteractionStart, onInteractionEnd]
+    [occupiedItems, webViewHeight, onInteractionStart, onInteractionEnd]
   );
 
   const cancelSelection = () => {
-    setSelectedChairs([]);
+    setSelectedItems([]);
   };
 
   return (
@@ -112,6 +139,8 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
             scrollEnabled={false}
             cacheEnabled={false}
             cacheMode="LOAD_NO_CACHE"
+            incognito={true} // Additional cache prevention
+            thirdPartyCookiesEnabled={false} // Helps prevent caching issues
             originWhitelist={["*"]}
             onError={(syntheticEvent) => {
               const { nativeEvent } = syntheticEvent;
@@ -119,7 +148,7 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
             }}
             onMessage={handleWebViewMessage}
             onLoadEnd={() => {
-              sendChairsToWebView();
+              sendItemsToWebView();
             }}
           />
         </Container>
@@ -132,7 +161,7 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
       )}
       <Footer>
         <SelectedText>
-          Selected Chairs: {selectedChairs.join(", ") || "None"}
+          Selected Items: {selectedItems.join(", ") || "None"}
         </SelectedText>
         <CancelButton onPress={cancelSelection}>
           <CancelButtonText>Cancel Selection</CancelButtonText>
