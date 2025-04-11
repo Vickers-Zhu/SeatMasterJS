@@ -5,7 +5,8 @@ const useScrollHandler = (routes, heights, setIndex) => {
   const handleScroll = useCallback(
     (event) => {
       const scrollYValue = event.nativeEvent.contentOffset.y;
-      let accumulatedHeight = heights.restaurantInfoCard + heights.switch;
+      let accumulatedHeight =
+        heights.restaurantInfoCard + heights.ReservationButton + heights.switch;
       for (let i = 0; i < routes.length; i++) {
         if (
           scrollYValue <

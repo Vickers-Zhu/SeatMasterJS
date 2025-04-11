@@ -4,7 +4,6 @@ import { View, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
 import styled from "styled-components/native";
 import useStaticServer from "./useStaticServer";
-
 import {
   Container,
   StyledWebView,
@@ -19,18 +18,23 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
   const webViewRef = useRef(null);
   const [webViewHeight, setWebViewHeight] = useState(200);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [occupiedItems, setOccupiedItems] = useState(["CHAIR2", "CHAIR4"]);
+  const [occupiedItems, setOccupiedItems] = useState(["CHAIR1", "CHAIR4"]);
   const [isServerReady, setIsServerReady] = useState(false);
-  const [currentModel, setCurrentModel] = useState("kitchen");
+  const [currentModel, setCurrentModel] = useState("kitchen") ;
   const [availableItems, setAvailableItems] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Monitor server readiness and only load the WebView when ready
   useEffect(() => {
     if (serverUrl) {
       setIsServerReady(true);
     }
   }, [serverUrl]);
 
+  const cancelSelection = () => {
+    setSelectedItems([]);
+  };
+
+  // This function sends data to the WebView
   const sendItemsToWebView = useCallback(() => {
     if (webViewRef.current) {
       const script = `
@@ -48,11 +52,23 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
     }
   }, [selectedItems, occupiedItems]);
 
+  // Send items to WebView whenever selected or occupied items change
   useEffect(() => {
-    sendItemsToWebView();
-  }, [selectedItems, occupiedItems, sendItemsToWebView]);
+    if (isInitialized) {
+      sendItemsToWebView();
+    }
+  }, [selectedItems, occupiedItems, sendItemsToWebView, isInitialized]);
 
-  // Function to change restaurant model
+  // Handle initialization after WebView loads
+  const handleWebViewLoaded = useCallback(() => {
+    // Set isInitialized to true and trigger initial data send
+    setIsInitialized(true);
+    // Short delay to ensure WebView is fully loaded before sending data
+    setTimeout(() => {
+      sendItemsToWebView();
+    }, 300);
+  }, [sendItemsToWebView]);
+
   const changeRestaurantModel = useCallback((modelKey) => {
     if (webViewRef.current) {
       const script = `
@@ -65,7 +81,6 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
       `;
       webViewRef.current.injectJavaScript(script);
       setCurrentModel(modelKey);
-      // Reset selections when changing models
       setSelectedItems([]);
     }
   }, []);
@@ -74,7 +89,6 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
     (event) => {
       try {
         const messageData = JSON.parse(event.nativeEvent.data);
-
         switch (messageData.type) {
           case "itemClicked":
             if (occupiedItems.includes(messageData.id)) {
@@ -88,33 +102,32 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
               }
             });
             break;
-
           case "contentHeight":
             const height = Number(messageData.height);
             if (height > 0 && height !== webViewHeight) {
               setWebViewHeight(height);
             }
             break;
-
           case "interactionStart":
             if (onInteractionStart) {
               onInteractionStart();
             }
             break;
-
           case "interactionEnd":
             if (onInteractionEnd) {
               onInteractionEnd();
             }
             break;
-
           case "modelChanged":
-            // Update available items when model changes
             setAvailableItems(messageData.availableItems || []);
             setCurrentModel(messageData.modelKey);
             setSelectedItems([]);
             break;
-
+          case "webViewReady":
+            // Handle ready message from WebView
+            handleWebViewLoaded();
+            console.log("WebView is ready");
+            break;
           default:
             console.warn("Unhandled message type:", messageData.type);
         }
@@ -124,10 +137,6 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
     },
     [occupiedItems, webViewHeight, onInteractionStart, onInteractionEnd]
   );
-
-  const cancelSelection = () => {
-    setSelectedItems([]);
-  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -139,8 +148,8 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
             scrollEnabled={false}
             cacheEnabled={false}
             cacheMode="LOAD_NO_CACHE"
-            incognito={true} // Additional cache prevention
-            thirdPartyCookiesEnabled={false} // Helps prevent caching issues
+            incognito={true}
+            thirdPartyCookiesEnabled={false}
             originWhitelist={["*"]}
             onError={(syntheticEvent) => {
               const { nativeEvent } = syntheticEvent;

@@ -1,12 +1,12 @@
-// features/reservations/components/ReservationCard.js
-
+// src/features/customer/reservations/components/ReservationCard.js
 import React from "react";
 import { View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { format, isToday, isTomorrow } from "date-fns";
 import styled, { useTheme } from "styled-components/native";
 
 import { Spacer } from "../../../../components/Spacer/Spacer";
 import { CustomText } from "../../../../components/CustomText/CustomText";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import {
   ReservationCardContainer,
@@ -19,13 +19,60 @@ import {
   TrackButtonText,
 } from "./ReservationCard.styles";
 
-export const ReservationCard = ({ reservation = {} }) => {
-  const navigation = useNavigation();
+// New styles for the selected state
+const SelectedIndicator = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid ${(props) => props.theme.colors.ui.primary};
+  border-radius: 8px;
+  pointer-events: none;
+`;
+
+const StatusContainer = styled.View`
+  position: absolute;
+  top: ${(props) => props.theme.space[2]};
+  right: ${(props) => props.theme.space[2]};
+  background-color: ${(props) => {
+    switch (props.status) {
+      case "Confirmed":
+        return "#4CAF50";
+      case "Pending":
+        return "#FFC107";
+      default:
+        return "#757575";
+    }
+  }};
+  padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
+  border-radius: 4px;
+`;
+
+const StatusText = styled(CustomText)`
+  color: white;
+  font-size: ${(props) => props.theme.fontSizes.caption};
+  font-weight: bold;
+`;
+
+const IconRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  margin-vertical: ${(props) => props.theme.space[1]};
+`;
+
+const formatDate = (date) => {
+  if (isToday(date)) return "Today";
+  if (isTomorrow(date)) return "Tomorrow";
+  return format(date, "EEE, MMM d");
+};
+
+export const ReservationCard = ({ reservation = {}, isSelected = false }) => {
   const theme = useTheme();
 
   const {
     restaurant = {},
-    date = "2024-04-01",
+    date = new Date(),
     time = "7:00 PM",
     seatsNumber = 4,
     status = "Confirmed",
@@ -34,27 +81,49 @@ export const ReservationCard = ({ reservation = {} }) => {
   return (
     <ReservationCardContainer elevation={0}>
       <ReservationCardCover source={{ uri: restaurant.photos[0] }} />
+      <StatusContainer status={status}>
+        <StatusText>{status}</StatusText>
+      </StatusContainer>
       <Info>
         <CustomText variant="title">{restaurant.name}</CustomText>
         <Section>
           <ReservationDetails>
-            <DetailText>Time: {time}</DetailText>
-            <DetailText>Seats: {seatsNumber}</DetailText>
-            <DetailText>Date: {date}</DetailText>
+            <IconRow>
+              <MaterialIcons
+                name="event"
+                size={16}
+                color={theme.colors.text.primary}
+              />
+              <Spacer position="left" size="small" />
+              <DetailText>{formatDate(new Date(date))}</DetailText>
+            </IconRow>
+            <IconRow>
+              <MaterialIcons
+                name="schedule"
+                size={16}
+                color={theme.colors.text.primary}
+              />
+              <Spacer position="left" size="small" />
+              <DetailText>{time}</DetailText>
+            </IconRow>
+            <IconRow>
+              <MaterialIcons
+                name="people"
+                size={16}
+                color={theme.colors.text.primary}
+              />
+              <Spacer position="left" size="small" />
+              <DetailText>
+                {seatsNumber} {seatsNumber === 1 ? "person" : "people"}
+              </DetailText>
+            </IconRow>
           </ReservationDetails>
-          <TrackButton
-            onPress={() => {
-              navigation.navigate("RestaurantDetailScreen", {
-                restaurant: restaurant,
-                presentationStyle: "modal",
-                openReservationView: true,
-              });
-            }}
-          >
-            <TrackButtonText>Track</TrackButtonText>
+          <TrackButton>
+            <TrackButtonText>Details</TrackButtonText>
           </TrackButton>
         </Section>
       </Info>
+      {isSelected && <SelectedIndicator />}
     </ReservationCardContainer>
   );
 };

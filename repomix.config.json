@@ -10,6 +10,8 @@
     "filePath": "repomix-output.txt",
     "removeComments": true,
     "showLineNumbers": true,
-    "topFilesLength": 10
+    "topFilesLength": 10,
+    "removeEmptyLines": true,
+    "copyToClipboard": true
   }
 }

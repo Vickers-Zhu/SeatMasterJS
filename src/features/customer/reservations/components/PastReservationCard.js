@@ -1,8 +1,8 @@
-// features/reservations/components/PastReservationCard.js
-
+// src/features/customer/reservations/components/PastReservationCard.js
 import React from "react";
 import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { format } from "date-fns";
 import styled, { useTheme } from "styled-components/native";
 
 import { Spacer } from "../../../../components/Spacer/Spacer";
@@ -18,8 +18,19 @@ import {
   ViewStoreButtonText,
 } from "./PastReservationCard.styles";
 
-export const PastReservationCard = ({ reservation = {} }) => {
+// New style for selected state
+const SelectedPastCardContainer = styled(PastReservationCardContainer)`
+  background-color: ${(props) =>
+    props.isSelected ? props.theme.colors.bg.secondary : "transparent"};
+  border-radius: 8px;
+`;
+
+export const PastReservationCard = ({
+  reservation = {},
+  isSelected = false,
+}) => {
   const navigation = useNavigation();
+  const theme = useTheme();
 
   const {
     restaurant = {},
@@ -27,13 +38,16 @@ export const PastReservationCard = ({ reservation = {} }) => {
     status = "Completed",
   } = reservation;
 
+  const formattedDate =
+    typeof date === "string" ? date : format(date, "MMM d, yyyy");
+
   return (
-    <PastReservationCardContainer>
+    <SelectedPastCardContainer isSelected={isSelected}>
       <CircleImage source={{ uri: restaurant.photos[0] }} />
       <InfoContainer>
         <CustomText variant="title">{restaurant.name}</CustomText>
         <Spacer position="top" size="small" />
-        <InfoText>Reserved Date: {date}</InfoText>
+        <InfoText>Reserved Date: {formattedDate}</InfoText>
         <Spacer position="top" size="small" />
         <StatusText>{status}</StatusText>
       </InfoContainer>
@@ -44,8 +58,8 @@ export const PastReservationCard = ({ reservation = {} }) => {
           });
         }}
       >
-        <ViewStoreButtonText>View Store</ViewStoreButtonText>
+        <ViewStoreButtonText>View</ViewStoreButtonText>
       </ViewStoreButton>
-    </PastReservationCardContainer>
+    </SelectedPastCardContainer>
   );
 };
