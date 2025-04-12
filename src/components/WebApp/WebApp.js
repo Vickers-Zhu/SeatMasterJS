@@ -13,14 +13,20 @@ import {
   CancelButtonText,
 } from "./styles";
 
-const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
+const WebApp = ({
+  onInteractionStart,
+  onInteractionEnd,
+  onSelectedItemsChange,
+  selectedItems: initialSelectedItems = [],
+}) => {
   const serverUrl = useStaticServer();
   const webViewRef = useRef(null);
   const [webViewHeight, setWebViewHeight] = useState(200);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [internalSelectedItems, setInternalSelectedItems] =
+    useState(initialSelectedItems);
   const [occupiedItems, setOccupiedItems] = useState(["CHAIR1", "CHAIR4"]);
   const [isServerReady, setIsServerReady] = useState(false);
-  const [currentModel, setCurrentModel] = useState("kitchen") ;
+  const [currentModel, setCurrentModel] = useState("kitchen");
   const [availableItems, setAvailableItems] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -31,17 +37,19 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
   }, [serverUrl]);
 
   const cancelSelection = () => {
-    setSelectedItems([]);
+    setInternalSelectedItems([]);
+    if (onSelectedItemsChange) {
+      onSelectedItemsChange([]);
+    }
   };
 
-  // This function sends data to the WebView
   const sendItemsToWebView = useCallback(() => {
     if (webViewRef.current) {
       const script = `
         (function() {
           if (window.updateItems) {
             window.updateItems({
-              selectedItems: ${JSON.stringify(selectedItems)},
+              selectedItems: ${JSON.stringify(internalSelectedItems)},
               occupiedItems: ${JSON.stringify(occupiedItems)}
             });
           }
@@ -50,28 +58,25 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
       `;
       webViewRef.current.injectJavaScript(script);
     }
-  }, [selectedItems, occupiedItems]);
+  }, [internalSelectedItems, occupiedItems]);
 
-  // Send items to WebView whenever selected or occupied items change
   useEffect(() => {
     if (isInitialized) {
       sendItemsToWebView();
     }
-  }, [selectedItems, occupiedItems, sendItemsToWebView, isInitialized]);
+  }, [internalSelectedItems, occupiedItems, sendItemsToWebView, isInitialized]);
 
-  // Handle initialization after WebView loads
   const handleWebViewLoaded = useCallback(() => {
-    // Set isInitialized to true and trigger initial data send
     setIsInitialized(true);
-    // Short delay to ensure WebView is fully loaded before sending data
     setTimeout(() => {
       sendItemsToWebView();
     }, 300);
   }, [sendItemsToWebView]);
 
-  const changeRestaurantModel = useCallback((modelKey) => {
-    if (webViewRef.current) {
-      const script = `
+  const changeRestaurantModel = useCallback(
+    (modelKey) => {
+      if (webViewRef.current) {
+        const script = `
         (function() {
           if (window.changeRestaurantModel) {
             window.changeRestaurantModel('${modelKey}');
@@ -79,11 +84,16 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
         })();
         true;
       `;
-      webViewRef.current.injectJavaScript(script);
-      setCurrentModel(modelKey);
-      setSelectedItems([]);
-    }
-  }, []);
+        webViewRef.current.injectJavaScript(script);
+        setCurrentModel(modelKey);
+        setInternalSelectedItems([]);
+        if (onSelectedItemsChange) {
+          onSelectedItemsChange([]);
+        }
+      }
+    },
+    [onSelectedItemsChange]
+  );
 
   const handleWebViewMessage = useCallback(
     (event) => {
@@ -94,40 +104,52 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
             if (occupiedItems.includes(messageData.id)) {
               return;
             }
-            setSelectedItems((prevSelected) => {
-              if (prevSelected.includes(messageData.id)) {
-                return prevSelected.filter((id) => id !== messageData.id);
-              } else {
-                return [...prevSelected, messageData.id];
-              }
-            });
+
+            const newSelectedItems = internalSelectedItems.includes(
+              messageData.id
+            )
+              ? internalSelectedItems.filter((id) => id !== messageData.id)
+              : [...internalSelectedItems, messageData.id];
+
+            setInternalSelectedItems(newSelectedItems);
+            if (onSelectedItemsChange) {
+              onSelectedItemsChange(newSelectedItems);
+            }
             break;
+
           case "contentHeight":
             const height = Number(messageData.height);
             if (height > 0 && height !== webViewHeight) {
               setWebViewHeight(height);
             }
             break;
+
           case "interactionStart":
             if (onInteractionStart) {
               onInteractionStart();
             }
             break;
+
           case "interactionEnd":
             if (onInteractionEnd) {
               onInteractionEnd();
             }
             break;
+
           case "modelChanged":
             setAvailableItems(messageData.availableItems || []);
             setCurrentModel(messageData.modelKey);
-            setSelectedItems([]);
+            setInternalSelectedItems([]);
+            if (onSelectedItemsChange) {
+              onSelectedItemsChange([]);
+            }
             break;
+
           case "webViewReady":
-            // Handle ready message from WebView
             handleWebViewLoaded();
             console.log("WebView is ready");
             break;
+
           default:
             console.warn("Unhandled message type:", messageData.type);
         }
@@ -135,7 +157,14 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
         console.error("Failed to parse message from WebView:", error);
       }
     },
-    [occupiedItems, webViewHeight, onInteractionStart, onInteractionEnd]
+    [
+      occupiedItems,
+      webViewHeight,
+      onInteractionStart,
+      onInteractionEnd,
+      onSelectedItemsChange,
+      internalSelectedItems,
+    ]
   );
 
   return (
@@ -170,7 +199,7 @@ const WebApp = ({ onInteractionStart, onInteractionEnd }) => {
       )}
       <Footer>
         <SelectedText>
-          Selected Items: {selectedItems.join(", ") || "None"}
+          Selected Items: {internalSelectedItems.join(", ") || "None"}
         </SelectedText>
         <CancelButton onPress={cancelSelection}>
           <CancelButtonText>Cancel Selection</CancelButtonText>

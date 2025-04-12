@@ -4,10 +4,8 @@ import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { format } from "date-fns";
 import styled, { useTheme } from "styled-components/native";
-
 import { Spacer } from "../../../../components/Spacer/Spacer";
 import { CustomText } from "../../../../components/CustomText/CustomText";
-
 import {
   PastReservationCardContainer,
   CircleImage,
@@ -18,7 +16,6 @@ import {
   ViewStoreButtonText,
 } from "./PastReservationCard.styles";
 
-// New style for selected state
 const SelectedPastCardContainer = styled(PastReservationCardContainer)`
   background-color: ${(props) =>
     props.isSelected ? props.theme.colors.bg.secondary : "transparent"};
@@ -39,7 +36,9 @@ export const PastReservationCard = ({
   } = reservation;
 
   const formattedDate =
-    typeof date === "string" ? date : format(date, "MMM d, yyyy");
+    typeof date === "string"
+      ? format(new Date(date), "MMM d, yyyy")
+      : format(date, "MMM d, yyyy");
 
   return (
     <SelectedPastCardContainer isSelected={isSelected}>

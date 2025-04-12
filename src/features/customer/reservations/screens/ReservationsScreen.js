@@ -1,11 +1,16 @@
-// src/features/customer/reservations/screens/ReservationsScreen.js
-import React, { useState, useEffect } from "react";
+// screens/ReservationsScreen.js
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components/native";
-import { ScrollView, TouchableOpacity, View, Alert } from "react-native";
+import {
+  ScrollView,
+  TouchableOpacity,
+  View,
+  Alert,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns";
-
 import { reservations } from "../../../../data/mockData";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import { SafeArea } from "../../../../components/SafeArea/SafeArea";
@@ -86,6 +91,7 @@ const ReservationDetails = styled.View`
   padding: ${(props) => props.theme.space[3]};
   margin: ${(props) => props.theme.space[3]};
   border-radius: 8px;
+  z-index: 10;
 `;
 
 const DetailRow = styled.View`
@@ -150,10 +156,46 @@ const StatusText = styled(CustomText)`
   font-weight: bold;
 `;
 
+// Card related components
+const CardContainer = styled.View`
+  position: relative;
+`;
+
+const DetailButtonOverlay = styled(TouchableOpacity)`
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  height: 50px;
+  width: 80px;
+  z-index: 100;
+`;
+
+const ViewButtonOverlay = styled(TouchableOpacity)`
+  position: absolute;
+  right: 10px;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 100;
+  justify-content: center;
+`;
+
+// Adding a backdrop to close the details
+const Backdrop = styled(TouchableWithoutFeedback)`
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
+`;
+
 export const ReservationsScreen = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const scrollViewRef = useRef(null);
+
   const {
     isLoading,
     getUpcomingReservations,
@@ -172,6 +214,11 @@ export const ReservationsScreen = () => {
     (reservation) => reservation.status === "Completed"
   );
 
+  // Reset selected reservation when tab changes
+  useEffect(() => {
+    setSelectedReservation(null);
+  }, [activeTab]);
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -184,6 +231,10 @@ export const ReservationsScreen = () => {
     setSelectedReservation(
       selectedReservation?.id === reservation.id ? null : reservation
     );
+  };
+
+  const closeDetails = () => {
+    setSelectedReservation(null);
   };
 
   const handleCancelReservation = () => {
@@ -239,65 +290,107 @@ export const ReservationsScreen = () => {
     if (!selectedReservation) return null;
 
     const isPastReservation = selectedReservation.status === "Completed";
+    const formattedDuration = selectedReservation.duration
+      ? `${Math.floor(selectedReservation.duration / 60)}h${
+          selectedReservation.duration % 60 > 0
+            ? ` ${selectedReservation.duration % 60}m`
+            : ""
+        }`
+      : "";
 
     return (
-      <ReservationDetails>
-        <StatusBadge status={selectedReservation.status}>
-          <StatusText>{selectedReservation.status}</StatusText>
-        </StatusBadge>
-
-        <DetailRow>
-          <DetailIcon name="restaurant" size={20} />
-          <DetailInfo>
-            <DetailLabel>Restaurant</DetailLabel>
-            <DetailValue>{selectedReservation.restaurant.name}</DetailValue>
-          </DetailInfo>
-        </DetailRow>
-
-        <DetailRow>
-          <DetailIcon name="event" size={20} />
-          <DetailInfo>
-            <DetailLabel>Date & Time</DetailLabel>
-            <DetailValue>
-              {formatDate(selectedReservation.date)} at{" "}
-              {selectedReservation.time}
-            </DetailValue>
-          </DetailInfo>
-        </DetailRow>
-
-        <DetailRow>
-          <DetailIcon name="people" size={20} />
-          <DetailInfo>
-            <DetailLabel>Party Size</DetailLabel>
-            <DetailValue>{selectedReservation.seatsNumber} people</DetailValue>
-          </DetailInfo>
-        </DetailRow>
-
-        {!isPastReservation && (
-          <DetailsActions>
-            <DetailsActionButton onPress={handleModifyReservation}>
-              <MaterialIcons name="edit" size={24} color="#262626" />
-              <CustomText>Modify</CustomText>
-            </DetailsActionButton>
-
-            <DetailsActionButton
-              onPress={() => {
-                navigation.navigate("RestaurantDetailScreen", {
-                  restaurant: selectedReservation.restaurant,
-                });
-              }}
-            >
-              <MaterialIcons name="info" size={24} color="#262626" />
-              <CustomText>Details</CustomText>
-            </DetailsActionButton>
-
-            <DetailsActionButton onPress={handleCancelReservation}>
-              <MaterialIcons name="cancel" size={24} color="#F44336" />
-              <CustomText style={{ color: "#F44336" }}>Cancel</CustomText>
-            </DetailsActionButton>
-          </DetailsActions>
-        )}
-      </ReservationDetails>
+      <>
+        <Backdrop onPress={closeDetails}>
+          <View style={{ flex: 1 }} />
+        </Backdrop>
+        <ReservationDetails>
+          <StatusBadge status={selectedReservation.status}>
+            <StatusText>{selectedReservation.status}</StatusText>
+          </StatusBadge>
+          <DetailRow>
+            <DetailIcon name="restaurant" size={20} />
+            <DetailInfo>
+              <DetailLabel>Restaurant</DetailLabel>
+              <DetailValue>{selectedReservation.restaurant.name}</DetailValue>
+            </DetailInfo>
+          </DetailRow>
+          <DetailRow>
+            <DetailIcon name="event" size={20} />
+            <DetailInfo>
+              <DetailLabel>Date & Time</DetailLabel>
+              <DetailValue>
+                {formatDate(selectedReservation.date)} at{" "}
+                {selectedReservation.time}
+                {formattedDuration && ` (${formattedDuration})`}
+              </DetailValue>
+            </DetailInfo>
+          </DetailRow>
+          <DetailRow>
+            <DetailIcon name="people" size={20} />
+            <DetailInfo>
+              <DetailLabel>Party Size</DetailLabel>
+              <DetailValue>
+                {selectedReservation.people || selectedReservation.seatsNumber}{" "}
+                people
+              </DetailValue>
+            </DetailInfo>
+          </DetailRow>
+          {selectedReservation.chairs &&
+            selectedReservation.chairs.length > 0 && (
+              <DetailRow>
+                <DetailIcon name="event-seat" size={20} />
+                <DetailInfo>
+                  <DetailLabel>Seating</DetailLabel>
+                  <DetailValue>
+                    Seats: {selectedReservation.chairs.join(", ")}
+                  </DetailValue>
+                </DetailInfo>
+              </DetailRow>
+            )}
+          {selectedReservation.counterSeatId && (
+            <DetailRow>
+              <DetailIcon name="event-seat" size={20} />
+              <DetailInfo>
+                <DetailLabel>Seating</DetailLabel>
+                <DetailValue>
+                  Counter Seat: {selectedReservation.counterSeatId}
+                </DetailValue>
+              </DetailInfo>
+            </DetailRow>
+          )}
+          {selectedReservation.note && (
+            <DetailRow>
+              <DetailIcon name="notes" size={20} />
+              <DetailInfo>
+                <DetailLabel>Special Requests</DetailLabel>
+                <DetailValue>{selectedReservation.note}</DetailValue>
+              </DetailInfo>
+            </DetailRow>
+          )}
+          {!isPastReservation && (
+            <DetailsActions>
+              <DetailsActionButton onPress={handleModifyReservation}>
+                <MaterialIcons name="edit" size={24} color="#262626" />
+                <CustomText>Modify</CustomText>
+              </DetailsActionButton>
+              <DetailsActionButton
+                onPress={() => {
+                  navigation.navigate("RestaurantDetailScreen", {
+                    restaurant: selectedReservation.restaurant,
+                  });
+                }}
+              >
+                <MaterialIcons name="info" size={24} color="#262626" />
+                <CustomText>Details</CustomText>
+              </DetailsActionButton>
+              <DetailsActionButton onPress={handleCancelReservation}>
+                <MaterialIcons name="cancel" size={24} color="#F44336" />
+                <CustomText style={{ color: "#F44336" }}>Cancel</CustomText>
+              </DetailsActionButton>
+            </DetailsActions>
+          )}
+        </ReservationDetails>
+      </>
     );
   };
 
@@ -317,7 +410,7 @@ export const ReservationsScreen = () => {
 
       {selectedReservation && renderReservationDetails()}
 
-      <ScrollView>
+      <ScrollView ref={scrollViewRef} onScrollBeginDrag={closeDetails}>
         {activeTab === "upcoming" && (
           <>
             {upcomingReservations.length > 0 ? (
@@ -327,14 +420,15 @@ export const ReservationsScreen = () => {
                 </SectionTitle>
                 {upcomingReservations.map((reservation, index) => (
                   <FadeInView key={reservation.id} duration={300 + index * 100}>
-                    <TouchableOpacity
-                      onPress={() => handleReservationPress(reservation)}
-                    >
+                    <CardContainer>
                       <ReservationCard
                         reservation={reservation}
                         isSelected={selectedReservation?.id === reservation.id}
                       />
-                    </TouchableOpacity>
+                      <DetailButtonOverlay
+                        onPress={() => handleReservationPress(reservation)}
+                      />
+                    </CardContainer>
                     {index < upcomingReservations.length - 1 && (
                       <Separator type="full" />
                     )}
@@ -346,7 +440,6 @@ export const ReservationsScreen = () => {
             )}
           </>
         )}
-
         {activeTab === "past" && (
           <>
             {pastReservations.length > 0 ? (
@@ -355,14 +448,15 @@ export const ReservationsScreen = () => {
                 <Spacer position="top" size="small" />
                 {pastReservations.map((reservation, index) => (
                   <FadeInView key={reservation.id} duration={300 + index * 100}>
-                    <TouchableOpacity
-                      onPress={() => handleReservationPress(reservation)}
-                    >
+                    <CardContainer>
                       <PastReservationCard
                         reservation={reservation}
                         isSelected={selectedReservation?.id === reservation.id}
                       />
-                    </TouchableOpacity>
+                      <ViewButtonOverlay
+                        onPress={() => handleReservationPress(reservation)}
+                      />
+                    </CardContainer>
                     {index < pastReservations.length - 1 && (
                       <Separator type="partial" />
                     )}

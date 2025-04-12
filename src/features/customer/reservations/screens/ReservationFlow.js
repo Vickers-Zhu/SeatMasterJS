@@ -1,362 +1,54 @@
 // src/features/customer/reservations/screens/ReservationFlow.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Alert,
   FlatList,
-  Platform,
 } from "react-native";
-import styled from "styled-components/native";
 import { MaterialIcons } from "@expo/vector-icons";
-import {
-  format,
-  addDays,
-  addMonths,
-  isSameDay,
-  isWeekend,
-  getDay,
-} from "date-fns";
+import { format, addDays, isSameDay, getDay } from "date-fns";
 import { CustomText } from "../../../../components/CustomText/CustomText";
-import WebApp from "../../../../components/WebApp/WebApp";
 import ReservationLayoutView from "../components/ReservationLayoutView";
 import { TimeScroll } from "../../../../components/TimeScroll/TimeScroll";
 import { Separator } from "../../../../components/Separator/Separator";
 import { Spacer } from "../../../../components/Spacer/Spacer";
 import { generateTimeSlots } from "../../../merchant/reservations/utils/timeUtils";
+import * as Styles from "./ReservationFlow.styles";
 
-const Container = styled(ScrollView)`
-  flex: 1;
-  background-color: ${(props) => props.theme.colors.bg.primary};
-  padding-horizontal: ${(props) => props.theme.space[3]};
-`;
-
-const HeaderContainer = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: ${(props) => props.theme.space[3]};
-  margin-bottom: ${(props) => props.theme.space[3]};
-`;
-
-// Enhanced Date Selector
-const DateSelectorContainer = styled.View`
-  margin-bottom: ${(props) => props.theme.space[3]};
-`;
-
-const DateItemsContainer = styled.View`
-  margin-vertical: ${(props) => props.theme.space[2]};
-`;
-
-const DateOption = styled(TouchableOpacity)`
-  padding-vertical: ${(props) => props.theme.space[2]};
-  padding-horizontal: ${(props) => props.theme.space[3]};
-  margin-right: ${(props) => props.theme.space[2]};
-  background-color: ${(props) =>
-    props.selected
-      ? props.theme.colors.ui.primary
-      : props.theme.colors.bg.secondary};
-  border-radius: 20px;
-  min-width: 80px;
-  align-items: center;
-  ${(props) =>
-    props.unavailable &&
-    `
-    opacity: 0.5;
-  `}
-  elevation: ${(props) => (props.selected ? 3 : 0)};
-  shadow-opacity: ${(props) => (props.selected ? 0.2 : 0)};
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const DateText = styled(CustomText)`
-  color: ${(props) =>
-    props.selected
-      ? props.theme.colors.text.inverse
-      : props.theme.colors.text.primary};
-  font-size: ${(props) => props.theme.fontSizes.caption};
-  font-weight: ${(props) =>
-    props.selected
-      ? props.theme.fontWeights.bold
-      : props.theme.fontWeights.regular};
-`;
-
-const WeekdayText = styled(CustomText)`
-  color: ${(props) =>
-    props.selected
-      ? props.theme.colors.text.inverse
-      : props.theme.colors.text.secondary};
-  font-size: ${(props) => props.theme.fontSizes.caption};
-  margin-top: 2px;
-`;
-
-const AvailabilityIndicator = styled.View`
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  margin-top: 2px;
-  background-color: ${(props) => {
-    if (props.selected) return props.theme.colors.text.inverse;
-    switch (props.level) {
-      case "high":
-        return "#4CAF50";
-      case "medium":
-        return "#FFC107";
-      case "low":
-        return "#F44336";
-      default:
-        return "#BDBDBD";
-    }
-  }};
-`;
-
-// Enhanced Party Size Selector
-const PartySelectorContainer = styled.View`
-  margin-bottom: ${(props) => props.theme.space[3]};
-`;
-
-const PartyOptionsContainer = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-top: ${(props) => props.theme.space[2]};
-`;
-
-const PartyOption = styled(TouchableOpacity)`
-  min-width: 50px;
-  height: 50px;
-  margin-right: ${(props) => props.theme.space[2]};
-  margin-bottom: ${(props) => props.theme.space[2]};
-  background-color: ${(props) =>
-    props.selected
-      ? props.theme.colors.ui.primary
-      : props.theme.colors.bg.secondary};
-  border-radius: 25px;
-  align-items: center;
-  justify-content: center;
-  elevation: ${(props) => (props.selected ? 3 : 0)};
-  shadow-opacity: ${(props) => (props.selected ? 0.2 : 0)};
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const PartyText = styled(CustomText)`
-  color: ${(props) =>
-    props.selected
-      ? props.theme.colors.text.inverse
-      : props.theme.colors.text.primary};
-  font-size: ${(props) => props.theme.fontSizes.body};
-  font-weight: ${(props) =>
-    props.selected
-      ? props.theme.fontWeights.bold
-      : props.theme.fontWeights.regular};
-`;
-
-// Enhanced Time Selector
-const TimeContainer = styled.View`
-  margin-bottom: ${(props) => props.theme.space[3]};
-`;
-
-const TimeOptionsContainer = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-top: ${(props) => props.theme.space[2]};
-`;
-
-const TimeOption = styled(TouchableOpacity)`
-  min-width: 80px;
-  padding-vertical: ${(props) => props.theme.space[2]};
-  padding-horizontal: ${(props) => props.theme.space[2]};
-  margin-right: ${(props) => props.theme.space[2]};
-  margin-bottom: ${(props) => props.theme.space[2]};
-  background-color: ${(props) =>
-    props.selected
-      ? props.theme.colors.ui.primary
-      : props.theme.colors.bg.secondary};
-  border-radius: 12px;
-  align-items: center;
-  justify-content: center;
-  ${(props) =>
-    props.availability === "low" &&
-    `
-    border: 1px solid #F44336;
-  `}
-  ${(props) =>
-    props.availability === "medium" &&
-    `
-    border: 1px solid #FFC107;
-  `}
-  elevation: ${(props) => (props.selected ? 3 : 0)};
-  shadow-opacity: ${(props) => (props.selected ? 0.2 : 0)};
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const TimeText = styled(CustomText)`
-  color: ${(props) =>
-    props.selected
-      ? props.theme.colors.text.inverse
-      : props.theme.colors.text.primary};
-  font-size: ${(props) => props.theme.fontSizes.body};
-  font-weight: ${(props) =>
-    props.selected
-      ? props.theme.fontWeights.bold
-      : props.theme.fontWeights.regular};
-`;
-
-const TimeAvailabilityIndicator = styled.View`
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  margin-top: 4px;
-  background-color: ${(props) => {
-    if (props.selected) return props.theme.colors.text.inverse;
-    switch (props.level) {
-      case "high":
-        return "#4CAF50";
-      case "medium":
-        return "#FFC107";
-      case "low":
-        return "#F44336";
-      default:
-        return "#BDBDBD";
-    }
-  }};
-`;
-
-const AvailabilityRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-top: ${(props) => props.theme.space[2]};
-`;
-
-const AvailabilityText = styled(CustomText)`
-  font-size: ${(props) => props.theme.fontSizes.caption};
-  color: ${(props) => props.theme.colors.text.secondary};
-  margin-left: ${(props) => props.theme.space[1]};
-`;
-
-const ToggleButton = styled(TouchableOpacity)`
-  flex-direction: row;
-  align-items: center;
-  padding: ${(props) => props.theme.space[2]};
-  background-color: ${(props) => props.theme.colors.bg.secondary};
-  border-radius: 8px;
-  margin-bottom: ${(props) => props.theme.space[2]};
-  elevation: 1;
-  shadow-opacity: 0.1;
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const ToggleText = styled(CustomText)`
-  font-size: ${(props) => props.theme.fontSizes.body};
-  margin-left: ${(props) => props.theme.space[2]};
-`;
-
-const LayoutContainer = styled.View`
-  min-height: 250px;
-  margin-bottom: ${(props) => props.theme.space[3]};
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: ${(props) => props.theme.colors.bg.secondary};
-  elevation: 1;
-  shadow-opacity: 0.1;
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const NotesInput = styled.TextInput`
-  padding: ${(props) => props.theme.space[3]};
-  background-color: ${(props) => props.theme.colors.bg.secondary};
-  border-radius: 12px;
-  margin-bottom: ${(props) => props.theme.space[3]};
-  min-height: 100px;
-  color: ${(props) => props.theme.colors.text.primary};
-  elevation: 1;
-  shadow-opacity: 0.1;
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const ReserveButton = styled(TouchableOpacity)`
-  background-color: ${(props) => props.theme.colors.ui.primary};
-  padding: ${(props) => props.theme.space[3]};
-  border-radius: 12px;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: ${(props) => props.theme.space[4]};
-  elevation: 3;
-  shadow-opacity: 0.2;
-  shadow-radius: 4px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-`;
-
-const ReserveButtonText = styled(CustomText)`
-  color: ${(props) => props.theme.colors.text.inverse};
-  font-size: ${(props) => props.theme.fontSizes.button};
-  font-weight: ${(props) => props.theme.fontWeights.bold};
-`;
-
-const SectionTitle = styled(CustomText)`
-  font-size: ${(props) => props.theme.fontSizes.body};
-  font-weight: ${(props) => props.theme.fontWeights.bold};
-  margin-bottom: ${(props) => props.theme.space[2]};
-`;
-
-// Helper for determining day availability (would come from restaurant settings)
 const getDayAvailability = (date) => {
-  const day = getDay(date); // 0 = Sunday, 6 = Saturday
-
-  // Example: Lower availability on weekends
+  const day = getDay(date);
   if (day === 0 || day === 6) return "medium";
-
-  // Example: No availability on Mondays (day === 1)
   if (day === 1) return "unavailable";
-
   return "high";
 };
 
-// Get weekday name
 const getWeekdayName = (date) => {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   return days[getDay(date)];
 };
 
 const ReservationFlow = ({ restaurant, onComplete }) => {
-  // Reference for date selection horizontal scroll
   const dateScrollRef = useRef(null);
-
-  // State variables
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [partySize, setPartySize] = useState(2);
-  const [allTimeSlots, setAllTimeSlots] = useState(generateTimeSlots());
   const [availableTimes, setAvailableTimes] = useState([]);
   const [selectedTime, setSelectedTime] = useState(null);
   const [showLayout, setShowLayout] = useState(false);
-  const [selectedTable, setSelectedTable] = useState(null);
+  const [selectedChairs, setSelectedChairs] = useState([]);
   const [notes, setNotes] = useState("");
   const [availability, setAvailability] = useState("high");
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const [duration, setDuration] = useState(90);
 
-  // Generate dates for selection (up to 2 months)
-  const generateDates = () => {
+  // Generate dates for selection
+  const generateDates = useCallback(() => {
     const dates = [];
     const today = new Date();
-
-    // Generate dates for the next 2 months
     for (let i = 0; i < 60; i++) {
       const date = addDays(today, i);
       const availability = getDayAvailability(date);
-
       dates.push({
         date,
         label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : format(date, "MMM d"),
@@ -365,42 +57,33 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
         isUnavailable: availability === "unavailable",
       });
     }
-
     return dates;
-  };
+  }, []);
 
-  // Generate party size options (1-20 default, can be customized by restaurant)
-  const generatePartySizeOptions = () => {
-    // Default max party size
+  // Generate party size options based on restaurant settings
+  const generatePartySizeOptions = useCallback(() => {
     const maxPartySize = restaurant?.settings?.maxReservationSize || 20;
-
-    const sizes = [];
-    for (let i = 1; i <= maxPartySize; i++) {
-      sizes.push(i);
-    }
-    return sizes;
-  };
+    return Array.from({ length: maxPartySize }, (_, i) => i + 1);
+  }, [restaurant?.settings?.maxReservationSize]);
 
   const [dateOptions] = useState(generateDates);
   const [partySizeOptions] = useState(generatePartySizeOptions);
 
-  // Filter available time slots based on day and party size
+  // Update available time slots based on selected date
   useEffect(() => {
-    // In a real app, this would be based on restaurant settings and availability
     const allSlots = generateTimeSlots();
-
-    // Filter times based on day of week
     const dayOfWeek = getDay(selectedDate);
+    let filteredTimes;
 
-    let filteredTimes = allSlots;
-
-    // Example: Weekend has different hours
+    // Different hours for weekends vs weekdays
     if (dayOfWeek === 0 || dayOfWeek === 6) {
+      // Weekend
       filteredTimes = allSlots.filter((time) => {
         const hour = parseInt(time.split(":")[0]);
         return hour >= 10 && hour <= 22;
       });
     } else {
+      // Weekday
       filteredTimes = allSlots.filter((time) => {
         const hour = parseInt(time.split(":")[0]);
         return hour >= 11 && hour <= 21;
@@ -409,22 +92,20 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
 
     setAvailableTimes(filteredTimes);
 
-    // Select a default time (middle of the day)
+    // Set default time if none selected or current selection isn't available
     if (!selectedTime || !filteredTimes.includes(selectedTime)) {
       const defaultTimeIndex = Math.floor(filteredTimes.length / 2);
       setSelectedTime(filteredTimes[defaultTimeIndex]);
     }
   }, [selectedDate]);
 
-  // Calculate availability based on time and party size
+  // Update availability and duration based on party size and time
   useEffect(() => {
-    // In a real app, this would make an API call to check availability
     if (!selectedTime) return;
 
-    const timeIndex = availableTimes.indexOf(selectedTime);
     const hour = parseInt(selectedTime.split(":")[0]);
 
-    // Example logic for availability calculation
+    // Determine availability level based on party size and time
     if (partySize > 10) {
       setAvailability("low");
     } else if ((hour >= 18 && hour <= 20) || partySize > 6) {
@@ -432,18 +113,48 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
     } else {
       setAvailability("high");
     }
-  }, [selectedTime, partySize, availableTimes]);
 
-  const handleInteractionStart = () => {
+    // Set duration based on party size
+    if (partySize >= 8) {
+      setDuration(120);
+    } else if (partySize >= 4) {
+      setDuration(90);
+    } else {
+      setDuration(60);
+    }
+  }, [selectedTime, partySize]);
+
+  // Reset chair selection when party size or time changes
+  useEffect(() => {
+    setSelectedChairs([]);
+  }, [partySize, selectedTime]);
+
+  // Handlers for interaction with the 3D layout
+  const handleInteractionStart = useCallback(() => {
     setScrollEnabled(false);
-  };
+  }, []);
 
-  const handleInteractionEnd = () => {
+  const handleInteractionEnd = useCallback(() => {
     setScrollEnabled(true);
+  }, []);
+
+  // Handle chair selection from the 3D layout
+  const handleChairSelection = useCallback((chairIds) => {
+    if (chairIds) {
+      setSelectedChairs(chairIds.split(","));
+      console.log("Selected chairs in reserv flow:", chairIds.split(","));
+    } else {
+      setSelectedChairs([]);
+    }
+  }, []);
+
+  // Generate a unique reservation ID
+  const generateReservationId = () => {
+    return Math.floor(Math.random() * 10000) + 1;
   };
 
-  // Handle reservation submission
-  const handleReservePress = () => {
+  // Handle the reservation submission
+  const handleReservePress = useCallback(() => {
     if (!selectedDate || !selectedTime) {
       Alert.alert(
         "Missing Information",
@@ -452,17 +163,38 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
       return;
     }
 
-    // In a real app, this would make an API call to create the reservation
+    // Validate chair selection if layout is shown
+    if (showLayout && selectedChairs.length > 0) {
+      if (selectedChairs.length < partySize) {
+        Alert.alert(
+          "Seat Selection Required",
+          `Please select ${partySize} seats. You have selected ${selectedChairs.length}.`
+        );
+        return;
+      }
+    }
+
+    const customerName = "Current User";
     const reservationDetails = {
-      restaurant: restaurant.name,
+      id: generateReservationId(),
+      customerName,
+      restaurant: restaurant,
       date: format(selectedDate, "yyyy-MM-dd"),
       time: selectedTime,
-      partySize: partySize,
-      tableId: selectedTable || "Not specified",
-      notes: notes,
-      status: "Confirmed",
+      people: partySize,
+      duration: duration,
+      status: "confirmed",
+      note: notes,
     };
 
+    // Include chair information if chairs were selected
+    if (selectedChairs.length > 0) {
+      reservationDetails.chairs = selectedChairs;
+    } else {
+      reservationDetails.autoAssigned = true;
+    }
+
+    // Confirm the reservation
     Alert.alert(
       "Reservation Confirmed!",
       `Your reservation for ${partySize} ${
@@ -470,7 +202,11 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
       } at ${selectedTime} on ${format(
         selectedDate,
         "EEE, MMM d"
-      )} has been confirmed.`,
+      )} has been confirmed.${
+        selectedChairs.length === 0
+          ? "\n\nYour seats will be assigned upon arrival."
+          : ""
+      }`,
       [
         {
           text: "OK",
@@ -478,79 +214,70 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
         },
       ]
     );
-  };
+  }, [
+    selectedDate,
+    selectedTime,
+    partySize,
+    duration,
+    selectedChairs,
+    showLayout,
+    notes,
+    restaurant,
+    onComplete,
+  ]);
 
-  const handleTableSelection = (tableId) => {
-    setSelectedTable(tableId);
-  };
-
-  // Get availability color indicator
-  const getAvailabilityColor = (level) => {
-    switch (level) {
-      case "high":
-        return "#4CAF50";
-      case "medium":
-        return "#FFC107";
-      case "low":
-        return "#F44336";
-      default:
-        return "#BDBDBD";
-    }
-  };
-
-  const renderAvailabilityLegend = () => {
-    return (
-      <View style={{ flexDirection: "row", marginTop: 8, marginBottom: 16 }}>
-        <AvailabilityRow>
-          <View
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: "#4CAF50",
-              marginRight: 4,
-            }}
-          />
-          <AvailabilityText>High</AvailabilityText>
-        </AvailabilityRow>
-        <AvailabilityRow style={{ marginLeft: 12 }}>
-          <View
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: "#FFC107",
-              marginRight: 4,
-            }}
-          />
-          <AvailabilityText>Limited</AvailabilityText>
-        </AvailabilityRow>
-        <AvailabilityRow style={{ marginLeft: 12 }}>
-          <View
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: "#F44336",
-              marginRight: 4,
-            }}
-          />
-          <AvailabilityText>Few spots</AvailabilityText>
-        </AvailabilityRow>
-      </View>
-    );
-  };
+  // Render availability legend
+  const renderAvailabilityLegend = () => (
+    <View style={{ flexDirection: "row", marginTop: 8, marginBottom: 16 }}>
+      <Styles.AvailabilityRow>
+        <View
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: "#4CAF50",
+            marginRight: 4,
+          }}
+        />
+        <Styles.AvailabilityText>High</Styles.AvailabilityText>
+      </Styles.AvailabilityRow>
+      <Styles.AvailabilityRow style={{ marginLeft: 12 }}>
+        <View
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: "#FFC107",
+            marginRight: 4,
+          }}
+        />
+        <Styles.AvailabilityText>Limited</Styles.AvailabilityText>
+      </Styles.AvailabilityRow>
+      <Styles.AvailabilityRow style={{ marginLeft: 12 }}>
+        <View
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: "#F44336",
+            marginRight: 4,
+          }}
+        />
+        <Styles.AvailabilityText>Few spots</Styles.AvailabilityText>
+      </Styles.AvailabilityRow>
+    </View>
+  );
 
   return (
-    <Container scrollEnabled={scrollEnabled}>
-      <HeaderContainer>
+    <Styles.Container scrollEnabled={scrollEnabled}>
+      <Styles.HeaderContainer>
         <CustomText variant="h4">Make a Reservation</CustomText>
-      </HeaderContainer>
+      </Styles.HeaderContainer>
 
-      {/* Date Selection */}
-      <DateSelectorContainer>
-        <SectionTitle>Date</SectionTitle>
-        <DateItemsContainer>
+      {/* Date Selector */}
+      <Styles.DateSelectorContainer>
+        <Styles.SectionTitle>Date</Styles.SectionTitle>
+        <Styles.DateItemsContainer>
           <FlatList
             ref={dateScrollRef}
             horizontal
@@ -558,118 +285,121 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
             data={dateOptions}
             keyExtractor={(item, index) => `date-${index}`}
             renderItem={({ item }) => (
-              <DateOption
+              <Styles.DateOption
                 selected={isSameDay(selectedDate, item.date)}
                 unavailable={item.isUnavailable}
                 onPress={() =>
                   !item.isUnavailable && setSelectedDate(item.date)
                 }
               >
-                <DateText selected={isSameDay(selectedDate, item.date)}>
+                <Styles.DateText selected={isSameDay(selectedDate, item.date)}>
                   {item.label}
-                </DateText>
-                <WeekdayText selected={isSameDay(selectedDate, item.date)}>
+                </Styles.DateText>
+                <Styles.WeekdayText
+                  selected={isSameDay(selectedDate, item.date)}
+                >
                   {item.weekday}
-                </WeekdayText>
+                </Styles.WeekdayText>
                 {!item.isUnavailable && (
-                  <AvailabilityIndicator
+                  <Styles.AvailabilityIndicator
                     level={item.availability}
                     selected={isSameDay(selectedDate, item.date)}
                   />
                 )}
-              </DateOption>
+              </Styles.DateOption>
             )}
             initialNumToRender={7}
             maxToRenderPerBatch={10}
           />
-        </DateItemsContainer>
-      </DateSelectorContainer>
+        </Styles.DateItemsContainer>
+      </Styles.DateSelectorContainer>
 
-      {/* Party Size Selection */}
-      <PartySelectorContainer>
-        <SectionTitle>Party Size</SectionTitle>
+      {/* Party Size Selector */}
+      <Styles.PartySelectorContainer>
+        <Styles.SectionTitle>Party Size</Styles.SectionTitle>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <PartyOptionsContainer>
+          <Styles.PartyOptionsContainer>
             {partySizeOptions.map((size) => (
-              <PartyOption
+              <Styles.PartyOption
                 key={`size-${size}`}
                 selected={partySize === size}
                 onPress={() => setPartySize(size)}
               >
-                <PartyText selected={partySize === size}>{size}</PartyText>
-              </PartyOption>
+                <Styles.PartyText selected={partySize === size}>
+                  {size}
+                </Styles.PartyText>
+              </Styles.PartyOption>
             ))}
-          </PartyOptionsContainer>
+          </Styles.PartyOptionsContainer>
         </ScrollView>
-      </PartySelectorContainer>
+      </Styles.PartySelectorContainer>
 
-      {/* Time Selection */}
-      <TimeContainer>
-        <SectionTitle>Time</SectionTitle>
+      {/* Time Selector */}
+      <Styles.TimeContainer>
+        <Styles.SectionTitle>Time</Styles.SectionTitle>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TimeOptionsContainer>
+          <Styles.TimeOptionsContainer>
             {availableTimes.map((time, index) => {
-              // Calculate availability per time slot (would be from API in real app)
               const hour = parseInt(time.split(":")[0]);
               let timeAvailability = "high";
-
               if (hour >= 18 && hour <= 20) {
                 timeAvailability = "medium";
               } else if (hour === 21) {
                 timeAvailability = "low";
               }
-
               return (
-                <TimeOption
+                <Styles.TimeOption
                   key={`time-${index}`}
                   selected={selectedTime === time}
                   availability={timeAvailability}
                   onPress={() => setSelectedTime(time)}
                 >
-                  <TimeText selected={selectedTime === time}>{time}</TimeText>
-                  <TimeAvailabilityIndicator
+                  <Styles.TimeText selected={selectedTime === time}>
+                    {time}
+                  </Styles.TimeText>
+                  <Styles.TimeAvailabilityIndicator
                     level={timeAvailability}
                     selected={selectedTime === time}
                   />
-                </TimeOption>
+                </Styles.TimeOption>
               );
             })}
-          </TimeOptionsContainer>
+          </Styles.TimeOptionsContainer>
         </ScrollView>
-
         {renderAvailabilityLegend()}
-      </TimeContainer>
+      </Styles.TimeContainer>
 
       <Separator type="full" />
 
-      {/* Toggle restaurant layout view */}
-      <ToggleButton onPress={() => setShowLayout(!showLayout)}>
+      {/* Seat Selection Toggle */}
+      <Styles.ToggleButton onPress={() => setShowLayout(!showLayout)}>
         <MaterialIcons
           name={showLayout ? "visibility-off" : "visibility"}
           size={24}
           color="#262626"
         />
-        <ToggleText>
-          {showLayout ? "Hide Restaurant Layout" : "Preview Your Table"}
-        </ToggleText>
-      </ToggleButton>
+        <Styles.ToggleText>
+          {showLayout ? "Hide Seating Layout" : "Select Your Seats"}
+        </Styles.ToggleText>
+      </Styles.ToggleButton>
 
+      {/* 3D Layout for Seat Selection */}
       {showLayout && (
-        <LayoutContainer>
+        <Styles.LayoutContainer>
           <ReservationLayoutView
-            onTableSelect={handleTableSelection}
+            onTableSelect={handleChairSelection}
             partySize={partySize}
             selectedTime={selectedTime}
             selectedDate={format(selectedDate, "yyyy-MM-dd")}
             onInteractionStart={handleInteractionStart}
             onInteractionEnd={handleInteractionEnd}
           />
-        </LayoutContainer>
+        </Styles.LayoutContainer>
       )}
 
-      {/* Special requests section */}
-      <SectionTitle>Special Requests (Optional)</SectionTitle>
-      <NotesInput
+      {/* Special Requests */}
+      <Styles.SectionTitle>Special Requests (Optional)</Styles.SectionTitle>
+      <Styles.NotesInput
         multiline
         placeholder="Add any special requests or dietary requirements..."
         value={notes}
@@ -677,14 +407,13 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
         textAlignVertical="top"
       />
 
-      {/* Reserve button */}
-      <ReserveButton onPress={handleReservePress}>
-        <ReserveButtonText>Reserve Now</ReserveButtonText>
-      </ReserveButton>
+      {/* Reserve Button */}
+      <Styles.ReserveButton onPress={handleReservePress}>
+        <Styles.ReserveButtonText>Reserve Now</Styles.ReserveButtonText>
+      </Styles.ReserveButton>
 
-      {/* Bottom spacing */}
       <View style={{ height: 40 }} />
-    </Container>
+    </Styles.Container>
   );
 };
 

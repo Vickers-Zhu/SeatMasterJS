@@ -84,7 +84,7 @@ const CloseButton = styled(TouchableOpacity)`
 `;
 
 const formatAddressToString = (address) => {
-  if (!address) return "";
+  if (!address) return "Default Address";
   const { street, city, state, postalCode, country } = address;
   const parts = [street, city, state, postalCode, country].filter(Boolean);
   return parts.join(", ");

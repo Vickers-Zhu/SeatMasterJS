@@ -3,11 +3,9 @@ import React from "react";
 import { View } from "react-native";
 import { format, isToday, isTomorrow } from "date-fns";
 import styled, { useTheme } from "styled-components/native";
-
 import { Spacer } from "../../../../components/Spacer/Spacer";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import { MaterialIcons } from "@expo/vector-icons";
-
 import {
   ReservationCardContainer,
   ReservationCardCover,
@@ -19,7 +17,6 @@ import {
   TrackButtonText,
 } from "./ReservationCard.styles";
 
-// New styles for the selected state
 const SelectedIndicator = styled.View`
   position: absolute;
   top: 0;
@@ -62,21 +59,24 @@ const IconRow = styled.View`
 `;
 
 const formatDate = (date) => {
-  if (isToday(date)) return "Today";
-  if (isTomorrow(date)) return "Tomorrow";
-  return format(date, "EEE, MMM d");
+  if (isToday(new Date(date))) return "Today";
+  if (isTomorrow(new Date(date))) return "Tomorrow";
+  return format(new Date(date), "EEE, MMM d");
 };
 
 export const ReservationCard = ({ reservation = {}, isSelected = false }) => {
   const theme = useTheme();
-
   const {
     restaurant = {},
-    date = new Date(),
+    date = "2024-04-01",
     time = "7:00 PM",
     seatsNumber = 4,
+    people = 4,
     status = "Confirmed",
   } = reservation;
+  
+  // Use either seatsNumber or people for party size display (whichever is defined)
+  const partySize = people || seatsNumber;
 
   return (
     <ReservationCardContainer elevation={0}>
@@ -95,7 +95,7 @@ export const ReservationCard = ({ reservation = {}, isSelected = false }) => {
                 color={theme.colors.text.primary}
               />
               <Spacer position="left" size="small" />
-              <DetailText>{formatDate(new Date(date))}</DetailText>
+              <DetailText>{formatDate(date)}</DetailText>
             </IconRow>
             <IconRow>
               <MaterialIcons
@@ -114,7 +114,7 @@ export const ReservationCard = ({ reservation = {}, isSelected = false }) => {
               />
               <Spacer position="left" size="small" />
               <DetailText>
-                {seatsNumber} {seatsNumber === 1 ? "person" : "people"}
+                {partySize} {partySize === 1 ? "person" : "people"}
               </DetailText>
             </IconRow>
           </ReservationDetails>
