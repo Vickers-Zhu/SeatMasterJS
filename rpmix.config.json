@@ -1,7 +1,0 @@
-{
-  "alwaysInclude": ["src/infrastructure/theme"],
-  "ignoreDirs": ["node_modules", ".git", "dist", "build"],
-  "outputFile": "repomix_output.txt",
-  "format": "txt",
-  "verbose": false
-}
