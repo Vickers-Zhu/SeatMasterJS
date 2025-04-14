@@ -1,6 +1,6 @@
-// screens/ReservationsScreen.js
+// src/features/customer/reservations/screens/ReservationsScreen.js
 import React, { useState, useEffect, useRef } from "react";
-import styled from "styled-components/native";
+import styled, { useTheme } from "styled-components/native";
 import {
   ScrollView,
   TouchableOpacity,
@@ -21,11 +21,13 @@ import { PastReservationCard } from "../components/PastReservationCard";
 import { useReservation } from "../../../../services/ReservationContext";
 import { FadeInView } from "../../../../components/FadeInView/FadeInView";
 
+// Main Container
 const Container = styled(SafeArea)`
   flex: 1;
   background-color: ${(props) => props.theme.colors.bg.primary};
 `;
 
+// Tab Bar
 const TabBar = styled.View`
   flex-direction: row;
   align-items: center;
@@ -49,15 +51,20 @@ const TabText = styled(CustomText)`
     props.active
       ? props.theme.colors.ui.primary
       : props.theme.colors.text.primary};
-  font-weight: ${(props) => (props.active ? "bold" : "normal")};
+  font-weight: ${(props) =>
+    props.active
+      ? props.theme.fontWeights.bold
+      : props.theme.fontWeights.regular};
 `;
 
+// Section title
 const SectionTitle = styled(CustomText)`
   margin-left: ${(props) => props.theme.space[2]};
   padding-left: ${(props) => props.theme.space[2]};
   padding-top: ${(props) => props.theme.space[2]};
 `;
 
+// Empty state
 const EmptyState = styled.View`
   padding: ${(props) => props.theme.space[4]};
   align-items: center;
@@ -82,10 +89,11 @@ const ActionButton = styled(TouchableOpacity)`
 
 const ActionButtonText = styled(CustomText)`
   color: ${(props) => props.theme.colors.text.inverse};
-  font-weight: bold;
+  font-weight: ${(props) => props.theme.fontWeights.bold};
   margin-left: ${(props) => props.theme.space[1]};
 `;
 
+// Reservation details
 const ReservationDetails = styled.View`
   background-color: ${(props) => props.theme.colors.bg.secondary};
   padding: ${(props) => props.theme.space[3]};
@@ -133,15 +141,15 @@ const StatusBadge = styled.View`
   background-color: ${(props) => {
     switch (props.status) {
       case "Confirmed":
-        return "#4CAF50";
+        return props.theme.colors.ui.success;
       case "Pending":
-        return "#FFC107";
+        return "#FFC107"; // Consider adding to theme
       case "Completed":
-        return "#9E9E9E";
+        return props.theme.colors.ui.secondary;
       case "Cancelled":
-        return "#F44336";
+        return props.theme.colors.ui.error;
       default:
-        return "#757575";
+        return props.theme.colors.ui.secondary;
     }
   }};
   padding: ${(props) => props.theme.space[1]} ${(props) => props.theme.space[2]};
@@ -151,9 +159,9 @@ const StatusBadge = styled.View`
 `;
 
 const StatusText = styled(CustomText)`
-  color: white;
+  color: ${(props) => props.theme.colors.text.inverse};
   font-size: ${(props) => props.theme.fontSizes.caption};
-  font-weight: bold;
+  font-weight: ${(props) => props.theme.fontWeights.bold};
 `;
 
 // Card related components
@@ -180,7 +188,7 @@ const ViewButtonOverlay = styled(TouchableOpacity)`
   justify-content: center;
 `;
 
-// Adding a backdrop to close the details
+// Backdrop for closing details
 const Backdrop = styled(TouchableWithoutFeedback)`
   position: absolute;
   left: 0;
@@ -195,6 +203,7 @@ export const ReservationsScreen = () => {
   const [activeTab, setActiveTab] = useState("upcoming");
   const [selectedReservation, setSelectedReservation] = useState(null);
   const scrollViewRef = useRef(null);
+  const { theme } = useTheme();
 
   const {
     isLoading,
