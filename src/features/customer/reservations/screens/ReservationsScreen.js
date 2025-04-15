@@ -20,14 +20,13 @@ import { ReservationCard } from "../components/ReservationCard";
 import { PastReservationCard } from "../components/PastReservationCard";
 import { useReservation } from "../../../../services/ReservationContext";
 import { FadeInView } from "../../../../components/FadeInView/FadeInView";
+import ReservationFlow from "../screens/ReservationFlow";
 
-// Main Container
 const Container = styled(SafeArea)`
   flex: 1;
   background-color: ${(props) => props.theme.colors.bg.primary};
 `;
 
-// Tab Bar
 const TabBar = styled.View`
   flex-direction: row;
   align-items: center;
@@ -143,7 +142,7 @@ const StatusBadge = styled.View`
       case "Confirmed":
         return props.theme.colors.ui.success;
       case "Pending":
-        return "#FFC107"; // Consider adding to theme
+        return "#FFC107";
       case "Completed":
         return props.theme.colors.ui.secondary;
       case "Cancelled":
@@ -198,13 +197,23 @@ const Backdrop = styled(TouchableWithoutFeedback)`
   z-index: 5;
 `;
 
+// Overlay for ReservationFlow
+const FlowOverlay = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: ${(props) => props.theme.colors.bg.primary};
+  z-index: 100;
+`;
+
 export const ReservationsScreen = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [selectedReservation, setSelectedReservation] = useState(null);
   const scrollViewRef = useRef(null);
-  const { theme } = useTheme();
-
+  const theme = useTheme();
   const {
     isLoading,
     getUpcomingReservations,
@@ -212,13 +221,16 @@ export const ReservationsScreen = () => {
     cancelReservation,
   } = useReservation();
 
+  // State to manage the reservation flow
+  const [showReservationFlow, setShowReservationFlow] = useState(false);
+  const [reservationToModify, setReservationToModify] = useState(null);
+
   // For the demo, we'll use mock data since the context isn't fully implemented
   // In a real app, this would use the context data
   const upcomingReservations = reservations.filter(
     (reservation) =>
       reservation.status === "Confirmed" || reservation.status === "Pending"
   );
-
   const pastReservations = reservations.filter(
     (reservation) => reservation.status === "Completed"
   );
@@ -270,12 +282,24 @@ export const ReservationsScreen = () => {
   };
 
   const handleModifyReservation = () => {
-    // Navigate to restaurant detail screen with the reservation data
-    navigation.navigate("RestaurantDetailScreen", {
-      restaurant: selectedReservation.restaurant,
-      openReservationView: true,
-      // We'd also pass the existing reservation data to pre-fill the form
-    });
+    // Set the reservation to modify
+    setReservationToModify(selectedReservation);
+    // Close the details view
+    setSelectedReservation(null);
+    // Show the reservation flow
+    setShowReservationFlow(true);
+  };
+
+  const handleMakeNewReservation = () => {
+    // Show the reservation flow for a new reservation
+    setReservationToModify(null);
+    setShowReservationFlow(true);
+  };
+
+  const handleBackFromReservation = () => {
+    // Hide the reservation flow
+    setShowReservationFlow(false);
+    setReservationToModify(null);
   };
 
   const renderEmptyState = () => (
@@ -287,7 +311,7 @@ export const ReservationsScreen = () => {
           : "You don't have any past reservations"}
       </EmptyStateText>
       {activeTab === "upcoming" && (
-        <ActionButton onPress={() => navigation.navigate("Restaurants")}>
+        <ActionButton onPress={handleMakeNewReservation}>
           <MaterialIcons name="add" size={20} color="white" />
           <ActionButtonText>Make a Reservation</ActionButtonText>
         </ActionButton>
@@ -297,7 +321,6 @@ export const ReservationsScreen = () => {
 
   const renderReservationDetails = () => {
     if (!selectedReservation) return null;
-
     const isPastReservation = selectedReservation.status === "Completed";
     const formattedDuration = selectedReservation.duration
       ? `${Math.floor(selectedReservation.duration / 60)}h${
@@ -306,7 +329,6 @@ export const ReservationsScreen = () => {
             : ""
         }`
       : "";
-
     return (
       <>
         <Backdrop onPress={closeDetails}>
@@ -387,6 +409,7 @@ export const ReservationsScreen = () => {
                   navigation.navigate("RestaurantDetailScreen", {
                     restaurant: selectedReservation.restaurant,
                   });
+                  setSelectedReservation(null);
                 }}
               >
                 <MaterialIcons name="info" size={24} color="#262626" />
@@ -403,6 +426,32 @@ export const ReservationsScreen = () => {
     );
   };
 
+  if (showReservationFlow) {
+    return (
+      <SafeArea>
+        <FlowOverlay>
+          <View
+            style={{ flexDirection: "row", padding: 16, alignItems: "center" }}
+          >
+            <TouchableOpacity onPress={handleBackFromReservation}>
+              <MaterialIcons name="arrow-back" size={24} color="#262626" />
+            </TouchableOpacity>
+            <CustomText variant="title" style={{ marginLeft: 16 }}>
+              {reservationToModify
+                ? "Modify Reservation"
+                : "Make a Reservation"}
+            </CustomText>
+          </View>
+          <ReservationFlow
+            restaurant={reservationToModify?.restaurant}
+            existingReservation={reservationToModify}
+            onCancel={handleBackFromReservation}
+          />
+        </FlowOverlay>
+      </SafeArea>
+    );
+  }
+
   return (
     <Container>
       <TabBar>
@@ -416,9 +465,7 @@ export const ReservationsScreen = () => {
           <TabText active={activeTab === "past"}>Past</TabText>
         </Tab>
       </TabBar>
-
       {selectedReservation && renderReservationDetails()}
-
       <ScrollView ref={scrollViewRef} onScrollBeginDrag={closeDetails}>
         {activeTab === "upcoming" && (
           <>

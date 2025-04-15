@@ -286,17 +286,41 @@ export const NotesInput = styled.TextInput`
 `;
 
 export const ReserveButton = styled.TouchableOpacity`
+  flex: 1;
   background-color: ${(props) => props.theme.colors.ui.primary};
   padding: ${(props) => props.theme.space[3]};
   border-radius: 12px;
   align-items: center;
   justify-content: center;
   margin-bottom: ${(props) => props.theme.space[4]};
+  margin-left: ${(props) => props.theme.space[2]};
   elevation: 3;
   shadow-opacity: 0.2;
   shadow-radius: 4px;
   shadow-color: #000;
   shadow-offset: 0px 2px;
+`;
+
+export const CancelButton = styled.TouchableOpacity`
+  flex: 1;
+  background-color: ${(props) => props.theme.colors.bg.secondary};
+  padding: ${(props) => props.theme.space[3]};
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: ${(props) => props.theme.space[4]};
+  margin-right: ${(props) => props.theme.space[2]};
+  elevation: 1;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+`;
+
+export const CancelButtonText = styled(CustomText)`
+  color: ${(props) => props.theme.colors.text.primary};
+  font-size: ${(props) => props.theme.fontSizes.button};
+  font-weight: ${(props) => props.theme.fontWeights.bold};
 `;
 
 export const ReserveButtonText = styled(CustomText)`

@@ -5,7 +5,6 @@ import {
   Dimensions,
   View,
   TouchableOpacity,
-  Modal,
   StatusBar,
   Platform,
   Pressable,
@@ -25,8 +24,8 @@ import Others from "../components/Others";
 import TabNavigation from "../components/TabNavigation";
 import useScrollHandler from "../hooks/useScrollHandler";
 import useReservationHandler from "../hooks/useReservationHandler";
-import ReservationFlow from "../../reservations/screens/ReservationFlow";
 import { EditButton } from "../../../merchant/settings/components/EditButton";
+import ReservationFlow from "../../../customer/reservations/screens/ReservationFlow";
 
 export const Header = styled.View`
   flex-direction: row;
@@ -58,29 +57,15 @@ const ReservationButtonText = styled(CustomText)`
   font-weight: ${(props) => props.theme.fontWeights.bold};
 `;
 
-const ModalContainer = styled.View`
-  flex: 1;
+// Overlay for ReservationFlow
+const FlowOverlay = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: ${(props) => props.theme.colors.bg.primary};
-`;
-
-const ModalHeader = styled.View`
-  flex-direction: row;
-  align-items: center;
-  padding: ${(props) => props.theme.space[3]};
-  border-bottom-width: 1px;
-  border-bottom-color: ${(props) => props.theme.colors.ui.tertiary};
-  margin-top: ${(props) => (Platform.OS === "ios" ? props.theme.space[4] : 0)};
-`;
-
-const ModalTitle = styled(CustomText)`
-  font-size: ${(props) => props.theme.fontSizes.title};
-  font-weight: ${(props) => props.theme.fontWeights.bold};
-  flex: 1;
-  text-align: center;
-`;
-
-const CloseButton = styled(TouchableOpacity)`
-  padding: ${(props) => props.theme.space[2]};
+  z-index: 100;
 `;
 
 const formatAddressToString = (address) => {
@@ -91,18 +76,14 @@ const formatAddressToString = (address) => {
 };
 
 export const RestaurantDetailScreen = ({ route, navigation }) => {
-  // Get restaurant data from route params or use default
   const initialRestaurant = route.params?.restaurant || {};
   const [restaurant, setRestaurant] = useState(initialRestaurant);
   const isMerchantView = route.params?.isMerchantView || false;
-  const openReservationView = route.params?.openReservationView || false;
-  // Reservation modal state
-  const [showReservationModal, setShowReservationModal] =
-    useState(openReservationView);
+  
+  // State to control reservation flow visibility
+  const [showReservationFlow, setShowReservationFlow] = useState(false);
 
-  // Handle null or undefined restaurant properties safely
   useEffect(() => {
-    // Ensure restaurant has all necessary properties to avoid rendering errors
     if (!restaurant.address) {
       setRestaurant((prev) => ({
         ...prev,
@@ -130,7 +111,6 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     { key: "reviews", title: "Reviews" },
     { key: "others", title: "Others" },
   ]);
-
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const [heights, setHeights] = useState({
@@ -139,12 +119,10 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     switch: 0,
     content: {},
   });
-
   const { isReservation, isShowReservationContent, opacity, animateAndSwitch } =
     useReservationHandler();
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const handleScroll = useScrollHandler(routes, heights, setIndex);
-
   const scrollToTab = useCallback(
     (tabKey, newIndex) => {
       let yPosition =
@@ -176,16 +154,36 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
     });
   };
 
-  const handleCloseModal = () => {
-    setShowReservationModal(false);
+  const handleMakeReservation = () => {
+    // Show reservation flow inline instead of navigating
+    setShowReservationFlow(true);
   };
 
-  const handleReservationComplete = (reservationDetails) => {
-    setShowReservationModal(false);
-    setTimeout(() => {
-      navigation.navigate("Reservations");
-    }, 500);
+  // Handle back from reservation flow
+  const handleBackFromReservation = () => {
+    setShowReservationFlow(false);
   };
+
+  if (showReservationFlow) {
+    return (
+      <SafeArea>
+        <FlowOverlay>
+          <View style={{ flexDirection: 'row', padding: 16, alignItems: 'center' }}>
+            <TouchableOpacity onPress={handleBackFromReservation}>
+              <MaterialIcons name="arrow-back" size={24} color="#262626" />
+            </TouchableOpacity>
+            <CustomText variant="title" style={{ marginLeft: 16 }}>
+              Make a Reservation
+            </CustomText>
+          </View>
+          <ReservationFlow 
+            restaurant={restaurant}
+            onCancel={handleBackFromReservation}
+          />
+        </FlowOverlay>
+      </SafeArea>
+    );
+  }
 
   return (
     <SafeArea>
@@ -235,7 +233,6 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
               elevation={0}
             />
           </Spacing>
-
           <View
             onLayout={(event) =>
               setHeights({
@@ -245,7 +242,7 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
             }
           >
             {!isMerchantView && (
-              <ReservationButton onPress={() => setShowReservationModal(true)}>
+              <ReservationButton onPress={handleMakeReservation}>
                 <ReservationButtonText>
                   Make a Reservation
                 </ReservationButtonText>
@@ -315,28 +312,6 @@ export const RestaurantDetailScreen = ({ route, navigation }) => {
           )}
         </Animated.ScrollView>
       </View>
-
-      <Modal
-        visible={showReservationModal}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={handleCloseModal}
-      >
-        <StatusBar barStyle="dark-content" />
-        <ModalContainer>
-          <ModalHeader>
-            <CloseButton onPress={handleCloseModal} activeOpacity={0.7}>
-              <MaterialIcons name="close" size={24} color="#262626" />
-            </CloseButton>
-            <ModalTitle>Reservation</ModalTitle>
-            <View style={{ width: 24 }} />
-          </ModalHeader>
-          <ReservationFlow
-            restaurant={restaurant}
-            onComplete={handleReservationComplete}
-          />
-        </ModalContainer>
-      </Modal>
     </SafeArea>
   );
 };

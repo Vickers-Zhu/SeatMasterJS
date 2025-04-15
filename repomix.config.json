@@ -1,5 +1,5 @@
 {
-  "include": ["**/*", "*.*"],
+  "include": ["src/**/*", "*.*"],
   "ignore": {
     "useGitignore": true,
     "useDefaultPatterns": true,

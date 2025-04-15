@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { format, addDays, isSameDay, getDay } from "date-fns";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { CustomText } from "../../../../components/CustomText/CustomText";
 import ReservationLayoutView from "../components/ReservationLayoutView";
 import { TimeScroll } from "../../../../components/TimeScroll/TimeScroll";
@@ -16,6 +17,7 @@ import { Separator } from "../../../../components/Separator/Separator";
 import { Spacer } from "../../../../components/Spacer/Spacer";
 import { generateTimeSlots } from "../../../merchant/reservations/utils/timeUtils";
 import * as Styles from "./ReservationFlow.styles";
+import { BackButton } from "../../../../components/BackButton/BackButton";
 
 const getDayAvailability = (date) => {
   const day = getDay(date);
@@ -29,7 +31,18 @@ const getWeekdayName = (date) => {
   return days[getDay(date)];
 };
 
-const ReservationFlow = ({ restaurant, onComplete }) => {
+const ReservationFlow = ({ 
+  restaurant: propRestaurant, 
+  existingReservation: propExistingReservation,
+  onCancel 
+}) => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  
+  // Use props if provided, otherwise use route params
+  const restaurant = propRestaurant || route.params?.restaurant;
+  const existingReservation = propExistingReservation || route.params?.existingReservation;
+
   const dateScrollRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [partySize, setPartySize] = useState(2);
@@ -41,6 +54,47 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
   const [availability, setAvailability] = useState("high");
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [duration, setDuration] = useState(90);
+
+  // Pre-fill form with existing reservation data if available
+  useEffect(() => {
+    if (existingReservation) {
+      // Parse the date string to a Date object
+      if (existingReservation.date) {
+        try {
+          const date = new Date(existingReservation.date);
+          setSelectedDate(date);
+        } catch (e) {
+          console.error("Failed to parse date:", e);
+        }
+      }
+
+      // Set party size
+      if (existingReservation.people) {
+        setPartySize(existingReservation.people);
+      }
+
+      // Set time
+      if (existingReservation.time) {
+        setSelectedTime(existingReservation.time);
+      }
+
+      // Set notes
+      if (existingReservation.note) {
+        setNotes(existingReservation.note);
+      }
+
+      // Set selected chairs
+      if (existingReservation.chairs && existingReservation.chairs.length > 0) {
+        setSelectedChairs(existingReservation.chairs);
+        setShowLayout(true);
+      }
+
+      // Set duration
+      if (existingReservation.duration) {
+        setDuration(existingReservation.duration);
+      }
+    }
+  }, [existingReservation]);
 
   // Generate dates for selection
   const generateDates = useCallback(() => {
@@ -126,7 +180,10 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
 
   // Reset chair selection when party size or time changes
   useEffect(() => {
-    setSelectedChairs([]);
+    // Only reset chairs if the user hasn't explicitly chosen seats
+    if (!existingReservation) {
+      setSelectedChairs([]);
+    }
   }, [partySize, selectedTime]);
 
   // Handlers for interaction with the 3D layout
@@ -176,7 +233,7 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
 
     const customerName = "Current User";
     const reservationDetails = {
-      id: generateReservationId(),
+      id: existingReservation?.id || generateReservationId(),
       customerName,
       restaurant: restaurant,
       date: format(selectedDate, "yyyy-MM-dd"),
@@ -194,26 +251,36 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
       reservationDetails.autoAssigned = true;
     }
 
+    // Determine if this is a new or modified reservation
+    const isModification = !!existingReservation;
+    const title = isModification
+      ? "Reservation Updated!"
+      : "Reservation Confirmed!";
+    const message = `Your reservation for ${partySize} ${
+      partySize > 1 ? "people" : "person"
+    } at ${selectedTime} on ${format(selectedDate, "EEE, MMM d")} has been ${
+      isModification ? "updated" : "confirmed"
+    }.${
+      selectedChairs.length === 0
+        ? "\n\nYour seats will be assigned upon arrival."
+        : ""
+    }`;
+
     // Confirm the reservation
-    Alert.alert(
-      "Reservation Confirmed!",
-      `Your reservation for ${partySize} ${
-        partySize > 1 ? "people" : "person"
-      } at ${selectedTime} on ${format(
-        selectedDate,
-        "EEE, MMM d"
-      )} has been confirmed.${
-        selectedChairs.length === 0
-          ? "\n\nYour seats will be assigned upon arrival."
-          : ""
-      }`,
-      [
-        {
-          text: "OK",
-          onPress: () => onComplete && onComplete(reservationDetails),
+    Alert.alert(title, message, [
+      {
+        text: "OK",
+        onPress: () => {
+          // If we have an onCancel function (provided in props), use it
+          if (onCancel) {
+            onCancel();
+          } else {
+            // Otherwise navigate back
+            navigation.navigate("ReservationsScreen");
+          }
         },
-      ]
-    );
+      },
+    ]);
   }, [
     selectedDate,
     selectedTime,
@@ -223,8 +290,19 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
     showLayout,
     notes,
     restaurant,
-    onComplete,
+    existingReservation,
+    navigation,
+    onCancel,
   ]);
+
+  // Handle cancel button
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      navigation.goBack();
+    }
+  };
 
   // Render availability legend
   const renderAvailabilityLegend = () => (
@@ -270,11 +348,6 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
 
   return (
     <Styles.Container scrollEnabled={scrollEnabled}>
-      <Styles.HeaderContainer>
-        <CustomText variant="h4">Make a Reservation</CustomText>
-      </Styles.HeaderContainer>
-
-      {/* Date Selector */}
       <Styles.DateSelectorContainer>
         <Styles.SectionTitle>Date</Styles.SectionTitle>
         <Styles.DateItemsContainer>
@@ -407,10 +480,18 @@ const ReservationFlow = ({ restaurant, onComplete }) => {
         textAlignVertical="top"
       />
 
-      {/* Reserve Button */}
-      <Styles.ReserveButton onPress={handleReservePress}>
-        <Styles.ReserveButtonText>Reserve Now</Styles.ReserveButtonText>
-      </Styles.ReserveButton>
+      {/* Action Buttons */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Styles.CancelButton onPress={handleCancel}>
+          <Styles.CancelButtonText>Cancel</Styles.CancelButtonText>
+        </Styles.CancelButton>
+        
+        <Styles.ReserveButton onPress={handleReservePress}>
+          <Styles.ReserveButtonText>
+            {existingReservation ? "Update Reservation" : "Reserve Now"}
+          </Styles.ReserveButtonText>
+        </Styles.ReserveButton>
+      </View>
 
       <View style={{ height: 40 }} />
     </Styles.Container>
